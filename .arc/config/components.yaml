@@ -3,9 +3,32 @@ components:
   comp_web_app:
     name: Web App
     kind: web_ui
+    directory: apps/web
+    stack:
+      choices:
+        styling: tailwind
+        language: typescript
+        framework: react + vite
+        package_manager: pnpm
+        testing_tool_e2e: playwright
+        testing_tool_unit: vitest
+      notes: database not applicable — calls the Trip Planner API
   comp_trip_planner_api:
     name: Trip Planner API
     kind: api_service
+    directory: services/api
+    stack:
+      choices:
+        language: python
+        framework: fastapi
+        package_manager: pip
+        testing_tool_e2e: pytest + httpx
+        testing_tool_unit: pytest
+      notes: runs on AWS Lambda behind API Gateway via Mangum; no owned database —
+        data lives in the Trip Database; styling not applicable — API only
   comp_trip_database:
     name: Trip Database
     kind: managed_service
+    stack:
+      choices:
+        managed_service: Amazon DynamoDB

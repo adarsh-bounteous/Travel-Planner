@@ -5,21 +5,28 @@ components:
     test_command: cd services/api && sh run-py.sh -m pytest -c pytest.ini
     build_command: cd services/api && sh build.sh
     devloop_command: cd services/api && sh run-py.sh -m pytest -c pytest.ini -q
+    install_command: cd services/api && uv add {requirement}
   comp_web_app:
     mode: local
     e2e_command: cd apps/web && pnpm run e2e
     test_command: cd apps/web && pnpm run test
     build_command: cd apps/web && pnpm run build
     devloop_command: cd apps/web && pnpm run devloop
+    install_command: cd apps/web && pnpm add {name}@{version}
 commands:
   test: (cd services/api && sh run-py.sh -m pytest -c pytest.ini) && (cd apps/web
     && pnpm run test)
   build: (cd services/api && sh build.sh) && (cd apps/web && pnpm run build)
   devloop: (cd services/api && sh run-py.sh -m pytest -c pytest.ini -q) && (cd apps/web
     && pnpm run devloop)
+  test_fast_args: --lf --no-header
 setup_command: (cd apps/web && pnpm install --frozen-lockfile) && (cd services/api
   && uv sync)
 toolchain:
   node: '22'
   pnpm: 12.9.1
   python: '3.12'
+package_install_commands:
+  pnpm: pnpm add {name}@{version}
+  uv: uv add {requirement}
+  pip: pip install {requirement}

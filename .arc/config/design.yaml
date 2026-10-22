@@ -1,0 +1,7 @@
+design_system:
+  dir: design-system
+  assets:
+    tokens: tokens.css
+    prototype_utils: prototype-utils.css
+    ui_guidelines: UI-GUIDELINES.md
+    app_shell: app-shell.html

@@ -1,0 +1,96 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --color-fg: #0f172a; /** Primary text; pairs with color-bg (AA) */
+  --color-fg-muted: #475569; /** Secondary text, hints, captions */
+  --color-bg: #ffffff; /** Page background */
+  --color-surface: #f1f5f9; /** Subtle surfaces and hover fills */
+  --color-border: #cbd5e1; /** Default borders and dividers */
+  --color-border-strong: #64748b; /** Form control borders */
+  --color-primary: #0e7490; /** Brand teal: primary actions, links, selection */
+  --color-primary-hover: #155e75; /** Primary hover/pressed */
+  --color-primary-subtle: #ecfeff; /** Tint behind selected items */
+  --color-on-primary: #ffffff; /** Text on primary and danger fills */
+  --color-focus: #1d4ed8; /** Focus ring */
+  --color-danger: #b91c1c; /** Destructive actions and errors */
+  --color-danger-hover: #991b1b; /** Danger hover */
+  --color-danger-subtle: #fef2f2; /** Danger tint */
+  --color-success: #15803d; /** Confirmed / success */
+  --color-success-subtle: #f0fdf4; /** Success tint */
+  --color-warning: #92400e; /** Needs attention */
+  --color-warning-subtle: #fffbeb; /** Warning tint */
+  --color-info: #0369a1; /** Informational */
+  --color-info-subtle: #f0f9ff; /** Info tint */
+  --color-overlay: #0f172a; /** Scrim behind modals and drawers (used with opacity-overlay) */
+  --color-skeleton: #e2e8f0; /** Skeleton placeholder fill */
+  --space-1: 4px; /** Spacing step 1 */
+  --space-2: 8px; /** Spacing step 2 */
+  --space-3: 16px; /** Spacing step 3 */
+  --space-4: 24px; /** Spacing step 4 */
+  --space-5: 32px; /** Spacing step 5 */
+  --space-6: 48px; /** Spacing step 6 */
+  --radius-sm: 4px; /** Small radius: inputs, checkboxes */
+  --radius-md: 8px; /** Medium radius: buttons, menus */
+  --radius-lg: 12px; /** Large radius: cards, modals */
+  --radius-full: 9999px; /** Pills and circles */
+  --font-size-sm: 14px; /** Small text */
+  --font-size-md: 16px; /** Body text */
+  --font-size-lg: 20px; /** Subheadings */
+  --font-size-xl: 28px; /** Page headings */
+  --border-width: 1px; /** Standard border width */
+  --border-width-strong: 2px; /** Focus ring and selected indicators */
+  --size-control-sm: 32px; /** Small control height */
+  --size-control-md: 40px; /** Default control height */
+  --size-control-lg: 48px; /** Large control height */
+  --size-check: 20px; /** Checkbox / radio box */
+  --size-switch-width: 40px; /** Switch track width */
+  --size-switch-height: 22px; /** Switch track height */
+  --size-avatar: 40px; /** Avatar diameter */
+  --size-spinner: 24px; /** Spinner diameter */
+  --size-grid-min: 240px; /** Minimum grid column width */
+  --size-menu-min: 200px; /** Minimum menu width */
+  --size-drawer-width: 360px; /** Drawer width */
+  --size-modal-width: 480px; /** Modal max width */
+  --size-toast-width: 320px; /** Toast max width */
+  --size-tooltip-max: 240px; /** Tooltip max width */
+  --size-content-max: 72rem; /** Max page content width */
+  --size-skeleton-line: 16px; /** Skeleton line height */
+  --size-preview-frame: 360px; /** Height of overlay preview frames in the style guide */
+  --breakpoint-md: 48rem; /** Desktop-navigation breakpoint; documented here because media queries cannot read custom properties */
+  --font-family-sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; /** UI font */
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, monospace; /** Code samples */
+  --font-weight-regular: 400; /** Body */
+  --font-weight-medium: 500; /** Labels and buttons */
+  --font-weight-bold: 700; /** Headings */
+  --line-height-body: 1.5; /** Body line height */
+  --line-height-tight: 1.25; /** Headings */
+  --opacity-disabled: 0.5; /** Disabled controls */
+  --opacity-overlay: 0.5; /** Scrim opacity */
+  --z-dropdown: 10; /** Dropdown layer */
+  --z-overlay: 100; /** Backdrop layer */
+  --z-modal: 110; /** Modal and drawer layer */
+  --z-toast: 120; /** Toast and tooltip layer */
+  --duration-fast: [object Object]; /** Transitions */
+  --duration-spin: [object Object]; /** Spinner and skeleton cycle */
+  --button-primary-background: var(--color-primary); /** Primary button fill */
+  --button-primary-foreground: var(--color-on-primary); /** Primary button text */
+  --button-primary-hover: var(--color-primary-hover); /** Primary button hover fill */
+  --button-secondary-background: var(--color-surface); /** Secondary button fill */
+  --button-secondary-foreground: var(--color-fg); /** Secondary button text */
+  --button-secondary-hover: var(--color-border); /** Secondary button hover fill */
+  --button-secondary-border: var(--color-border-strong); /** Secondary button border */
+  --button-ghost-background: var(--color-bg); /** Ghost button fill */
+  --button-ghost-foreground: var(--color-primary); /** Ghost button text */
+  --button-ghost-hover: var(--color-surface); /** Ghost button hover fill */
+  --button-danger-background: var(--color-danger); /** Danger button fill */
+  --button-danger-foreground: var(--color-on-primary); /** Danger button text */
+  --button-danger-hover: var(--color-danger-hover); /** Danger button hover fill */
+  --button-default-radius: var(--radius-md); /** Button corner radius */
+  --button-default-padding: var(--space-3); /** Button horizontal padding */
+  --card-default-background: var(--color-bg); /** Card fill */
+  --card-default-border: var(--color-border); /** Card border */
+  --card-default-radius: var(--radius-lg); /** Card corner radius */
+  --card-default-padding: var(--space-3); /** Card inner padding */
+}

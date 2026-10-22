@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Travel Planner – Style guide</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="prototype-utils.css">
+  <style>
+    .sg { max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-4) var(--space-3); display: flex; flex-direction: column; gap: var(--space-5); }
+    .sg section > h2 { padding-bottom: var(--space-2); margin-bottom: var(--space-3); border-bottom: var(--border-width) solid var(--color-border); }
+    .sg h3 { margin: var(--space-3) 0 var(--space-2); color: var(--color-fg-muted); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+    .sw { display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--font-size-sm); }
+    .sw-chip { height: var(--size-control-lg); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); }
+    .bar { background: var(--color-primary); height: var(--space-3); border-radius: var(--radius-sm); }
+    .box { background: var(--color-primary-subtle); border: var(--border-width) solid var(--color-primary); width: var(--size-control-lg); height: var(--size-control-lg); }
+    .frame { position: relative; contain: layout; height: var(--size-preview-frame); border: var(--border-width) dashed var(--color-border-strong); border-radius: var(--radius-lg); overflow: hidden; }
+    .frame > .toast, .frame > .tooltip-host { position: absolute; }
+    .guide h2 { margin: var(--space-3) 0 var(--space-2); font-size: var(--font-size-lg); border: 0; padding: 0; }
+    .guide ul { margin: 0; padding-left: var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
+    .dd-static .dropdown-menu { display: block; position: static; margin-bottom: var(--space-2); }
+  </style>
+</head>
+<body>
+<div class="sg">
+  <header>
+    <h1>Travel Planner style guide</h1>
+    <p class="text-muted">Tokens, utilities and components, rendered live from tokens.css and prototype-utils.css. <a href="app-shell.html">View the app shell</a>.</p>
+  </header>
+
+  <section id="colors">
+    <h2>Color tokens</h2>
+    <div class="grid">
+      <div class="sw"><div class="sw-chip" style="background:var(--color-fg)"></div><code>color-fg</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-fg-muted)"></div><code>color-fg-muted</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-bg)"></div><code>color-bg</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-surface)"></div><code>color-surface</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-border)"></div><code>color-border</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-border-strong)"></div><code>color-border-strong</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-primary)"></div><code>color-primary</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-primary-hover)"></div><code>color-primary-hover</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-primary-subtle)"></div><code>color-primary-subtle</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-on-primary)"></div><code>color-on-primary</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-focus)"></div><code>color-focus</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-danger)"></div><code>color-danger</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-danger-hover)"></div><code>color-danger-hover</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-danger-subtle)"></div><code>color-danger-subtle</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-success)"></div><code>color-success</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-success-subtle)"></div><code>color-success-subtle</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-warning)"></div><code>color-warning</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-warning-subtle)"></div><code>color-warning-subtle</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-info)"></div><code>color-info</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-info-subtle)"></div><code>color-info-subtle</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-overlay)"></div><code>color-overlay</code></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--color-skeleton)"></div><code>color-skeleton</code></div>
+    </div>
+  </section>
+
+  <section id="type">
+    <h2>Typography tokens</h2>
+    <div class="stack-sm stack">
+      <p style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold)"><code>font-size-xl</code> Plan your next trip</p>
+      <p style="font-size:var(--font-size-lg);font-weight:var(--font-weight-medium)"><code>font-size-lg</code> Three days in Lisbon</p>
+      <p style="font-size:var(--font-size-md)"><code>font-size-md</code> Body text for itineraries and descriptions.</p>
+      <p style="font-size:var(--font-size-sm)"><code>font-size-sm</code> Captions, hints and metadata.</p>
+      <p><code>font-family-sans</code> <span style="font-family:var(--font-family-sans)">The quick brown fox</span> · <code>font-family-mono</code> <span style="font-family:var(--font-family-mono)">TP-2048</span></p>
+      <p><code>font-weight-regular</code> <span style="font-weight:var(--font-weight-regular)">Regular</span> · <code>font-weight-medium</code> <span style="font-weight:var(--font-weight-medium)">Medium</span> · <code>font-weight-bold</code> <span style="font-weight:var(--font-weight-bold)">Bold</span></p>
+      <p><code>line-height-body</code> and <code>line-height-tight</code> set body and heading leading.</p>
+    </div>
+  </section>
+
+  <section id="space">
+    <h2>Spacing, radius, size and other tokens</h2>
+    <h3>Spacing</h3>
+    <div class="stack stack-sm">
+      <div class="cluster"><code>space-1</code><div class="bar" style="width:var(--space-1)"></div></div>
+      <div class="cluster"><code>space-2</code><div class="bar" style="width:var(--space-2)"></div></div>
+      <div class="cluster"><code>space-3</code><div class="bar" style="width:var(--space-3)"></div></div>
+      <div class="cluster"><code>space-4</code><div class="bar" style="width:var(--space-4)"></div></div>
+      <div class="cluster"><code>space-5</code><div class="bar" style="width:var(--space-5)"></div></div>
+      <div class="cluster"><code>space-6</code><div class="bar" style="width:var(--space-6)"></div></div>
+    </div>
+    <h3>Radius</h3>
+    <div class="cluster cluster-lg">
+      <div class="cluster"><div class="box" style="border-radius:var(--radius-sm)"></div><code>radius-sm</code></div>
+      <div class="cluster"><div class="box" style="border-radius:var(--radius-md)"></div><code>radius-md</code></div>
+      <div class="cluster"><div class="box" style="border-radius:var(--radius-lg)"></div><code>radius-lg</code></div>
+      <div class="cluster"><div class="box" style="border-radius:var(--radius-full)"></div><code>radius-full</code></div>
+    </div>
+    <h3>Borders, sizes, layers, motion</h3>
+    <ul class="text-sm">
+      <li><code>border-width</code>, <code>border-width-strong</code> – borders and focus ring</li>
+      <li><code>size-control-sm</code> / <code>-md</code> / <code>-lg</code> – control heights; <code>size-check</code>, <code>size-switch-width</code>, <code>size-switch-height</code>, <code>size-avatar</code>, <code>size-spinner</code>, <code>size-skeleton-line</code></li>
+      <li><code>size-grid-min</code>, <code>size-menu-min</code>, <code>size-drawer-width</code>, <code>size-modal-width</code>, <code>size-toast-width</code>, <code>size-tooltip-max</code>, <code>size-content-max</code>, <code>size-preview-frame</code>, <code>breakpoint-md</code></li>
+      <li><code>opacity-disabled</code>, <code>opacity-overlay</code>, <code>z-dropdown</code>, <code>z-overlay</code>, <code>z-modal</code>, <code>z-toast</code>, <code>duration-fast</code>, <code>duration-spin</code></li>
+      <li>Component aliases: <code>button-{primary,secondary,ghost,danger}-{background,foreground,hover}</code>, <code>button-secondary-border</code>, <code>button-default-{radius,padding}</code>, <code>card-default-{background,border,radius,padding}</code></li>
+    </ul>
+  </section>
+
+  <section id="buttons">
+    <h2>Buttons</h2>
+    <h3>Variants</h3>
+    <div class="cluster">
+      <button class="btn btn-primary">Primary</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-danger">Danger</button>
+    </div>
+    <h3>Sizes and icon-only</h3>
+    <div class="cluster">
+      <button class="btn btn-primary btn-sm">Small</button>
+      <button class="btn btn-primary">Default</button>
+      <button class="btn btn-primary btn-lg">Large</button>
+      <button class="btn btn-secondary btn-icon" aria-label="Add">+</button>
+      <button class="btn btn-secondary btn-icon btn-sm" aria-label="Add">+</button>
+      <button class="btn btn-secondary btn-icon btn-lg" aria-label="Add">+</button>
+    </div>
+    <h3>Disabled</h3>
+    <div class="cluster">
+      <button class="btn btn-primary" disabled>Primary</button>
+      <button class="btn btn-secondary" disabled>Secondary</button>
+      <button class="btn btn-ghost" disabled>Ghost</button>
+      <button class="btn btn-danger" disabled>Danger</button>
+    </div>
+    <p class="text-sm text-muted">Focus state: press Tab to see the <code>:focus-visible</code> ring on any control on this page.</p>
+  </section>
+
+  <section id="forms">
+    <h2>Form controls</h2>
+    <div class="grid">
+      <div class="field"><label class="field-label" for="f1">Destination</label><input class="input" id="f1" placeholder="Lisbon, Portugal"><span class="field-hint">City or region.</span></div>
+      <div class="field is-invalid"><label class="field-label" for="f2">Travelers (error)</label><input class="input is-invalid" id="f2" value="0" aria-invalid="true"><span class="field-error">Add at least one traveler.</span></div>
+      <div class="field"><label class="field-label" for="f3">Disabled</label><input class="input" id="f3" value="Locked" disabled></div>
+      <div class="field"><label class="field-label" for="f4">Notes</label><textarea class="textarea" id="f4" placeholder="Anything to remember?"></textarea></div>
+      <div class="field"><label class="field-label" for="f5">Currency</label><select class="select" id="f5"><option>EUR</option><option>USD</option></select></div>
+      <div class="field"><label class="field-label" for="f6">Select (error)</label><select class="select is-invalid" id="f6"><option>Choose…</option></select><span class="field-error">Pick one.</span></div>
+      <div class="field"><label class="field-label" for="f7">Textarea (disabled)</label><textarea class="textarea" id="f7" disabled>Read only</textarea></div>
+    </div>
+    <h3>Checkbox, radio, switch</h3>
+    <div class="cluster cluster-lg">
+      <label class="check"><input type="checkbox" class="checkbox"> Unchecked</label>
+      <label class="check"><input type="checkbox" class="checkbox" checked> Checked</label>
+      <label class="check"><input type="checkbox" class="checkbox is-invalid"> Invalid</label>
+      <label class="check"><input type="checkbox" class="checkbox" disabled> Disabled</label>
+      <label class="check"><input type="radio" name="r" class="radio"> Option</label>
+      <label class="check"><input type="radio" name="r" class="radio" checked> Selected</label>
+      <label class="check"><input type="radio" class="radio" disabled> Disabled</label>
+      <label class="check"><input type="checkbox" class="switch" role="switch"> Off</label>
+      <label class="check"><input type="checkbox" class="switch" role="switch" checked> On</label>
+      <label class="check"><input type="checkbox" class="switch" role="switch" disabled> Disabled</label>
+    </div>
+  </section>
+
+  <section id="menus">
+    <h2>Dropdown and menu</h2>
+    <h3>Dropdown (closed trigger, open menu with a checked item)</h3>
+    <div class="cluster" style="align-items:flex-start">
+      <div class="dropdown">
+        <button class="btn btn-secondary" data-menu aria-haspopup="menu">Sort by</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button class="dropdown-item" role="menuitemradio" aria-checked="true">Date</button>
+          <button class="dropdown-item" role="menuitemradio" aria-checked="false">Price</button>
+        </div>
+      </div>
+      <div class="dropdown dd-static">
+        <div class="dropdown-menu is-open" role="menu">
+          <button class="dropdown-item" role="menuitemradio" aria-checked="true">Date</button>
+          <button class="dropdown-item" role="menuitemradio" aria-checked="false">Price</button>
+          <button class="dropdown-item" disabled>Distance (disabled)</button>
+        </div>
+      </div>
+      <div class="menu" role="menu">
+        <button class="menu-item">Rename trip</button>
+        <button class="menu-item">Duplicate</button>
+        <button class="menu-item" aria-checked="true">Shared</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="tabs">
+    <h2>Tabs and accordion</h2>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" aria-selected="false">Itinerary</button>
+      <button class="tab" role="tab" aria-selected="false">Budget</button>
+      <button class="tab" role="tab" aria-selected="false" disabled>Travelers</button>
+    </div>
+    <h3>Accordion / disclosure</h3>
+    <div class="accordion">
+      <details class="disclosure" open><summary>Day 1 – Arrival</summary><div class="disclosure-body">Check in, dinner in Alfama.</div></details>
+      <details class="disclosure"><summary>Day 2 – Sintra</summary><div class="disclosure-body">Train at 09:00.</div></details>
+    </div>
+  </section>
+
+  <section id="surfaces">
+    <h2>Card, badge, chip, avatar, divider</h2>
+    <div class="grid">
+      <div class="card stack stack-sm"><h3>Lisbon, 4 days</h3><p class="text-muted text-sm">12–16 May · 2 travelers</p><div class="cluster"><span class="badge badge-success">Confirmed</span></div></div>
+      <div class="card card-interactive stack stack-sm"><h3>Interactive card</h3><p class="text-muted text-sm">Border highlights on hover.</p></div>
+    </div>
+    <h3>Badges</h3>
+    <div class="cluster"><span class="badge badge-neutral">Draft</span><span class="badge badge-success">Confirmed</span><span class="badge badge-warning">Pending</span><span class="badge badge-danger">Cancelled</span></div>
+    <h3>Chips (default, selected, disabled)</h3>
+    <div class="cluster"><button class="chip" aria-pressed="false">Food</button><button class="chip" aria-pressed="true">Museums</button><button class="chip" disabled>Nightlife</button></div>
+    <h3>Avatars</h3>
+    <div class="cluster"><span class="avatar">AB</span><span class="avatar">JK</span></div>
+    <h3>Divider</h3>
+    <hr class="divider">
+  </section>
+
+  <section id="overlays">
+    <h2>Overlays</h2>
+    <p class="text-sm text-muted">Shown open inside contained frames. In use they start <code>hidden</code> and the kit toggles <code>[hidden]</code> and <code>.is-open</code>.</p>
+    <h3>Modal + backdrop</h3>
+    <div class="frame">
+      <div class="backdrop is-open"></div>
+      <div class="modal is-open" role="dialog" aria-label="Delete trip">
+        <div class="stack"><h2>Delete this trip?</h2><p class="text-muted">This removes the itinerary and bookings.</p>
+        <div class="cluster"><button class="btn btn-danger">Delete trip</button><button class="btn btn-ghost">Keep it</button></div></div>
+      </div>
+    </div>
+    <h3>Drawer</h3>
+    <div class="frame">
+      <div class="backdrop is-open"></div>
+      <aside class="drawer is-open" aria-label="Add activity">
+        <div class="stack"><h2>Add activity</h2><div class="field"><label class="field-label" for="d1">Name</label><input class="input" id="d1"></div><button class="btn btn-primary">Add</button></div>
+      </aside>
+    </div>
+    <h3>Toast and tooltip</h3>
+    <div class="frame">
+      <div class="stack" style="padding:var(--space-4)">
+        <span class="has-tooltip"><button class="btn btn-secondary">Hover target</button><span class="tooltip is-open" role="tooltip">Share this trip</span></span>
+      </div>
+      <div class="toast is-open" role="status">Trip saved.</div>
+    </div>
+  </section>
+
+  <section id="feedback">
+    <h2>Feedback</h2>
+    <div class="stack">
+      <div class="alert alert-info"><span class="alert-title">Info.</span> Prices update daily.</div>
+      <div class="alert alert-success"><span class="alert-title">Success.</span> Booking confirmed.</div>
+      <div class="alert alert-warning"><span class="alert-title">Warning.</span> Your hotel check-in is after your flight lands.</div>
+      <div class="alert alert-danger"><span class="alert-title">Error.</span> That flight is sold out. Try another date.</div>
+    </div>
+    <h3>Empty state</h3>
+    <div class="empty-state"><h3>No trips yet</h3><p>Start planning your first adventure.</p><button class="btn btn-primary">New trip</button></div>
+    <h3>Skeleton and spinner</h3>
+    <div class="stack stack-sm"><span class="skeleton"></span><span class="skeleton" style="width:60%"></span><div><span class="spinner" role="status" aria-label="Loading"></span></div></div>
+  </section>
+
+  <section id="layout">
+    <h2>Layout helpers</h2>
+    <h3><code>.stack</code> (also <code>.stack-sm</code>, <code>.stack-lg</code>)</h3>
+    <div class="stack stack-sm"><div class="box"></div><div class="box"></div></div>
+    <h3><code>.cluster</code></h3>
+    <div class="cluster"><div class="box"></div><div class="box"></div><div class="box"></div></div>
+    <h3><code>.grid</code></h3>
+    <div class="grid"><div class="card">One</div><div class="card">Two</div><div class="card">Three</div></div>
+    <h3>Text utilities</h3>
+    <p><span class="text-muted">.text-muted</span> · <span class="text-sm">.text-sm</span> · <span class="text-lg">.text-lg</span> · <span class="text-bold">.text-bold</span> · <code>.sr-only</code> (hidden text)</p>
+  </section>
+
+  <section id="ui-guidelines" class="guide">
+    <h2 style="font-size:var(--font-size-xl)">UI guidelines</h2>
+    <h2>Navigation and information architecture</h2>
+    <ul>
+      <li><strong>Top bar, no sidebar.</strong> The product has few sections and screens are content-heavy, so full width goes to content.</li>
+      <li><strong>Main sections, in order:</strong> Trips (<code>trips</code>), Explore (<code>explore</code>), Bookings (<code>bookings</code>), Budget (<code>budget</code>). This order follows the planning journey from "where" to "how much".</li>
+      <li><strong>Utility links after the sections:</strong> Saved (<code>saved</code>, wishlisted places) and Account (<code>account</code>). They are personal, not part of planning, so they sit apart.</li>
+      <li><strong>Trips is the home section.</strong> People return to an existing trip far more often than they start a new one.</li>
+      <li><strong>Inside a trip, use <code>.tabs</code></strong> (Overview, Itinerary, Bookings, Budget, Travelers) rather than new top-level items, so the top bar stays constant.</li>
+      <li><strong>Below 48rem the navigation collapses behind a menu button</strong>, because phones can't fit six labels.</li>
+    </ul>
+    <h2>Layout and density</h2>
+    <ul>
+      <li><strong>Spacious consumer app, not a console.</strong> Users plan casually and often on a phone, so favour <code>--space-3</code> and <code>--space-4</code> gaps over tight packing.</li>
+      <li><strong>Single column on phones, <code>.grid</code> on desktop.</strong> Cards reflow by themselves; don't add fixed column counts.</li>
+      <li><strong>Content max width is <code>--size-content-max</code>,</strong> because long itinerary lines are hard to scan.</li>
+      <li><strong>The breakpoints that matter are 375px (phone) and desktop at 48rem;</strong> design phone first.</li>
+    </ul>
+    <h2>Component usage</h2>
+    <ul>
+      <li><strong><code>.card</code> for things you open</strong> (a trip, a destination, a booking), laid out in <code>.grid</code>, because each is a distinct object with its own page.</li>
+      <li><strong><code>.stack</code> of <code>.card</code> or rows for an itinerary day,</strong> because order matters more than comparison.</li>
+      <li><strong>A table only for comparing many records on desktop</strong> (budget line items, price comparisons); on phones turn each row into a <code>.card</code>, because tables overflow at 375px.</li>
+      <li><strong>One <code>.btn-primary</code> per screen section;</strong> other actions use <code>.btn-secondary</code> or <code>.btn-ghost</code>, so the main next step is obvious.</li>
+      <li><strong><code>.btn-danger</code> only for irreversible actions</strong> (delete trip, cancel booking) and always behind a <code>.modal</code> confirmation.</li>
+      <li><strong><code>.badge</code> for booking status</strong> (success = confirmed, warning = pending, danger = cancelled, neutral = draft); <strong><code>.chip</code> for filters and interests,</strong> because chips are user-toggled and badges are not.</li>
+      <li><strong><code>.drawer</code> for editing something in context</strong> (add an activity); <strong><code>.modal</code> only for confirmations,</strong> because drawers keep the itinerary visible.</li>
+      <li><strong><code>.dropdown</code> for choosing one option or sorting; <code>.menu</code> for per-item actions;</strong> use <code>.select</code> only inside forms.</li>
+      <li><strong><code>.toast</code> for confirming a saved change; <code>.alert</code> for problems that stay on the page</strong> (sold-out flight, over budget).</li>
+      <li><strong><code>.empty-state</code> with one <code>.btn-primary</code></strong> wherever a list can be empty (no trips yet), because first use starts empty.</li>
+      <li><strong><code>.skeleton</code> for lists and cards while loading; <code>.spinner</code> only for button-sized waits.</strong></li>
+      <li><strong>Forms: one <code>.field</code> per input with a <code>.field-hint</code>;</strong> show <code>.field-error</code> with <code>.is-invalid</code> after submit, not while typing.</li>
+    </ul>
+    <h2>Theme</h2>
+    <ul>
+      <li><strong>Light only.</strong> Maps, photos and price comparisons are judged on light backgrounds, and one theme halves the review surface.</li>
+      <li><strong><code>--color-primary</code> is reserved for actions and the current selection,</strong> so travellers can tell what is clickable.</li>
+    </ul>
+    <h2>Voice and tone</h2>
+    <ul>
+      <li><strong>Warm, concise, second person</strong> ("Where to next?"), because trip planning should feel exciting rather than administrative.</li>
+      <li><strong>Buttons start with a verb</strong> (Add activity, Save trip), because they describe the outcome.</li>
+      <li><strong>Errors say what happened and what to do next,</strong> without blame ("That flight is sold out. Try another date.").</li>
+      <li><strong>Show dates and money in the traveller's local format</strong> and always include the currency, because mixed currencies cause costly mistakes.</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>

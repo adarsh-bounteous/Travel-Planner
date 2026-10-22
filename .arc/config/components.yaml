@@ -1,0 +1,11 @@
+version: 1
+components:
+  comp_web_app:
+    name: Web App
+    kind: web_ui
+  comp_trip_planner_api:
+    name: Trip Planner API
+    kind: api_service
+  comp_trip_database:
+    name: Trip Database
+    kind: managed_service

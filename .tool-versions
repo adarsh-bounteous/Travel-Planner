@@ -1,0 +1,4 @@
+# Written by arc (ADR-0129): one version per tool for every component.
+nodejs 22
+pnpm 12.9.1
+python 3.12

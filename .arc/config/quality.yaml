@@ -1,0 +1,6 @@
+# Starter quality gates from `arc-quality init` -- edit freely. Each stage lists check ids;
+# `arc-quality plan --stage <stage>` shows what a stage will run.
+version: 1
+stages:
+  devloop:
+  - secrets

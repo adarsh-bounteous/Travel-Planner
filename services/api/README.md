@@ -19,7 +19,13 @@ FastAPI service. Python 3.12.
 | `GOOGLE_REDIRECT_URI` | empty | The API's `/auth/google/callback` URL registered with the pool. |
 | `WEB_ORIGIN` | empty (same origin) | Web App origin the API redirects back to. |
 | `ACCOUNTS_TABLE_NAME` | `trip-planner-accounts` | DynamoDB table holding account-link records (`pk = USER#<id>`). |
+| `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; needs `GetItem`, `PutItem`, `Query`. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
 
 Sessions are HttpOnly cookies that are re-issued on every authenticated request, so they
 expire after 7 days without use. No email or password is logged.
+
+Trips and the traveller profile belong to the signed-in traveller: the owner is always the
+session's user id, never taken from the path or body, and another traveller's trip answers 404.
+The profile is stored as a `profile` map on the account item. Trip and profile contents are
+personal data and are not logged.

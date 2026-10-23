@@ -98,7 +98,7 @@ describe('SignInPage', () => {
           ? new Response(JSON.stringify({ email: 'maya@example.com' }))
           : new Response('{}', { status: 401 })
       }
-      return new Response('{}')
+      return new Response(path === '/trips' ? '[]' : '{}')
     })
     vi.stubGlobal('fetch', fetchMock)
     renderAt('/sign-in')

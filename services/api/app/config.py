@@ -15,6 +15,7 @@ class Settings:
     google_redirect_uri: str
     web_origin: str
     accounts_table_name: str
+    trips_table_name: str
     cookie_secure: bool
 
 
@@ -36,5 +37,6 @@ def get_settings() -> Settings:
         google_redirect_uri=env.get("GOOGLE_REDIRECT_URI", ""),
         web_origin=env.get("WEB_ORIGIN", "").rstrip("/"),
         accounts_table_name=env.get("ACCOUNTS_TABLE_NAME", "trip-planner-accounts"),
+        trips_table_name=env.get("TRIPS_TABLE_NAME", "trip-planner-trips"),
         cookie_secure=env.get("COOKIE_SECURE", "true").lower() != "false",
     )

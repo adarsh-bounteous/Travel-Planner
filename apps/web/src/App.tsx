@@ -6,6 +6,8 @@ import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
 import { SignUpPage } from './auth/SignUpPage'
+import { ProfilePage } from './profile/ProfilePage'
+import { TripPage } from './trips/TripPage'
 
 // Every page other than the auth pages must be wrapped in <RequireAuth>.
 export default function App() {
@@ -27,6 +29,30 @@ export default function App() {
             element={
               <RequireAuth>
                 <AccountPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/new"
+            element={
+              <RequireAuth>
+                <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId"
+            element={
+              <RequireAuth>
+                <TripPage />
               </RequireAuth>
             }
           />

@@ -4,6 +4,8 @@ import { AuthError, requestResend } from './api'
 import { AuthForm } from './AuthForm'
 import { useAuth } from './AuthProvider'
 import { GoogleNoAccountModal } from './GoogleNoAccountModal'
+import { InfoIcon } from './icons'
+import { pageLabel, peekReturnTo } from './returnTo'
 import type { Problem } from './messages'
 
 export function SignInPage() {
@@ -24,15 +26,17 @@ export function SignInPage() {
   }, [setParams])
   const goToSignUp = useCallback(() => navigate('/sign-up'), [navigate])
 
-  if (status === 'signedIn') return <Navigate to="/" replace />
+  // The destination's RequireAuth clears the remembered path once it has been reached.
+  const returnTo = peekReturnTo()
+  if (status === 'signedIn') return <Navigate to={returnTo ?? '/'} replace />
 
   const submit = async (address: string, password: string) => {
     setPending(true)
     setProblem(null)
     setResent(false)
     try {
+      // Signing in flips status to signedIn, which redirects above.
       await signIn(address, password)
-      navigate('/', { replace: true })
     } catch (error) {
       setProblem(error instanceof AuthError ? error.code : 'unknown')
     } finally {
@@ -61,6 +65,16 @@ export function SignInPage() {
         onSubmit={submit}
         onResend={resend}
         resent={resent}
+        notice={
+          returnTo && (
+            <p className="alert alert-info cluster" role="status">
+              <InfoIcon />
+              <span>
+                You'll go to <strong>{pageLabel(returnTo)}</strong> after signing in.
+              </span>
+            </p>
+          )
+        }
       />
       {notLinked && <GoogleNoAccountModal onSignUp={goToSignUp} onCancel={closeModal} />}
     </>

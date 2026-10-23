@@ -25,6 +25,7 @@ type Props = {
   onSubmit: (email: string, password: string) => void
   onResend?: () => void
   resent?: boolean
+  notice?: ReactNode
 }
 
 const EMAIL_PROBLEMS: Problem[] = ['no_account', 'could_not_create', 'email_not_confirmed']
@@ -48,6 +49,7 @@ export function AuthForm(props: Props) {
 
   return (
     <div className="auth stack">
+      {props.notice}
       {message && (
         <div
           id={ALERT_ID}

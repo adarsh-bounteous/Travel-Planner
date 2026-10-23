@@ -1,49 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AlertIcon } from '../auth/icons'
-import { NotFoundError, createTrip, fetchTrip, updateTrip } from './api'
+import { createTrip } from './api'
 import type { TripInput } from './api'
 
 const EMPTY = { name: '', destination: '', start_date: '', end_date: '' }
 
-type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
-
-/** Create a trip, or edit the trip `tripId` when given. */
-export function TripForm({ tripId }: { tripId?: string }) {
+/** Create a trip. Editing an existing trip happens on its page, in the settings drawer. */
+export function TripForm() {
   const navigate = useNavigate()
   const [values, setValues] = useState(EMPTY)
-  const [load, setLoad] = useState<LoadState>(tripId ? 'loading' : 'ready')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-
-  useEffect(() => {
-    if (!tripId) return
-    fetchTrip(tripId).then(
-      (trip) => {
-        setValues({
-          name: trip.name,
-          destination: trip.destination ?? '',
-          start_date: trip.start_date ?? '',
-          end_date: trip.end_date ?? '',
-        })
-        setLoad('ready')
-      },
-      (reason) => setLoad(reason instanceof NotFoundError ? 'notFound' : 'failed'),
-    )
-  }, [tripId])
-
-  if (load === 'loading') return <span className="spinner" role="status" aria-label="Loading" />
-  if (load === 'notFound')
-    return (
-      <div className="stack">
-        <h1>Trip not found</h1>
-        <p>
-          We couldn't find that trip. <Link to="/">Back to your trips</Link>
-        </p>
-      </div>
-    )
-  if (load === 'failed') return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
   const set = (field: keyof typeof EMPTY) => (event: { target: { value: string } }) =>
     setValues({ ...values, [field]: event.target.value })
@@ -61,9 +30,10 @@ export function TripForm({ tripId }: { tripId?: string }) {
       destination: values.destination.trim() || null,
       start_date: values.start_date || null,
       end_date: values.end_date || null,
+      budget: null,
     }
     try {
-      await (tripId ? updateTrip(tripId, trip) : createTrip(trip))
+      await createTrip(trip)
       navigate('/')
     } catch {
       setError("We couldn't save this trip. Try again.")
@@ -73,7 +43,7 @@ export function TripForm({ tripId }: { tripId?: string }) {
 
   return (
     <form className="col stack" noValidate onSubmit={submit}>
-      <h1>{tripId ? 'Edit trip' : 'New trip'}</h1>
+      <h1>New trip</h1>
       <div className="field">
         <label className="field-label" htmlFor="trip-name">
           Trip name

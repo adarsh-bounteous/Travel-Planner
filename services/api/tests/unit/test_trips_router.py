@@ -34,7 +34,7 @@ def test_other_traveller_cannot_open_or_change_a_trip(sign_in_as):
 def test_owner_can_update_a_trip(sign_in_as):
     a = sign_in_as("a@example.com")
     trip_id = a.post("/trips", json={"name": "Lisbon"}).json()["id"]
-    response = a.put(f"/trips/{trip_id}", json={"name": "Lisbon 2", "start_date": "2026-05-01"})
+    response = a.put(f"/trips/{trip_id}", json={"name": "Lisbon 2", "start_date": "2026-05-01", "end_date": "2026-05-02"})
     assert response.status_code == 200
     assert a.get(f"/trips/{trip_id}").json()["name"] == "Lisbon 2"
     assert a.get(f"/trips/{trip_id}").json()["start_date"] == "2026-05-01"
@@ -56,3 +56,119 @@ def test_signed_out_calls_are_rejected(sign_in_as):
     assert client.post("/trips", json={"name": "x"}).status_code == 401
     assert client.get("/trips/abc").status_code == 401
     assert client.put("/trips/abc", json={"name": "x"}).status_code == 401
+
+
+def _lisbon(a):
+    body = {"name": "Lisbon", "start_date": "2027-03-03", "end_date": "2027-03-05"}
+    return a.post("/trips", json=body).json()["id"]
+
+
+def _dates(trip):
+    return [d["date"] for d in trip["days"]]
+
+
+def test_days_are_derived_from_the_dates_in_order(sign_in_as):
+    a = sign_in_as("a@example.com")
+    trip = a.get(f"/trips/{_lisbon(a)}").json()
+    assert _dates(trip) == ["2027-03-03", "2027-03-04", "2027-03-05"]
+    assert [d["name"] for d in trip["days"]] == ["Day 1", "Day 2", "Day 3"]
+    assert trip["is_owner"] is True
+
+
+def test_owner_renames_trip_and_changes_budget(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    body = {"name": "Lisbon Spring", "start_date": "2027-03-03", "end_date": "2027-03-05", "budget": 1500}
+    assert a.put(f"/trips/{tid}", json=body).status_code == 200
+    trip = a.get(f"/trips/{tid}").json()
+    assert trip["name"] == "Lisbon Spring"
+    assert trip["budget"] == 1500
+    assert trip["currency"] == "EUR"
+
+
+def test_owner_renames_a_day(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    r = a.put(f"/trips/{tid}/days/2027-03-03", json={"name": "Arrival"})
+    assert r.json()["days"][0]["name"] == "Arrival"
+    assert a.put(f"/trips/{tid}/days/2027-04-01", json={"name": "x"}).status_code == 404
+
+
+def test_blank_names_are_refused(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    assert a.put(f"/trips/{tid}", json={"name": "   "}).status_code == 422
+    assert a.get(f"/trips/{tid}").json()["name"] == "Lisbon"
+    assert a.put(f"/trips/{tid}/days/2027-03-03", json={"name": " "}).status_code == 422
+    assert a.get(f"/trips/{tid}").json()["days"][0]["name"] == "Day 1"
+
+
+def test_bad_budget_is_refused(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    assert a.put(f"/trips/{tid}", json={"name": "Lisbon", "budget": -5}).status_code == 422
+    assert a.put(f"/trips/{tid}", json={"name": "Lisbon", "budget": "abc"}).status_code == 422
+    assert a.get(f"/trips/{tid}").json()["budget"] is None
+
+
+def test_bad_date_ranges_are_refused(sign_in_as):
+    a = sign_in_as("a@example.com")
+    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-05", "end_date": "2027-03-03"}).status_code == 422
+    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-01", "end_date": "2027-06-01"}).status_code == 422
+    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-01"}).status_code == 422
+
+
+def test_changing_dates_keeps_names_adds_and_removes_days(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    a.put(f"/trips/{tid}/days/2027-03-04", json={"name": "Beach day"})
+    body = {"name": "Lisbon", "start_date": "2027-03-04", "end_date": "2027-03-06"}
+    after = a.put(f"/trips/{tid}", json=body).json()
+    names = {d["date"]: d["name"] for d in after["days"]}
+    assert names["2027-03-04"] == "Beach day"
+    assert "2027-03-06" in names
+    assert "2027-03-03" not in names
+
+
+def test_update_keeps_options_and_currency(sign_in_as):
+    from app.main import app
+    from app.routers import deps
+    from app.trips.store import ChosenOption
+
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    store = app.dependency_overrides[deps.get_trips]()
+    owner = next(iter(store._trips))[0]
+    trip = store.get_trip(owner, tid)
+    trip.options = [ChosenOption(id="o1", title="Tram pass", category="Conveyance", date="2027-03-04")]
+    trip.currency = "GBP"
+    store.save_trip(owner, trip)
+    body = {"name": "Lisbon 2", "start_date": "2027-03-03", "end_date": "2027-03-05"}
+    after = a.put(f"/trips/{tid}", json=body).json()
+    assert [o["title"] for o in after["options"]] == ["Tram pass"]
+    assert after["currency"] == "GBP"
+
+
+def test_legacy_trip_without_days_gets_derived_days(sign_in_as):
+    from app.main import app
+    from app.routers import deps
+    from app.trips.store import Trip
+
+    a = sign_in_as("a@example.com")
+    store = app.dependency_overrides[deps.get_trips]()
+    _lisbon(a)
+    owner = next(iter(store._trips))[0]
+    store.save_trip(owner, Trip(id="old", name="Old", start_date="2027-03-03", end_date="2027-03-04"))
+    assert _dates(a.get("/trips/old").json()) == ["2027-03-03", "2027-03-04"]
+    assert store.get_trip(owner, "old").days == []
+
+
+def test_owner_deletes_a_trip_and_others_cannot(sign_in_as):
+    a = sign_in_as("a@example.com")
+    b = sign_in_as("b@example.com")
+    tid = _lisbon(a)
+    assert b.delete(f"/trips/{tid}").status_code == 404
+    assert a.get(f"/trips/{tid}").status_code == 200
+    assert a.delete(f"/trips/{tid}").status_code == 204
+    assert a.get(f"/trips/{tid}").status_code == 404
+    assert a.delete(f"/trips/{tid}").status_code == 404

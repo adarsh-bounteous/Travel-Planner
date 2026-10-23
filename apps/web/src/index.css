@@ -137,6 +137,8 @@ a.btn { text-decoration: none; }
 .day-name { font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
 .options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .option { padding: var(--space-2) var(--space-3); background: var(--color-surface); border-left: var(--border-width-strong) solid var(--color-border-strong); border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm); }
+.title-actions { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-1); }
+.link-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .option-title { font-weight: var(--font-weight-medium); overflow-wrap: anywhere; }
 .overlay-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; }
 .overlay-actions.end { justify-content: flex-end; }

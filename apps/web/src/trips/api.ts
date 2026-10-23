@@ -1,5 +1,11 @@
 export type Day = { date: string; name: string }
-export type ChosenOption = { id: string; title: string; category: string; date: string }
+export type ChosenOption = {
+  id: string
+  title: string
+  category: string
+  date: string
+  booking_url?: string | null
+}
 
 export type Trip = {
   id: string

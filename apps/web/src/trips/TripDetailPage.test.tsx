@@ -227,3 +227,61 @@ describe('TripDetailPage delete', () => {
     expect(sent(fetchMock, 'DELETE')).toHaveLength(0)
   })
 })
+
+describe('TripDetailPage book trip', () => {
+  const booked = (title: string, id: string) => ({
+    id,
+    title,
+    category: 'Conveyance',
+    date: '2027-03-03',
+    booking_url: `https://example.com/${id}`,
+  })
+  const bookButton = () => screen.findByRole('button', { name: 'Book trip' })
+
+  it('disables Book trip when nothing is chosen (AC1)', async () => {
+    open(trip({ options: [] }))
+    const book = await bookButton()
+    expect(book).toBeDisabled()
+    expect(book).toHaveAccessibleDescription('Choose an option to enable booking.')
+  })
+
+  it('enables Book trip with one chosen option (AC2)', async () => {
+    open(trip({ options: [booked('Tram pass', 'o1')] }))
+    const book = await bookButton()
+    expect(book).toBeEnabled()
+    expect(screen.queryByText('Choose an option to enable booking.')).not.toBeInTheDocument()
+  })
+
+  it('lists a link for each chosen option and none for an unchosen one (AC3)', async () => {
+    open(trip({ options: [booked('Tram pass', 'o1'), booked('Hotel Alfama', 'o2')] }))
+    fireEvent.click(await bookButton())
+    const list = within(await screen.findByRole('dialog', { name: 'Book trip' }))
+    expect(list.getAllByRole('link', { name: /Open booking page/ })).toHaveLength(2)
+    expect(list.getByText('Tram pass')).toBeInTheDocument()
+    expect(list.queryByText('Time Out Market lunch')).not.toBeInTheDocument()
+  })
+
+  it('works for a read-only viewer (AC7, AC8)', async () => {
+    open(trip({ is_owner: false, options: [booked('Tram pass', 'o1')] }))
+    const book = await bookButton()
+    expect(book).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Edit trip' })).not.toBeInTheDocument()
+    fireEvent.click(book)
+    const link = within(await screen.findByRole('dialog', { name: 'Book trip' })).getByRole('link', {
+      name: /Open booking page/,
+    })
+    expect(link).toHaveAttribute('href', 'https://example.com/o1')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('closes on Escape and returns focus to Book trip', async () => {
+    open(trip({ options: [booked('Tram pass', 'o1')] }))
+    const book = await bookButton()
+    book.focus()
+    fireEvent.click(book)
+    const dialog = await screen.findByRole('dialog', { name: 'Book trip' })
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(book).toHaveFocus()
+  })
+})

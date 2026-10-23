@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { EditIcon } from '../auth/icons'
 import { NotFoundError, fetchTrip } from './api'
 import type { Day, Trip } from './api'
+import { BookTripDrawer } from './BookTripDrawer'
 import { DeleteTripModal } from './DeleteTripModal'
 import { ItineraryTab } from './ItineraryTab'
 import { RenameDayModal } from './RenameDayModal'
@@ -15,6 +16,7 @@ type Panel =
   | { id: 'none' }
   | { id: 'settings' }
   | { id: 'delete' }
+  | { id: 'book' }
   | { id: 'rename'; day: Day; position: number }
 
 const TABS: { id: Tab; label: string }[] = [
@@ -70,6 +72,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
   if (load === 'failed' || trip === null)
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
+  const options = trip.options ?? []
   const close = () => setPanel({ id: 'none' })
   const saved = (updated: Trip, message: string) => {
     setTrip(updated)
@@ -90,6 +93,22 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       <div className="stack stack-sm">
         <div className="title-row">
           <h1>{trip.name}</h1>
+          <div className="title-actions">
+            <button
+              className="btn btn-primary"
+              type="button"
+              disabled={options.length === 0}
+              aria-describedby={options.length === 0 ? 'book-hint' : undefined}
+              onClick={() => setPanel({ id: 'book' })}
+            >
+              Book trip
+            </button>
+            {options.length === 0 && (
+              <span className="text-sm text-muted" id="book-hint">
+                Choose an option to enable booking.
+              </span>
+            )}
+          </div>
           {trip.is_owner && (
             <button
               className="btn btn-secondary"
@@ -154,6 +173,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           onRenamed={(updated, name) => saved(updated, `Day renamed to ${name}`)}
         />
       )}
+      {panel.id === 'book' && <BookTripDrawer options={options} onClose={close} />}
       <Toast key={toast?.id} message={toast?.message ?? null} />
     </div>
   )

@@ -239,6 +239,9 @@ def change_password(
     except IdentityError:
         return _error(400, "change_failed")
     response = Response(status_code=204)
+    # Known limitation: sessions are stateless signed cookies (7-day idle window), so a password
+    # change does not sign out the traveller's other browsers. Revoking them needs a per-user
+    # session version stored with the account, which is a data-model change for its own story.
     _set_session(response, user_id, now, settings)
     return response
 

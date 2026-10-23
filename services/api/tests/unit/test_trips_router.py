@@ -149,6 +149,42 @@ def test_update_keeps_options_and_currency(sign_in_as):
     assert after["currency"] == "GBP"
 
 
+def test_booking_url_round_trips_and_is_optional(sign_in_as):
+    from app.main import app
+    from app.routers import deps
+    from app.trips.store import ChosenOption
+
+    a = sign_in_as("a@example.com")
+    tid = _lisbon(a)
+    store = app.dependency_overrides[deps.get_trips]()
+    owner = next(iter(store._trips))[0]
+    trip = store.get_trip(owner, tid)
+    trip.options = [
+        ChosenOption(
+            id="o1",
+            title="Tram pass",
+            category="Conveyance",
+            date="2027-03-04",
+            booking_url="https://example.com/tram",
+        ),
+        ChosenOption(id="o2", title="Walk", category="Attractions", date="2027-03-04"),
+    ]
+    store.save_trip(owner, trip)
+    options = a.get(f"/trips/{tid}").json()["options"]
+    assert options[0]["booking_url"] == "https://example.com/tram"
+    assert options[1]["booking_url"] is None
+
+
+def test_booking_url_must_be_http_or_https():
+    import pytest
+    from pydantic import ValidationError
+
+    from app.trips.store import ChosenOption
+
+    with pytest.raises(ValidationError):
+        ChosenOption(id="o3", title="x", category="y", date="2027-03-04", booking_url="javascript:alert(1)")
+
+
 def test_legacy_trip_without_days_gets_derived_days(sign_in_as):
     from app.main import app
     from app.routers import deps

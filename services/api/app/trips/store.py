@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Protocol
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, Field, HttpUrl, StringConstraints
 
 MAX_TRIP_DAYS = 60
 
@@ -23,6 +23,7 @@ class ChosenOption(BaseModel):
     title: str
     category: str
     date: date
+    booking_url: HttpUrl | None = None
 
 
 class TripFields(BaseModel):

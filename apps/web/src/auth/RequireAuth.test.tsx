@@ -9,7 +9,7 @@ function mockApi(routes: Record<string, Reply>) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (path: string) => {
-      const reply = routes[path] ?? { status: 404 }
+      const reply = routes[path] ?? (path === '/trips' ? { status: 200, body: [] } : { status: 404 })
       return new Response(JSON.stringify(reply.body ?? {}), { status: reply.status })
     }),
   )
@@ -75,6 +75,7 @@ describe('RequireAuth', () => {
             ? new Response(JSON.stringify({ email: 'maya@example.com' }))
             : new Response('{}', { status: 401 })
         }
+        if (path === '/trips') return new Response('[]')
         return new Response('{}', { status: 404 })
       }),
     )

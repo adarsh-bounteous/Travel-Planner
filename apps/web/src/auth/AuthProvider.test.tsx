@@ -19,7 +19,11 @@ describe('AuthProvider', () => {
   it('restores a persisted session from /auth/me (AC6-AC8)', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ email: 'maya@example.com' }))),
+      vi.fn(async (path: string) =>
+        path === '/trips'
+          ? new Response('[]')
+          : new Response(JSON.stringify({ email: 'maya@example.com' })),
+      ),
     )
     renderHome()
     expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()

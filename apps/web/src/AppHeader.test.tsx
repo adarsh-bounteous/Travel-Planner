@@ -6,7 +6,11 @@ import { AuthProvider } from './auth/AuthProvider'
 function mockMe(status: number, body: unknown = {}) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => new Response(JSON.stringify(body), { status })),
+    vi.fn(async (path: string) =>
+      path === '/trips'
+        ? new Response('[]')
+        : new Response(JSON.stringify(body), { status }),
+    ),
   )
 }
 

@@ -11,9 +11,14 @@ export function AppHeader() {
           Travel Planner
         </Link>
         {status === 'signedIn' && (
-          <NavLink className="shell-link" to="/account">
-            Account
-          </NavLink>
+          <>
+            <NavLink className="shell-link" to="/profile">
+              Profile
+            </NavLink>
+            <NavLink className="shell-link" to="/account">
+              Account
+            </NavLink>
+          </>
         )}
         {status === 'signedOut' && (
           <Link className="btn btn-secondary" to="/sign-in">

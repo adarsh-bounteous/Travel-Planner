@@ -36,12 +36,42 @@ class TripFields(BaseModel):
     budget: float | None = Field(default=None, ge=0, le=1_000_000_000)
 
 
+ReminderText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=280)]
+
+
+class ReminderFields(BaseModel):
+    """What an editor supplies for a Reminder. option_id None means the whole trip."""
+
+    text: ReminderText
+    date: date
+    option_id: str | None = None
+
+
+class Reminder(ReminderFields):
+    id: str
+    option_date: date | None = None  # the option's day when attached; hides the note if the option later moves
+
+
 class Trip(TripFields):
     id: str
     updated_at: datetime | None = None
     currency: str = "EUR"
     days: list[Day] = []
     options: list[ChosenOption] = []  # server-owned: never read from a request body
+    reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
+
+
+def visible_reminders(trip: Trip) -> list[Reminder]:
+    """Trip reminders, plus activity reminders whose option is still on the day it was attached on."""
+    days = {o.id: o.date for o in trip.options}
+    return [
+        r for r in trip.reminders if r.option_id is None or days.get(r.option_id) == r.option_date
+    ]
+
+
+def can_edit_trip(trip: Trip, user_id: str, owner_id: str) -> bool:
+    """The single rule for changing a trip's itinerary: the owner, or an editor once sharing exists."""
+    return user_id == owner_id
 
 
 def reconcile_days(start: date | None, end: date | None, existing: list[Day]) -> list[Day]:

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { EditIcon } from '../auth/icons'
-import { NotFoundError, fetchTrip } from './api'
-import type { Day, Trip } from './api'
+import { BellIcon, EditIcon } from '../auth/icons'
+import { NotFoundError, addReminder, fetchTrip } from './api'
+import type { Day, Reminder, Trip } from './api'
 import { BookTripDrawer } from './BookTripDrawer'
 import { DeleteTripModal } from './DeleteTripModal'
 import { ItineraryTab } from './ItineraryTab'
+import { ReminderModal } from './ReminderModal'
 import { RenameDayModal } from './RenameDayModal'
 import { Toast } from './Toast'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
@@ -18,6 +19,8 @@ type Panel =
   | { id: 'delete' }
   | { id: 'book' }
   | { id: 'rename'; day: Day; position: number }
+  | { id: 'reminder-add'; optionId?: string }
+  | { id: 'reminder-edit'; reminder: Reminder }
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -40,7 +43,9 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
   const [load, setLoad] = useState<LoadState>('loading')
   const [tab, setTab] = useState<Tab>('itinerary')
   const [panel, setPanel] = useState<Panel>({ id: 'none' })
-  const [toast, setToast] = useState<{ id: number; message: string } | null>(null)
+  const [toast, setToast] = useState<{ id: number; message: string; undo?: () => void } | null>(
+    null,
+  )
 
   useEffect(() => {
     fetchTrip(tripId).then(
@@ -79,6 +84,21 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     setToast({ id: Date.now(), message })
     close()
   }
+  const canEdit = trip.can_edit ?? trip.is_owner ?? false
+  const reminderDeleted = (updated: Trip, reminder: Reminder) => {
+    const undo = async () => {
+      try {
+        const { text, date, option_id } = reminder
+        setTrip(await addReminder(trip.id, { text, date, option_id: option_id ?? null }))
+        setToast(null)
+      } catch {
+        setToast({ id: Date.now(), message: "We couldn't bring that reminder back. Add it again." })
+      }
+    }
+    setTrip(updated)
+    setToast({ id: Date.now(), message: 'Reminder deleted.', undo })
+    close()
+  }
 
   return (
     <div className="stack stack-lg">
@@ -109,6 +129,16 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
               </span>
             )}
           </div>
+          {canEdit && (
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={() => setPanel({ id: 'reminder-add' })}
+            >
+              <BellIcon />
+              Add reminder
+            </button>
+          )}
           {trip.is_owner && (
             <button
               className="btn btn-secondary"
@@ -121,6 +151,9 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           )}
         </div>
         <p className="text-muted">{formatBudget(trip)}</p>
+        <p className="text-sm text-muted">
+          Reminders show on their date and stay in the app. We don't send email or push messages.
+        </p>
       </div>
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
@@ -143,6 +176,8 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           <ItineraryTab
             trip={trip}
             onRename={(day, index) => setPanel({ id: 'rename', day, position: index + 1 })}
+            onAddReminder={(optionId) => setPanel({ id: 'reminder-add', optionId })}
+            onEditReminder={(reminder) => setPanel({ id: 'reminder-edit', reminder })}
           />
         ) : (
           <p className="text-muted">Trip overview is shown on its own page.</p>
@@ -173,8 +208,18 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           onRenamed={(updated, name) => saved(updated, `Day renamed to ${name}`)}
         />
       )}
+      {canEdit && (panel.id === 'reminder-add' || panel.id === 'reminder-edit') && (
+        <ReminderModal
+          trip={trip}
+          reminder={panel.id === 'reminder-edit' ? panel.reminder : undefined}
+          optionId={panel.id === 'reminder-add' ? panel.optionId : undefined}
+          onClose={close}
+          onSaved={saved}
+          onDeleted={reminderDeleted}
+        />
+      )}
       {panel.id === 'book' && <BookTripDrawer options={options} onClose={close} />}
-      <Toast key={toast?.id} message={toast?.message ?? null} />
+      <Toast key={toast?.id} message={toast?.message ?? null} undo={toast?.undo} />
     </div>
   )
 }

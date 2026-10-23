@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.config import session_secret
-from app.routers import auth, health, profile, trips
+from app.routers import auth, health, places, profile, trips
 from app.routers.deps import ApiError
 
 
@@ -20,6 +20,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(profile.router)
+app.include_router(places.router)
 
 
 @app.exception_handler(ApiError)

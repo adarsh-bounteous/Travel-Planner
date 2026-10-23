@@ -22,12 +22,16 @@ def sign_in_as():
     from app.config import get_settings
     from app.main import app
     from app.routers import auth, deps
+    from app.places.search import InMemoryPlaceSearch, Place
     from app.trips.profile_store import InMemoryProfileStore
     from app.trips.store import InMemoryTripStore
 
     fake = FakeIdentityProvider()
     trips = InMemoryTripStore()
     profiles = InMemoryProfileStore()
+    places = InMemoryPlaceSearch(
+        {"Lisbon": [Place(id="p1", name="Alfama", image_url="/alfama.jpg")]}
+    )
     settings = replace(get_settings(), cookie_secure=False)
     now = datetime(2026, 1, 1, tzinfo=UTC)
     app.dependency_overrides[auth.get_identity] = lambda: fake
@@ -35,6 +39,7 @@ def sign_in_as():
     app.dependency_overrides[auth.get_settings] = lambda: settings
     app.dependency_overrides[deps.get_trips] = lambda: trips
     app.dependency_overrides[deps.get_profiles] = lambda: profiles
+    app.dependency_overrides[deps.get_places] = lambda: places
     password = "abcdefghij12"
 
     def make(email: str) -> TestClient:

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { DestinationSearch } from '../places/DestinationSearch'
 import { MyTripsPage } from '../trips/MyTripsPage'
 import { useAuth } from './AuthProvider'
 
@@ -13,6 +14,10 @@ export function HomePage() {
 
   return (
     <div className="stack">
+      <section className="stack">
+        <h1>Where to next?</h1>
+        <DestinationSearch />
+      </section>
       <MyTripsPage />
       <p className="text-sm text-muted">
         You'll stay signed in on this device until you sign out or go 7 days without opening

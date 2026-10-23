@@ -6,6 +6,7 @@ from fastapi import Cookie, Depends, Response
 from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.routers.auth import _set_session, get_now
+from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.store import DynamoTripStore, TripStore
 
@@ -26,6 +27,15 @@ def _trips() -> TripStore:
 @lru_cache
 def _profiles() -> ProfileStore:
     return DynamoProfileStore(get_settings().accounts_table_name)
+
+
+@lru_cache
+def _places() -> PlaceSearch:
+    return InMemoryPlaceSearch(SEED_CATALOGUE)
+
+
+def get_places() -> PlaceSearch:
+    return _places()
 
 
 def get_trips() -> TripStore:

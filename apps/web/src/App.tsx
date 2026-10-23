@@ -6,6 +6,7 @@ import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
 import { SignUpPage } from './auth/SignUpPage'
+import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { TripPage } from './trips/TripPage'
 
@@ -21,6 +22,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <HomePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/destinations"
+            element={
+              <RequireAuth>
+                <DestinationResultsPage />
               </RequireAuth>
             }
           />

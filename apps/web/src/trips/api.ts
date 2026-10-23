@@ -42,7 +42,7 @@ export class ForbiddenError extends Error {}
 export class ValidationError extends Error {}
 
 // No client-side cache: every load asks the server, so every device shows the same data.
-async function call<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+export async function call<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method,
     credentials: 'same-origin',

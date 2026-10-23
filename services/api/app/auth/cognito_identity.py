@@ -10,7 +10,6 @@ from botocore.exceptions import ClientError
 from app.auth.identity import (
     EmailNotConfirmed,
     EmailTaken,
-    GoogleCancelled,
     IdentityError,
     NoAccount,
     WrongPassword,
@@ -106,7 +105,7 @@ class CognitoIdentityProvider:
             with urllib.request.urlopen(request, timeout=10) as response:  # noqa: S310
                 id_token = json.load(response)["id_token"]
         except (urllib.error.URLError, KeyError, ValueError) as error:
-            raise GoogleCancelled from error
+            raise IdentityError from error
         # The token came straight from the user pool's token endpoint over TLS.
         claims = id_token.split(".")[1]
         claims += "=" * (-len(claims) % 4)

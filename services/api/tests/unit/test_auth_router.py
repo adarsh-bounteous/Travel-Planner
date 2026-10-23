@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.auth.accounts import InMemoryAccountStore
 from app.auth.fake_identity import FakeIdentityProvider
+from app.auth.identity import IdentityError
 from app.config import get_settings
 from app.main import app
 from app.routers import auth
@@ -161,7 +162,7 @@ def test_google_not_linked(client):  # AC19, AC20
     r = client.get(
         "/auth/google/callback", params={"code": "ok-unlinked", "state": _state(client, "in")}
     )
-    assert "set-cookie" not in r.headers
+    assert "session=" not in r.headers.get("set-cookie", "")
     assert r.headers["location"].endswith("/sign-in?error=google_not_linked")
 
 
@@ -170,13 +171,56 @@ def test_google_cancelled(client):  # AC12
         "/auth/google/callback",
         params={"error": "access_denied", "state": _state(client, "in")},
     )
-    assert "set-cookie" not in r.headers
+    assert "session=" not in r.headers.get("set-cookie", "")
     assert r.headers["location"].endswith("/sign-in?error=google_cancelled")
+
+
+def _assert_google_refused(r):
+    assert "session=" not in r.headers.get("set-cookie", "")
+    assert r.headers["location"].endswith("/sign-in")
+
+
+def test_google_state_is_bound_to_the_initiating_browser(client):
+    state = _state(client, "in")
+    victim = TestClient(app, follow_redirects=False)  # no nonce cookie
+    r = victim.get("/auth/google/callback", params={"code": "ok-new", "state": state})
+    _assert_google_refused(r)
+
+
+def test_google_state_is_single_use(client):
+    state = _state(client, "up")
+    first = client.get("/auth/google/callback", params={"code": "ok-new", "state": state})
+    assert first.headers["location"] == "/"
+    replay = client.get("/auth/google/callback", params={"code": "ok-new", "state": state})
+    _assert_google_refused(replay)
+
+
+def test_google_state_expires(client, clock):
+    state = _state(client, "in")
+    clock.now = T0 + timedelta(minutes=11)
+    r = client.get("/auth/google/callback", params={"code": "ok-new", "state": state})
+    _assert_google_refused(r)
+
+
+def test_non_ascii_state_is_rejected_not_a_server_error(client):
+    r = client.get("/auth/google/callback", params={"code": "ok-new", "state": "abc.é"})
+    _assert_google_refused(r)
+
+
+def test_google_exchange_failure_is_not_reported_as_cancelled(client, fake, monkeypatch):
+    def boom(code):
+        raise IdentityError
+
+    monkeypatch.setattr(fake, "complete_google", boom)
+    r = client.get(
+        "/auth/google/callback", params={"code": "ok-new", "state": _state(client, "in")}
+    )
+    _assert_google_refused(r)
 
 
 def test_google_callback_rejects_forged_state(client):
     r = client.get("/auth/google/callback", params={"code": "ok-new", "state": "forged.sig"})
-    assert "set-cookie" not in r.headers
+    assert "session=" not in r.headers.get("set-cookie", "")
     assert r.headers["location"].endswith("/sign-in")
 
 

@@ -1,6 +1,6 @@
 import re
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from typing import Literal
 
@@ -157,12 +157,51 @@ def me(
     return response
 
 
+GOOGLE_NONCE_COOKIE = "google_state"
+GOOGLE_STATE_LIFETIME = timedelta(minutes=10)
+_GOOGLE_COOKIE_PATH = "/auth/google"
+
+
 @router.get("/google/start")
 def google_start(
-    mode: Literal["in", "up"] = "in", identity: IdentityProvider = Depends(get_identity)
+    mode: Literal["in", "up"] = "in",
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
 ) -> Response:
-    state = sign_value(f"{mode}:{secrets.token_urlsafe(8)}")
-    return RedirectResponse(identity.google_authorize_url(state), status_code=303)
+    # The nonce goes both in the signed state and in a cookie, so only the browser that
+    # started the flow can finish it.
+    nonce = secrets.token_urlsafe(16)
+    state = sign_value(f"{mode}:{nonce}:{int(now.timestamp())}")
+    response = RedirectResponse(identity.google_authorize_url(state), status_code=303)
+    response.set_cookie(
+        GOOGLE_NONCE_COOKIE,
+        nonce,
+        max_age=int(GOOGLE_STATE_LIFETIME.total_seconds()),
+        httponly=True,
+        samesite="lax",
+        secure=settings.cookie_secure,
+        path=_GOOGLE_COOKIE_PATH,
+    )
+    return response
+
+
+def _read_google_state(
+    state: str, nonce_cookie: str | None, now: datetime
+) -> Literal["in", "up"] | None:
+    verified = verify_value(state)
+    if verified is None or not nonce_cookie:
+        return None
+    try:
+        mode, nonce, issued_at = verified.split(":")
+        age = now - datetime.fromtimestamp(int(issued_at), UTC)
+    except ValueError:
+        return None
+    if mode not in ("in", "up") or age >= GOOGLE_STATE_LIFETIME or age < timedelta(0):
+        return None
+    if not secrets.compare_digest(nonce.encode(), nonce_cookie.encode()):
+        return None
+    return mode
 
 
 @router.get("/google/callback")
@@ -170,24 +209,29 @@ def google_callback(
     state: str = "",
     code: str | None = None,
     error: str | None = None,
+    google_state: str | None = Cookie(default=None),
     identity: IdentityProvider = Depends(get_identity),
     accounts: AccountStore = Depends(get_accounts),
     now: datetime = Depends(get_now),
     settings: Settings = Depends(get_settings),
 ) -> Response:
     def back(path: str) -> RedirectResponse:
-        return RedirectResponse(f"{settings.web_origin}{path}", status_code=303)
+        response = RedirectResponse(f"{settings.web_origin}{path}", status_code=303)
+        response.delete_cookie(GOOGLE_NONCE_COOKIE, path=_GOOGLE_COOKIE_PATH)  # single use
+        return response
 
-    verified = verify_value(state)
-    if verified is None:
+    mode = _read_google_state(state, google_state, now)
+    if mode is None:
         return back("/sign-in")
-    mode = verified.split(":", 1)[0]
+    cancelled = "/sign-in?error=google_cancelled" if mode == "in" else "/sign-up"
     if error or not code:
-        return back("/sign-in?error=google_cancelled" if mode == "in" else "/sign-up")
+        return back(cancelled)
     try:
         user_id = identity.complete_google(code)
     except GoogleCancelled:
-        return back("/sign-in?error=google_cancelled" if mode == "in" else "/sign-up")
+        return back(cancelled)
+    except IdentityError:
+        return back("/sign-in")  # a failed exchange is not a cancellation
     if mode == "up":
         accounts.link_google(user_id)
     elif not accounts.is_google_linked(user_id):

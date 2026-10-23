@@ -21,7 +21,7 @@ def sign_value(value: str) -> str:
 
 def verify_value(token: str) -> str | None:
     payload, _, sig = token.rpartition(".")
-    if not payload or not hmac.compare_digest(sig, _sign(payload)):
+    if not payload or not hmac.compare_digest(sig.encode(), _sign(payload).encode()):
         return None
     try:
         return base64.urlsafe_b64decode(payload.encode()).decode()

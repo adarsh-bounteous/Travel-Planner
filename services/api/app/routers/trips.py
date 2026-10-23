@@ -5,18 +5,69 @@ from fastapi import APIRouter, Depends
 
 from app.routers.auth import get_now
 from app.routers.deps import ApiError, get_current_user, get_trips
-from app.trips.store import Day, DayName, Trip, TripFields, TripStore, reconcile_days
+from app.trips.store import (
+    Day,
+    DayName,
+    Reminder,
+    ReminderFields,
+    Trip,
+    TripFields,
+    TripStore,
+    can_edit_trip,
+    reconcile_days,
+    visible_reminders,
+)
 
 router = APIRouter(prefix="/trips")
 
+MAX_REMINDERS = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
+
 NOT_FOUND = ApiError(404, "not_found")
 INVALID_DATES = ApiError(422, "invalid_dates")
+INVALID_REMINDER = ApiError(422, "invalid_reminder")
 
 
 class TripView(Trip):
     """A Trip as shown to one traveller. Only the owner can reach a trip until sharing exists."""
 
     is_owner: bool = True
+    can_edit: bool = True
+
+
+def _view(trip: Trip, user_id: str) -> TripView:
+    """The trip as `user_id` sees it. Only the owner can reach a trip until sharing exists."""
+    data = {**trip.model_dump(), "reminders": visible_reminders(trip)}
+    return TripView(**data, can_edit=can_edit_trip(trip, user_id, user_id))
+
+
+def _editable_trip(trips: TripStore, owner: str, trip_id: str) -> Trip:
+    trip = trips.get_trip(owner, trip_id)
+    if trip is None:
+        raise NOT_FOUND
+    if not can_edit_trip(trip, owner, owner):
+        raise ApiError(403, "forbidden")
+    return trip
+
+
+def _check_reminder(trip: Trip, body: ReminderFields) -> date | None:
+    """The day of the chosen option (None for the whole trip). Raises when the note cannot go on this trip."""
+    option_date = None
+    if body.option_id is not None:
+        option = next((o for o in trip.options if o.id == body.option_id), None)
+        if option is None:
+            raise INVALID_REMINDER
+        option_date = option.date
+    if body.date not in {d.date for d in trip.days}:
+        raise INVALID_REMINDER
+    return option_date
+
+
+def _save_reminders(trips: TripStore, owner: str, trip: Trip, reminders: list[Reminder], now: datetime) -> TripView:
+    trip.reminders = reminders
+    trip.reminders = visible_reminders(trip)  # drop stale activity notes so they cannot reappear
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, owner)
 
 
 def _days(trip: Trip, start: date | None, end: date | None) -> list[Day]:
@@ -43,7 +94,7 @@ def create_trip(
     trip = Trip(id=uuid.uuid4().hex, updated_at=now, **body.model_dump())
     trip.days = _days(trip, trip.start_date, trip.end_date)
     trips.save_trip(owner, trip)
-    return TripView(**trip.model_dump())
+    return _view(trip, owner)
 
 
 @router.get("/{trip_id}")
@@ -55,7 +106,7 @@ def get_trip(
         raise NOT_FOUND  # same answer for another traveller's trip and one that never existed
     if not trip.days and trip.start_date and trip.end_date:
         trip = trip.model_copy(update={"days": _days(trip, trip.start_date, trip.end_date)})  # saved before days existed; not written
-    return TripView(**trip.model_dump())
+    return _view(trip, owner)
 
 
 @router.put("/{trip_id}")
@@ -73,7 +124,7 @@ def update_trip(
     days = _days(existing, body.start_date, body.end_date)
     trip = existing.model_copy(update={**body.model_dump(), "days": days, "updated_at": now})
     trips.save_trip(owner, trip)
-    return TripView(**trip.model_dump())
+    return _view(trip, owner)
 
 
 @router.put("/{trip_id}/days/{day_date}")
@@ -96,7 +147,56 @@ def rename_day(
     day.name = body.name
     trip.updated_at = now
     trips.save_trip(owner, trip)
-    return TripView(**trip.model_dump())
+    return _view(trip, owner)
+
+
+@router.post("/{trip_id}/reminders", status_code=201)
+def add_reminder(
+    trip_id: str,
+    body: ReminderFields,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    option_date = _check_reminder(trip, body)
+    if len(trip.reminders) >= MAX_REMINDERS:
+        raise INVALID_REMINDER
+    reminder = Reminder(id=uuid.uuid4().hex, option_date=option_date, **body.model_dump())
+    return _save_reminders(trips, owner, trip, [*trip.reminders, reminder], now)
+
+
+@router.put("/{trip_id}/reminders/{reminder_id}")
+def update_reminder(
+    trip_id: str,
+    reminder_id: str,
+    body: ReminderFields,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    if reminder_id not in {r.id for r in visible_reminders(trip)}:
+        raise NOT_FOUND
+    option_date = _check_reminder(trip, body)
+    changed = Reminder(id=reminder_id, option_date=option_date, **body.model_dump())
+    reminders = [changed if r.id == reminder_id else r for r in trip.reminders]
+    return _save_reminders(trips, owner, trip, reminders, now)
+
+
+@router.delete("/{trip_id}/reminders/{reminder_id}")
+def delete_reminder(
+    trip_id: str,
+    reminder_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    if reminder_id not in {r.id for r in visible_reminders(trip)}:
+        raise NOT_FOUND
+    reminders = [r for r in trip.reminders if r.id != reminder_id]
+    return _save_reminders(trips, owner, trip, reminders, now)
 
 
 @router.delete("/{trip_id}", status_code=204)

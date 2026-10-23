@@ -4,6 +4,9 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: { '/auth': process.env.API_ORIGIN ?? 'http://localhost:8000' },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

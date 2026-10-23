@@ -1,1 +1,87 @@
 @import "tailwindcss";
+@import "../../../design-system/tokens.css";
+
+/* tokens.css exports these two durations as "[object Object]" (token export bug); override them. */
+:root {
+  --duration-fast: 150ms;
+  --duration-spin: 600ms;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-family: var(--font-family-sans); font-size: var(--font-size-md); line-height: var(--line-height-body); color: var(--color-fg); background: var(--color-bg); }
+body { margin: 0; }
+h1, h2 { line-height: var(--line-height-tight); font-weight: var(--font-weight-bold); margin: 0; }
+h1 { font-size: var(--font-size-xl); }
+h2 { font-size: var(--font-size-lg); }
+p { margin: 0; }
+a { color: var(--color-primary); }
+a:hover { color: var(--color-primary-hover); }
+[hidden] { display: none !important; }
+
+.stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.text-muted { color: var(--color-fg-muted); }
+.text-sm { font-size: var(--font-size-sm); }
+
+.shell-main { width: 100%; max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-4) var(--space-3); min-width: 0; }
+@media (min-width: 48rem) { .shell-main { padding: var(--space-5) var(--space-4); } }
+
+.icon { width: 1.25em; height: 1.25em; flex-shrink: 0; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: var(--size-control-md); padding: 0 var(--button-default-padding);
+  font: inherit; font-weight: var(--font-weight-medium); line-height: 1; text-decoration: none; cursor: pointer;
+  border: var(--border-width) solid transparent; border-radius: var(--button-default-radius);
+  background: var(--button-secondary-background); color: var(--button-secondary-foreground);
+  transition: background var(--duration-fast);
+}
+.btn-primary { background: var(--button-primary-background); color: var(--button-primary-foreground); }
+.btn-primary:hover { background: var(--button-primary-hover); color: var(--button-primary-foreground); }
+.btn-secondary { background: var(--button-secondary-background); color: var(--button-secondary-foreground); border-color: var(--button-secondary-border); }
+.btn-secondary:hover { background: var(--button-secondary-hover); color: var(--button-secondary-foreground); }
+.btn-ghost { background: var(--button-ghost-background); color: var(--button-ghost-foreground); }
+.btn-ghost:hover { background: var(--button-ghost-hover); color: var(--button-ghost-foreground); }
+.btn-sm { min-height: var(--size-control-sm); padding: 0 var(--space-2); font-size: var(--font-size-sm); }
+.btn-icon { padding: 0; width: var(--size-control-md); }
+.btn:disabled { opacity: var(--opacity-disabled); cursor: not-allowed; pointer-events: none; }
+.btn:focus-visible, a:focus-visible, .input:focus-visible { outline: var(--border-width-strong) solid var(--color-focus); outline-offset: var(--border-width-strong); }
+
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+.field-hint { font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+.input {
+  width: 100%; min-height: var(--size-control-md); padding: var(--space-1) var(--space-2);
+  font: inherit; color: var(--color-fg); background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-md);
+}
+.input::placeholder { color: var(--color-fg-muted); }
+.input.is-invalid, .field.is-invalid .input { border-color: var(--color-danger); border-width: var(--border-width-strong); }
+
+.card { padding: var(--card-default-padding); background: var(--card-default-background); border: var(--border-width) solid var(--card-default-border); border-radius: var(--card-default-radius); }
+
+.alert { padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-info); border-left-width: var(--space-1); border-radius: var(--radius-md); background: var(--color-info-subtle); color: var(--color-fg); }
+.alert-warning { border-color: var(--color-warning); background: var(--color-warning-subtle); }
+.alert-danger { border-color: var(--color-danger); background: var(--color-danger-subtle); }
+.alert.cluster { flex-wrap: nowrap; align-items: flex-start; }
+.alert .icon { flex: none; }
+
+.backdrop { position: fixed; inset: 0; z-index: var(--z-overlay); background: var(--color-overlay); opacity: var(--opacity-overlay); }
+.modal {
+  position: fixed; z-index: var(--z-modal); top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: calc(100% - var(--space-4) * 2); max-width: var(--size-modal-width); max-height: calc(100% - var(--space-4) * 2);
+  padding: var(--space-4); overflow: auto; background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg);
+}
+
+.spinner { display: inline-block; width: var(--size-spinner); height: var(--size-spinner); border: var(--border-width-strong) solid var(--color-border); border-top-color: var(--color-primary); border-radius: var(--radius-full); animation: spinner-rotate var(--duration-spin) linear infinite; }
+@keyframes spinner-rotate { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 0.01ms; animation-iteration-count: 1; } }
+
+.auth { width: 100%; max-width: var(--size-modal-width); margin: 0 auto; }
+.fill { width: 100%; }
+.center { justify-content: center; text-align: center; }
+.pwrow { display: flex; gap: var(--space-1); }
+.or { text-align: center; }
+.gmark { display: inline-flex; align-items: center; justify-content: center; width: var(--size-check); height: var(--size-check); border-radius: var(--radius-full); border: var(--border-width) solid var(--color-border-strong); background: var(--color-bg); font-weight: var(--font-weight-bold); font-size: var(--font-size-sm); }
+.mailmark { align-self: center; display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-lg); height: var(--size-control-lg); border-radius: var(--radius-full); background: var(--color-primary-subtle); color: var(--color-primary); }

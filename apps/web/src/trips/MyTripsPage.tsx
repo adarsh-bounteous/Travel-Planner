@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
+import { Toast } from './Toast'
 
 export function MyTripsPage() {
+  const state = useLocation().state as { toast?: string } | null
   const [trips, setTrips] = useState<Trip[] | null>(null)
   const [failed, setFailed] = useState(false)
 
@@ -39,6 +41,7 @@ export function MyTripsPage() {
           New trip
         </Link>
       </div>
+      <Toast message={state?.toast ?? null} />
     </div>
   )
 }

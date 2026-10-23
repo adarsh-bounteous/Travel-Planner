@@ -28,7 +28,7 @@ test('another traveller cannot open a trip by its address', async ({ browser }) 
   await stubAs(b, 'b')
 
   await a.goto('/trips/abc')
-  await expect(a.getByLabel('Trip name')).toHaveValue('Lisbon')
+  await expect(a.getByRole('heading', { level: 1, name: 'Lisbon' })).toBeVisible()
   await b.goto('/trips/abc')
   await expect(b.getByText('Trip not found')).toBeVisible()
 })

@@ -1,0 +1,197 @@
+import re
+import secrets
+from datetime import UTC, datetime
+from functools import lru_cache
+from typing import Literal
+
+from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import BaseModel
+
+from app.auth.accounts import AccountStore, DynamoAccountStore
+from app.auth.cognito_identity import CognitoIdentityProvider
+from app.auth.identity import (
+    EmailNotConfirmed,
+    GoogleCancelled,
+    IdentityError,
+    IdentityProvider,
+    NoAccount,
+    WrongPassword,
+)
+from app.auth.password import validate_password
+from app.auth.session import (
+    SESSION_IDLE_LIMIT,
+    issue_session,
+    read_session,
+    sign_value,
+    verify_value,
+)
+from app.config import Settings, get_settings
+
+router = APIRouter(prefix="/auth")
+
+SESSION_COOKIE = "session"
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class Credentials(BaseModel):
+    email: str
+    password: str
+
+
+class EmailOnly(BaseModel):
+    email: str
+
+
+@lru_cache
+def _cognito() -> IdentityProvider:
+    return CognitoIdentityProvider(get_settings())
+
+
+@lru_cache
+def _dynamo() -> AccountStore:
+    return DynamoAccountStore(get_settings().accounts_table_name)
+
+
+def get_identity() -> IdentityProvider:
+    return _cognito()
+
+
+def get_accounts() -> AccountStore:
+    return _dynamo()
+
+
+def get_now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _error(status: int, code: str) -> JSONResponse:
+    return JSONResponse({"code": code}, status_code=status)
+
+
+def _normalise(email: str) -> str:
+    return email.strip().lower()
+
+
+def _set_session(response: Response, user_id: str, now: datetime, settings: Settings) -> None:
+    response.set_cookie(
+        SESSION_COOKIE,
+        issue_session(user_id, now),
+        max_age=int(SESSION_IDLE_LIMIT.total_seconds()),
+        httponly=True,
+        samesite="lax",
+        secure=settings.cookie_secure,
+        path="/",
+    )
+
+
+@router.post("/sign-up", status_code=202)
+def sign_up(
+    body: Credentials, identity: IdentityProvider = Depends(get_identity)
+) -> Response:
+    email = _normalise(body.email)
+    if not validate_password(body.password):
+        return _error(422, "password_rule")
+    # An unusable email and an email that already has an account look the same to the caller.
+    if not _EMAIL.match(email):
+        return _error(400, "could_not_create")
+    try:
+        identity.sign_up_email(email, body.password)
+    except IdentityError:
+        return _error(400, "could_not_create")
+    return JSONResponse({"status": "confirmation_sent"}, status_code=202)
+
+
+@router.post("/sign-in")
+def sign_in(
+    body: Credentials,
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    try:
+        user_id = identity.sign_in_email(_normalise(body.email), body.password)
+    except WrongPassword:
+        return _error(401, "wrong_password")
+    except NoAccount:
+        return _error(404, "no_account")
+    except EmailNotConfirmed:
+        return _error(403, "email_not_confirmed")
+    except IdentityError:
+        return _error(400, "sign_in_failed")
+    response = JSONResponse({"status": "signed_in"})
+    _set_session(response, user_id, now, settings)
+    return response
+
+
+@router.post("/sign-out", status_code=204)
+def sign_out() -> Response:
+    response = Response(status_code=204)
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return response
+
+
+@router.post("/resend-confirmation", status_code=202)
+def resend_confirmation(
+    body: EmailOnly, identity: IdentityProvider = Depends(get_identity)
+) -> Response:
+    try:
+        identity.resend_confirmation(_normalise(body.email))
+    except IdentityError:
+        pass  # same answer either way, so this cannot be used to probe for accounts
+    return JSONResponse({"status": "confirmation_sent"}, status_code=202)
+
+
+@router.get("/me")
+def me(
+    session: str | None = Cookie(default=None),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    user_id = read_session(session, now) if session else None
+    if user_id is None:
+        return _error(401, "not_signed_in")
+    response = JSONResponse({"email": identity.email_for(user_id)})
+    _set_session(response, user_id, now, settings)  # slide the 7-day idle window
+    return response
+
+
+@router.get("/google/start")
+def google_start(
+    mode: Literal["in", "up"] = "in", identity: IdentityProvider = Depends(get_identity)
+) -> Response:
+    state = sign_value(f"{mode}:{secrets.token_urlsafe(8)}")
+    return RedirectResponse(identity.google_authorize_url(state), status_code=303)
+
+
+@router.get("/google/callback")
+def google_callback(
+    state: str = "",
+    code: str | None = None,
+    error: str | None = None,
+    identity: IdentityProvider = Depends(get_identity),
+    accounts: AccountStore = Depends(get_accounts),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    def back(path: str) -> RedirectResponse:
+        return RedirectResponse(f"{settings.web_origin}{path}", status_code=303)
+
+    verified = verify_value(state)
+    if verified is None:
+        return back("/sign-in")
+    mode = verified.split(":", 1)[0]
+    if error or not code:
+        return back("/sign-in?error=google_cancelled" if mode == "in" else "/sign-up")
+    try:
+        user_id = identity.complete_google(code)
+    except GoogleCancelled:
+        return back("/sign-in?error=google_cancelled" if mode == "in" else "/sign-up")
+    if mode == "up":
+        accounts.link_google(user_id)
+    elif not accounts.is_google_linked(user_id):
+        return back("/sign-in?error=google_not_linked")
+    response = back("/")
+    _set_session(response, user_id, now, settings)
+    return response

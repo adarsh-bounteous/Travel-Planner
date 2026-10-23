@@ -4,6 +4,9 @@ export type AuthErrorCode =
   | 'email_not_confirmed'
   | 'password_rule'
   | 'could_not_create'
+  | 'not_available'
+  | 'invalid_email'
+  | 'email_unavailable'
   | 'unknown'
 
 export class AuthError extends Error {
@@ -20,6 +23,9 @@ const KNOWN_CODES: AuthErrorCode[] = [
   'email_not_confirmed',
   'password_rule',
   'could_not_create',
+  'not_available',
+  'invalid_email',
+  'email_unavailable',
 ]
 
 async function post(path: string, body?: unknown): Promise<Response> {
@@ -35,7 +41,15 @@ async function post(path: string, body?: unknown): Promise<Response> {
   throw new AuthError(code ?? 'unknown')
 }
 
-export async function fetchMe(): Promise<{ email: string } | null> {
+export type SignInMethod = 'email' | 'google'
+
+export const requestEmailChange = (currentPassword: string, newEmail: string) =>
+  post('/auth/account/email', { current_password: currentPassword, new_email: newEmail })
+
+export const requestPasswordChange = (currentPassword: string, newPassword: string) =>
+  post('/auth/account/password', { current_password: currentPassword, new_password: newPassword })
+
+export async function fetchMe(): Promise<{ email: string; method: SignInMethod } | null> {
   const response = await fetch('/auth/me', { credentials: 'same-origin' })
   return response.ok ? response.json() : null
 }

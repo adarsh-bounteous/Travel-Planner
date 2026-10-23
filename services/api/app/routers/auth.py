@@ -12,6 +12,7 @@ from app.auth.accounts import AccountStore, DynamoAccountStore
 from app.auth.cognito_identity import CognitoIdentityProvider
 from app.auth.identity import (
     EmailNotConfirmed,
+    EmailTaken,
     GoogleCancelled,
     IdentityError,
     IdentityProvider,
@@ -146,14 +147,99 @@ def resend_confirmation(
 def me(
     session: str | None = Cookie(default=None),
     identity: IdentityProvider = Depends(get_identity),
+    accounts: AccountStore = Depends(get_accounts),
     now: datetime = Depends(get_now),
     settings: Settings = Depends(get_settings),
 ) -> Response:
     user_id = read_session(session, now) if session else None
     if user_id is None:
         return _error(401, "not_signed_in")
-    response = JSONResponse({"email": identity.email_for(user_id)})
+    method = "google" if accounts.is_google_linked(user_id) else "email"
+    response = JSONResponse({"email": identity.email_for(user_id), "method": method})
     _set_session(response, user_id, now, settings)  # slide the 7-day idle window
+    return response
+
+
+class EmailChange(BaseModel):
+    current_password: str
+    new_email: str
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+
+def _account_change_guard(
+    session: str | None,
+    current_password: str,
+    identity: IdentityProvider,
+    accounts: AccountStore,
+    now: datetime,
+) -> tuple[str, str] | JSONResponse:
+    """Return (user_id, current email) for a traveller allowed to change their sign-in details."""
+    user_id = read_session(session, now) if session else None
+    if user_id is None:
+        return _error(401, "not_signed_in")
+    if accounts.is_google_linked(user_id):
+        return _error(403, "not_available")
+    if not current_password:
+        return _error(403, "wrong_password")
+    return user_id, identity.email_for(user_id)
+
+
+@router.post("/account/email", status_code=202)
+def change_email(
+    body: EmailChange,
+    session: str | None = Cookie(default=None),
+    identity: IdentityProvider = Depends(get_identity),
+    accounts: AccountStore = Depends(get_accounts),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    guard = _account_change_guard(session, body.current_password, identity, accounts, now)
+    if isinstance(guard, JSONResponse):
+        return guard
+    user_id, email = guard
+    new_email = _normalise(body.new_email)
+    if not _EMAIL.match(new_email):
+        return _error(422, "invalid_email")
+    try:
+        identity.request_email_change(email, body.current_password, new_email)
+    except WrongPassword:
+        return _error(403, "wrong_password")
+    except EmailTaken:
+        return _error(409, "email_unavailable")  # no detail: never hint at who has an account
+    except IdentityError:
+        return _error(400, "change_failed")
+    response = JSONResponse({"status": "confirmation_sent"}, status_code=202)
+    _set_session(response, user_id, now, settings)
+    return response
+
+
+@router.post("/account/password", status_code=204)
+def change_password(
+    body: PasswordChange,
+    session: str | None = Cookie(default=None),
+    identity: IdentityProvider = Depends(get_identity),
+    accounts: AccountStore = Depends(get_accounts),
+    now: datetime = Depends(get_now),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    guard = _account_change_guard(session, body.current_password, identity, accounts, now)
+    if isinstance(guard, JSONResponse):
+        return guard
+    user_id, email = guard
+    if not validate_password(body.new_password):
+        return _error(422, "password_rule")
+    try:
+        identity.change_password(email, body.current_password, body.new_password)
+    except WrongPassword:
+        return _error(403, "wrong_password")
+    except IdentityError:
+        return _error(400, "change_failed")
+    response = Response(status_code=204)
+    _set_session(response, user_id, now, settings)
     return response
 
 

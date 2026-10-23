@@ -61,7 +61,7 @@ def test_sign_up_confirm_then_sign_in(client, fake):  # AC1, AC3
     fake.confirm("maya@example.com")
     r = client.post("/auth/sign-in", json={"email": "maya@example.com", "password": PASSWORD})
     assert r.status_code == 200
-    assert client.get("/auth/me").json() == {"email": "maya@example.com"}
+    assert client.get("/auth/me").json() == {"email": "maya@example.com", "method": "email"}
 
 
 def test_sign_up_does_not_sign_in(client):  # AC14

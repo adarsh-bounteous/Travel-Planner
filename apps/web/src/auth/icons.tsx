@@ -16,6 +16,13 @@ export const AlertIcon = () => (
   </Icon>
 )
 
+export const CheckIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="10" />
+    <path d="m8 12 3 3 5-6" />
+  </Icon>
+)
+
 export const InfoIcon = () => (
   <Icon>
     <circle cx="12" cy="12" r="10" />

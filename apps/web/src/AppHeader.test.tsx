@@ -40,6 +40,30 @@ describe('AppHeader', () => {
     expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
   })
 
+  it('shows an Account link in the header of a signed-in page (AC8)', async () => {
+    mockMe(200, { email: 'maya@example.com', method: 'email' })
+    renderAt('/')
+    const header = await screen.findByRole('banner')
+    expect(await within(header).findByRole('link', { name: 'Account' })).toHaveAttribute(
+      'href',
+      '/account',
+    )
+  })
+
+  it('opens the Account page from the header link (AC9)', async () => {
+    mockMe(200, { email: 'maya@example.com', method: 'email' })
+    renderAt('/')
+    fireEvent.click(await within(await screen.findByRole('banner')).findByRole('link', { name: 'Account' }))
+    expect(await screen.findByRole('heading', { name: 'Account' })).toBeInTheDocument()
+  })
+
+  it('hides the Account link from a signed-out visitor', async () => {
+    mockMe(401)
+    renderAt('/sign-up')
+    await screen.findByRole('link', { name: 'Sign in' })
+    expect(screen.queryByRole('link', { name: 'Account' })).not.toBeInTheDocument()
+  })
+
   it('does not show the entry point to a signed-in traveller', async () => {
     mockMe(200, { email: 'maya@example.com' })
     renderAt('/')

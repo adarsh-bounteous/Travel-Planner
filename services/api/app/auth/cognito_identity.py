@@ -76,6 +76,48 @@ class CognitoIdentityProvider:
         )["Users"][0]
         return next(a["Value"] for a in user["Attributes"] if a["Name"] == "email")
 
+    def _access_token(self, email: str, current_password: str) -> str:
+        try:
+            result = self._client.initiate_auth(
+                ClientId=self._settings.identity_client_id,
+                AuthFlow="USER_PASSWORD_AUTH",
+                AuthParameters={"USERNAME": email, "PASSWORD": current_password},
+            )
+        except ClientError as error:
+            if self._code(error) == "NotAuthorizedException":
+                raise WrongPassword from error
+            raise IdentityError from error
+        return result["AuthenticationResult"]["AccessToken"]
+
+    def change_password(self, email: str, current_password: str, new_password: str) -> None:
+        access_token = self._access_token(email, current_password)
+        try:
+            self._client.change_password(
+                PreviousPassword=current_password,
+                ProposedPassword=new_password,
+                AccessToken=access_token,
+            )
+        except ClientError as error:
+            raise IdentityError from error
+
+    def request_email_change(self, email: str, current_password: str, new_email: str) -> None:
+        access_token = self._access_token(email, current_password)
+        try:
+            taken = self._client.list_users(
+                UserPoolId=self._settings.identity_user_pool_id,
+                Filter='email = "{}"'.format(new_email.replace("\\", "\\\\").replace('"', '\\"')),
+                Limit=1,
+            )["Users"]
+            if taken:
+                raise EmailTaken
+            # The pool keeps the old email active until the new one is verified.
+            self._client.update_user_attributes(
+                UserAttributes=[{"Name": "email", "Value": new_email}],
+                AccessToken=access_token,
+            )
+        except ClientError as error:
+            raise IdentityError from error
+
     def google_authorize_url(self, state: str) -> str:
         query = urllib.parse.urlencode(
             {

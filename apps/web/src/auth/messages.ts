@@ -24,5 +24,11 @@ export const MESSAGES: Record<Problem, Message> = {
     tone: 'danger',
     text: 'We could not create an account with that email. Try signing in.',
   },
+  not_available: { tone: 'danger', text: 'This change is not available for your account.' },
+  invalid_email: { tone: 'danger', text: 'Enter a valid email address.' },
+  email_unavailable: {
+    tone: 'danger',
+    text: "This email address can't be used. Enter a different email address.",
+  },
   unknown: { tone: 'danger', text: 'Something went wrong. Try again.' },
 }

@@ -24,6 +24,7 @@ class FakeIdentityProvider:
     def __init__(self) -> None:
         self._users: dict[str, _User] = {}
         self.resent: list[str] = []
+        self.pending_email: dict[str, str] = {}
 
     def confirm(self, email: str) -> None:
         self._users[email].confirmed = True
@@ -54,6 +55,28 @@ class FakeIdentityProvider:
             if user.user_id == user_id:
                 return user.email
         return f"{user_id}@google.example"
+
+    def request_email_change(self, email: str, current_password: str, new_email: str) -> None:
+        user = self._users[email]
+        if user.password != current_password:
+            raise WrongPassword
+        if new_email in self._users:
+            raise EmailTaken
+        self.pending_email[email] = new_email
+
+    def change_password(self, email: str, current_password: str, new_password: str) -> None:
+        user = self._users[email]
+        if user.password != current_password:
+            raise WrongPassword
+        user.password = new_password
+
+    def confirm_email_change(self, new_email: str) -> None:
+        """Stands in for the traveller opening the link sent to new_email."""
+        old = next(old for old, pending in self.pending_email.items() if pending == new_email)
+        user = self._users.pop(old)
+        del self.pending_email[old]
+        user.email = new_email
+        self._users[new_email] = user
 
     def google_authorize_url(self, state: str) -> str:
         return "https://google.example/authorize?" + urlencode({"state": state})

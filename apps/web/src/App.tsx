@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router'
+import { AccountPage } from './account/AccountPage'
 import { AppHeader } from './AppHeader'
 import { ConfirmEmailPage } from './auth/ConfirmEmailPage'
 import { HomePage } from './auth/HomePage'
@@ -18,6 +19,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <HomePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <RequireAuth>
+                <AccountPage />
               </RequireAuth>
             }
           />

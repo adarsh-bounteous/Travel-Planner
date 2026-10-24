@@ -13,6 +13,7 @@ from app.trips.recommendations import (
     RecommendationSource,
 )
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
+from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
 from app.trips.store import DynamoTripStore, TripStore
@@ -34,6 +35,11 @@ def _trips() -> TripStore:
 @lru_cache
 def _profiles() -> ProfileStore:
     return DynamoProfileStore(get_settings().accounts_table_name)
+
+
+@lru_cache
+def _saved_places() -> SavedPlaceStore:
+    return DynamoSavedPlaceStore(get_settings().accounts_table_name)
 
 
 @lru_cache
@@ -79,6 +85,10 @@ def get_trips() -> TripStore:
 
 def get_profiles() -> ProfileStore:
     return _profiles()
+
+
+def get_saved_places() -> SavedPlaceStore:
+    return _saved_places()
 
 
 def get_current_user(

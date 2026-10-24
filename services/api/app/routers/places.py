@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends
 from pydantic import StringConstraints
 
 from app.places.search import Place, PlaceSearch, PlaceType, Price
-from app.routers.deps import get_current_user, get_places
+from app.routers.deps import get_places
 
+# Read-only seeded catalogue, so a signed-out visitor can browse it and be asked to sign in on Save.
 router = APIRouter(prefix="/places")
 
 
@@ -22,7 +23,6 @@ def search_places(
     q: str | None = None,
     place_type: PlaceType | None = None,
     price: Price | None = None,
-    _owner: str = Depends(get_current_user),
     places: PlaceSearch = Depends(get_places),
 ) -> list[Place]:
     return [

@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -56,7 +56,7 @@ describe('Destination results filters and map', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Map' }))
     const map = await screen.findByRole('img', { name: 'Map of places' })
     expect(within(map).getAllByRole('listitem').map((n) => n.getAttribute('aria-label'))).toEqual([
-      'Belém Tower',
+      'Belém Tower, not saved',
     ])
     expect(screen.getByRole('tab', { name: 'Map' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByRole('img', { name: 'Belém Tower' })).not.toBeInTheDocument()
@@ -167,5 +167,131 @@ describe('Destination results', () => {
     stubApi({ 'GET /trips': { status: 200, body: [] } })
     renderAt('/destinations')
     expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+  })
+})
+
+const putCalls = (fetchMock: ReturnType<typeof stubApi>) =>
+  fetchMock.mock.calls
+    .filter(([p, i]) => String(p).startsWith('/saved-places') && i?.method === 'PUT')
+    .map(([p]) => String(p))
+
+describe('Saving places', () => {
+  beforeEach(() => sessionStorage.clear())
+
+  it('Save flips the card to saved (AC1), with no trips (AC4)', async () => {
+    const fetchMock = stubApi({
+      ...lisbon,
+      'GET /saved-places': { status: 200, body: [] },
+      'PUT /saved-places/p1': { status: 200, body: alfama },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    expect(await screen.findByRole('button', { name: 'Unsave Alfama' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(fetchMock.mock.calls.some(([p]) => String(p).startsWith('/trips'))).toBe(false)
+  })
+
+  it('Unsave flips the card back to not saved (AC2)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /saved-places': { status: 200, body: [alfama] },
+      'DELETE /saved-places/p1': { status: 204 },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
+    expect(await screen.findByRole('button', { name: 'Save Alfama' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('a saved place then shows on the Saved list (AC3)', async () => {
+    let list: unknown[] = []
+    const fetchMock = stubApi({
+      ...lisbon,
+      'PUT /saved-places/p1': { status: 200, body: alfama },
+    })
+    const base = fetchMock.getMockImplementation()!
+    fetchMock.mockImplementation(async (path, init) => {
+      if (path === '/saved-places' && init?.method === 'GET') return new Response(JSON.stringify(list))
+      if (path === '/saved-places/p1') list = [alfama]
+      return base(path, init)
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    await screen.findByRole('button', { name: 'Unsave Alfama' })
+    fireEvent.click(screen.getByRole('link', { name: 'Saved' }))
+    expect(await screen.findByRole('heading', { name: 'Saved' })).toBeInTheDocument()
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+  })
+
+  it('saved and unsaved places have different map markers (AC5)', async () => {
+    stubApi({ ...lisbon, 'GET /saved-places': { status: 200, body: [alfama] } })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('tab', { name: 'Map' }))
+    const map = await screen.findByRole('img', { name: 'Map of places' })
+    await waitFor(() =>
+      expect(
+        within(map)
+          .getAllByRole('listitem')
+          .map((p) => p.getAttribute('data-saved')),
+      ).toEqual(['true', 'false']),
+    )
+    expect(screen.getByText('Saved place')).toBeInTheDocument()
+    expect(screen.getByText('Not saved')).toBeInTheDocument()
+  })
+
+  it('a signed-out visitor is asked to sign in (AC11)', async () => {
+    const fetchMock = stubApi(lisbon, { signedOut: true })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+    expect(putCalls(fetchMock)).toEqual([])
+    expect(sessionStorage.getItem('returnTo')).toBe('/destinations?q=Lisbon')
+  })
+
+  it('a failed save after sign-in alerts and shows no success toast', async () => {
+    stubApi(
+      {
+        ...lisbon,
+        'POST /auth/sign-in': { status: 200 },
+        'GET /saved-places': { status: 200, body: [] },
+        'PUT /saved-places/p1': { status: 500 },
+      },
+      { signedOut: true },
+    )
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'maya@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
+    expect(screen.queryByText('Alfama saved to your account.')).not.toBeInTheDocument()
+  })
+
+  it('the place is saved once sign-in completes (AC12)', async () => {
+    const fetchMock = stubApi(
+      {
+        ...lisbon,
+        'POST /auth/sign-in': { status: 200 },
+        'GET /saved-places': { status: 200, body: [] },
+        'PUT /saved-places/p1': { status: 200, body: alfama },
+      },
+      { signedOut: true },
+    )
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'maya@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    await waitFor(() => expect(putCalls(fetchMock)).toEqual(['/saved-places/p1']))
+    expect(await screen.findByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
+    expect(sessionStorage.getItem('pendingSave')).toBeNull()
   })
 })

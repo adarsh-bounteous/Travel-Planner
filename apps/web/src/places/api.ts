@@ -34,3 +34,11 @@ export const searchPlaces = (destination: string, q?: string, filters: PlaceFilt
       filters.placeType === undefined ? '' : `&place_type=${filters.placeType}`
     }${filters.price === undefined ? '' : `&price=${filters.price}`}`,
   )
+
+export const fetchSavedPlaces = () => call<Place[]>('/saved-places')
+
+export const savePlace = (place: Place) =>
+  call<Place>(`/saved-places/${encodeURIComponent(place.id)}`, 'PUT', place)
+
+export const unsavePlace = (id: string) =>
+  call<void>(`/saved-places/${encodeURIComponent(id)}`, 'DELETE')

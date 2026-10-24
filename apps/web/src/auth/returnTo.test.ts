@@ -46,6 +46,7 @@ describe('return path storage', () => {
 describe('pageLabel', () => {
   it('names known pages and falls back', () => {
     expect(pageLabel('/')).toBe('Trips')
+    expect(pageLabel('/destinations?q=Lisbon')).toBe('Destination results')
     expect(pageLabel('/somewhere')).toBe('that page')
   })
 })

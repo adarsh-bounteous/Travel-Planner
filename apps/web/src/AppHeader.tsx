@@ -15,6 +15,9 @@ export function AppHeader() {
             <NavLink className="shell-link" to="/profile">
               Profile
             </NavLink>
+            <NavLink className="shell-link" to="/saved">
+              Saved
+            </NavLink>
             <NavLink className="shell-link" to="/account">
               Account
             </NavLink>

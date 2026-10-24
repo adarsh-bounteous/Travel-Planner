@@ -8,14 +8,16 @@ import { SignInPage } from './auth/SignInPage'
 import { SignUpPage } from './auth/SignUpPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
+import { SavedPage } from './saved/SavedPage'
 import { InvitePage } from './trips/InvitePage'
 import { SharedTripPage } from './trips/SharedTripPage'
 import { TripPage } from './trips/TripPage'
 
-// Every page other than the auth pages must be wrapped in <RequireAuth>, except two:
+// Every page other than the auth pages must be wrapped in <RequireAuth>, except three:
 // the invite page names the email to sign in with while signed out, and the server checks the
 // session on accept; the read-only trip page is for people with no account, and its link is the
-// credential.
+// credential; Destination results browses the read-only catalogue, and a signed-out visitor who
+// chooses Save is sent to sign in (see useSavedPlaces).
 export default function App() {
   return (
     <>
@@ -32,9 +34,13 @@ export default function App() {
           />
           <Route
             path="/destinations"
+            element={<DestinationResultsPage />}
+          />
+          <Route
+            path="/saved"
             element={
               <RequireAuth>
-                <DestinationResultsPage />
+                <SavedPage />
               </RequireAuth>
             }
           />

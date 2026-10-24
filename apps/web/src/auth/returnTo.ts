@@ -1,6 +1,6 @@
 const KEY = 'returnTo'
 const AUTH_PAGES = ['/sign-in', '/sign-up', '/confirm-email']
-const LABELS: Record<string, string> = { '/': 'Trips' }
+const LABELS: Record<string, string> = { '/': 'Trips', '/destinations': 'Destination results' }
 
 // Only same-origin absolute paths, and never an auth page (which would loop).
 export function safeReturnPath(raw: string | null): string | null {

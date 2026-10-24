@@ -264,7 +264,7 @@ describe('TripDetailPage delete', () => {
     renderAt('/trips/t1')
     const dialog = await askToDelete()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Delete trip' }))
-    expect(await screen.findByText(/You haven't planned a trip yet/)).toBeInTheDocument()
+    expect(await screen.findByText(/No trips yet/)).toBeInTheDocument()
     expect(sent(fetchMock, 'DELETE')).toHaveLength(1)
     expect(screen.getByRole('status')).toHaveTextContent('Trip deleted')
   })

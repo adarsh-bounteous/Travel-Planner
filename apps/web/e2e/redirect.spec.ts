@@ -21,7 +21,7 @@ test('signed-out visitor is sent to sign in, then back to the page asked for', a
   await page.goto('/')
   await expect(page).toHaveURL(/\/sign-in$/)
   await expect(page.getByText("You'll go to Trips after signing in.")).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'My trips' })).toHaveCount(0)
 
   // The remembered page survives a reload.
   await page.reload()
@@ -31,7 +31,7 @@ test('signed-out visitor is sent to sign in, then back to the page asked for', a
   await page.getByLabel('Password').fill('test-password')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My trips' })).toBeVisible()
 })
 
 test('the header sign-in entry point opens the sign-in page', async ({ page }) => {
@@ -46,5 +46,5 @@ test('a signed-in traveller never sees the sign-in page', async ({ page }) => {
   await stubApi(page, true)
   await page.goto('/sign-in')
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My trips' })).toBeVisible()
 })

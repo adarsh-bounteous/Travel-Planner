@@ -26,7 +26,7 @@ describe('AuthProvider', () => {
       ),
     )
     renderHome()
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
   it('shows sign-in when there is no valid session', async () => {
@@ -47,6 +47,6 @@ describe('AuthProvider', () => {
     renderHome()
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Your trips' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'My trips' })).not.toBeInTheDocument()
   })
 })

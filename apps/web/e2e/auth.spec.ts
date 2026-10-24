@@ -21,10 +21,10 @@ test('sign in, stay signed in on reload, then sign out', async ({ page }) => {
   await page.getByLabel('Email').fill('maya@example.com')
   await page.getByLabel('Password').fill('abcdefghij12')
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My trips' })).toBeVisible()
 
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Your trips' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My trips' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()

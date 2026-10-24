@@ -63,6 +63,8 @@ export type Trip = {
   can_edit?: boolean
   /** Owner only: a path on this site that opens the trip read-only; null when there is no link. */
   share_url?: string | null
+  /** Set by GET /trips: shared with this traveller by another traveller. */
+  shared?: boolean
 }
 
 export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'>

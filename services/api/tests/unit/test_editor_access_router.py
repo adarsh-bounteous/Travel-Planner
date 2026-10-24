@@ -149,3 +149,23 @@ def test_invite_is_kept_when_the_email_cannot_be_sent(sign_in_as):
     r = owner.post(f"/trips/{tid}/editors", json={"email": "ana@example.com"})
     assert r.status_code == 201
     assert r.json()["editors"][0]["invite_url"].startswith("/invite/")
+
+
+def test_list_marks_shared_trips_and_hides_owner_only_fields(sign_in_as):  # AC1, AC7, AC8
+    owner, ana = sign_in_as("o@example.com"), sign_in_as("ana@example.com")
+    shared_id = _trip_with_day(owner)
+    ana.post("/trips", json={"name": "Mine"})
+    assert ana.post(f"/invites/{_invite(owner, shared_id, 'ana@example.com')}/accept").status_code == 200
+    listed = {t["name"]: t for t in ana.get("/trips").json()}
+    assert set(listed) == {"Mine", "Lisbon"}
+    assert listed["Mine"]["shared"] is False
+    assert listed["Lisbon"]["shared"] is True
+    assert listed["Lisbon"]["editors"] == [] and listed["Lisbon"]["share_token"] is None
+
+
+def test_revoked_trip_drops_from_list_without_error(shared):  # AC14
+    owner, ana, _ben, tid = shared
+    owner.delete(f"/trips/{tid}/editors/ana@example.com")
+    response = ana.get("/trips")
+    assert response.status_code == 200
+    assert tid not in [t["id"] for t in response.json()]

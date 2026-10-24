@@ -88,7 +88,7 @@ describe('SignInPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('signs in and shows Your trips (AC3)', async () => {
+  it('signs in and shows My trips (AC3)', async () => {
     const calls: string[] = []
     const fetchMock = vi.fn(async (path: string) => {
       calls.push(path)
@@ -103,6 +103,6 @@ describe('SignInPage', () => {
     vi.stubGlobal('fetch', fetchMock)
     renderAt('/sign-in')
     await submitSignIn('maya@example.com', 'abcdefghij12')
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 })

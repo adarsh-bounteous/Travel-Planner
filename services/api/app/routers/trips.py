@@ -2,7 +2,7 @@ import logging
 import re
 import secrets
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -195,20 +195,32 @@ def _days(trip: Trip, start: date | None, end: date | None) -> list[Day]:
         raise INVALID_DATES from None
 
 
+class TripListItem(Trip):
+    shared: bool = False  # shared with this traveller by another traveller
+
+
+def _updated_key(trip: Trip) -> datetime:
+    """Sort key: trips saved before updated_at existed sort last; naive times are read as UTC."""
+    at = trip.updated_at
+    if at is None:
+        return datetime.min.replace(tzinfo=UTC)
+    return at if at.tzinfo else at.replace(tzinfo=UTC)
+
+
 @router.get("")
 def list_trips(
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
     identity: IdentityProvider = Depends(get_identity),
-) -> list[Trip]:
-    mine = [t.model_copy(update={"share_token": None}) for t in trips.list_trips(user)]
+) -> list[TripListItem]:
+    mine = [TripListItem(**t.model_dump(exclude={"share_token"})) for t in trips.list_trips(user)]
     email = identity.email_for(user).strip().lower()
     shared = []
     for owner_id, trip_id in trips.shared_trips(email):
         trip = trips.get_trip(owner_id, trip_id)
         if trip is not None and can_edit_trip(trip, user, owner_id, email):  # stale index rows are skipped
-            shared.append(trip.model_copy(update={"editors": [], "share_token": None}))
-    return [*mine, *shared]
+            shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token"}), shared=True))
+    return sorted([*mine, *shared], key=_updated_key, reverse=True)
 
 
 @router.post("", status_code=201)

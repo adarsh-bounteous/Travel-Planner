@@ -124,7 +124,7 @@ describe('Destination results', () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon')
     fireEvent.click(await screen.findByRole('link', { name: 'Back' }))
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
   it('each card shows the image and name (AC4)', async () => {
@@ -166,7 +166,7 @@ describe('Destination results', () => {
   it('redirects to Home without a search', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [] } })
     renderAt('/destinations')
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 })
 

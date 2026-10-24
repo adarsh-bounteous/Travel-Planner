@@ -208,3 +208,22 @@ def test_owner_deletes_a_trip_and_others_cannot(sign_in_as):
     assert a.delete(f"/trips/{tid}").status_code == 204
     assert a.get(f"/trips/{tid}").status_code == 404
     assert a.delete(f"/trips/{tid}").status_code == 404
+
+
+def test_list_is_newest_updated_first(sign_in_as):  # AC9
+    from datetime import UTC, datetime, timedelta
+
+    from app.routers import auth
+
+    a = sign_in_as("a@example.com")
+    t0 = datetime(2026, 1, 1, tzinfo=UTC)
+    try:
+        app.dependency_overrides[auth.get_now] = lambda: t0
+        first = a.post("/trips", json={"name": "Lisbon"}).json()["id"]
+        app.dependency_overrides[auth.get_now] = lambda: t0 + timedelta(days=1)
+        a.post("/trips", json={"name": "Oslo"})
+        app.dependency_overrides[auth.get_now] = lambda: t0 + timedelta(days=2)
+        a.put(f"/trips/{first}", json={"name": "Lisbon 2"})
+        assert [t["name"] for t in a.get("/trips").json()] == ["Lisbon 2", "Oslo"]
+    finally:
+        app.dependency_overrides[auth.get_now] = lambda: t0

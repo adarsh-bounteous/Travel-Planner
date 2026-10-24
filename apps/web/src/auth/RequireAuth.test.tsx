@@ -56,9 +56,9 @@ describe('RequireAuth', () => {
   it('renders no protected content while loading or signed out (AC4)', async () => {
     mockApi({ '/auth/me': { status: 401 } })
     renderAt('/')
-    expect(screen.queryByRole('heading', { name: 'Your trips' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'My trips' })).not.toBeInTheDocument()
     await screen.findByRole('heading', { name: 'Sign in' })
-    expect(screen.queryByRole('heading', { name: 'Your trips' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'My trips' })).not.toBeInTheDocument()
   })
 
   it('returns to the page asked for after signing in (AC2)', async () => {
@@ -86,7 +86,7 @@ describe('RequireAuth', () => {
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'maya@example.com' } })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
     expect(sessionStorage.getItem('returnTo')).toBeNull()
   })
 
@@ -101,14 +101,14 @@ describe('RequireAuth', () => {
   it('never shows the sign-in page to a signed-in traveller (AC3)', async () => {
     mockApi({ '/auth/me': { status: 200, body: { email: 'maya@example.com' } } })
     renderAt('/sign-in')
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sign in' })).not.toBeInTheDocument()
   })
 
   it('opens the app signed in without the sign-in page (AC3)', async () => {
     mockApi({ '/auth/me': { status: 200, body: { email: 'maya@example.com' } } })
     renderAt('/')
-    expect(await screen.findByRole('heading', { name: 'Your trips' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sign in' })).not.toBeInTheDocument()
   })
 })

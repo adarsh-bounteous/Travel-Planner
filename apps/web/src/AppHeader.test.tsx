@@ -71,7 +71,7 @@ describe('AppHeader', () => {
   it('does not show the entry point to a signed-in traveller', async () => {
     mockMe(200, { email: 'maya@example.com' })
     renderAt('/')
-    await screen.findByRole('heading', { name: 'Your trips' })
+    await screen.findByRole('heading', { name: 'My trips' })
     expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument()
   })
 })

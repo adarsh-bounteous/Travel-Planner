@@ -1,13 +1,15 @@
 from app.main import app
 from app.routers import deps
 from app.trips.store import Trip
+from tests.trip_body import trip_body
 
 
 def _trip(client, destination: str | None = "Lisbon") -> str:
-    body = {"name": "Trip", "start_date": "2027-03-03", "end_date": "2027-03-05"}
-    if destination:
-        body["destination"] = destination
-    return client.post("/trips", json=body).json()["id"]
+    body = trip_body(name="Trip", start_date="2027-03-03", end_date="2027-03-05", destination=destination or "x")
+    tid = client.post("/trips", json=body).json()["id"]
+    if not destination:  # a trip saved without one, as Trip settings allows
+        client.put(f"/trips/{tid}", json={"name": "Trip", "start_date": "2027-03-03", "end_date": "2027-03-05"})
+    return tid
 
 
 def _add(client, tid, name="Cooking class", day="2027-03-04"):

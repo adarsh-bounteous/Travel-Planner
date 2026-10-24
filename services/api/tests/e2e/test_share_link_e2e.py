@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.main import app
 from app.routers import auth, deps
 from app.trips.store import InMemoryTripStore
+from tests.trip_body import trip_body
 
 PASSWORD = "abcdefghij12"
 
@@ -30,7 +31,7 @@ def test_link_works_for_a_visitor_until_the_owner_turns_it_off():
             await owner.post("/auth/sign-up", json=creds)
             fake.confirm(creds["email"])
             await owner.post("/auth/sign-in", json=creds)
-            tid = (await owner.post("/trips", json={"name": "Lisbon"})).json()["id"]
+            tid = (await owner.post("/trips", json=trip_body())).json()["id"]
             url = (await owner.post(f"/trips/{tid}/share-link")).json()["share_url"]
             path = url.replace("/trips/read-only/", "/shared/")
 

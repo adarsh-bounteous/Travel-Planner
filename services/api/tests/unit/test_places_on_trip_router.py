@@ -1,10 +1,11 @@
 from app.trips.store import Trip
+from tests.trip_body import trip_body
 
 PLACE = {"place_id": "alfama", "name": "Alfama", "image_url": "/a.jpg"}
 
 
 def _trip(client) -> str:
-    return client.post("/trips", json={"name": "Trip"}).json()["id"]
+    return client.post("/trips", json=trip_body(name="Trip")).json()["id"]
 
 
 def _add(client, tid, **overrides):

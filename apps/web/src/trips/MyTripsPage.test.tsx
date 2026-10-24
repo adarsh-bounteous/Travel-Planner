@@ -61,7 +61,8 @@ describe('MyTripsPage', () => {
     stubApi({ 'GET /trips': { status: 200, body: [] } })
     renderAt('/')
     fireEvent.click(await screen.findByRole('link', { name: 'Plan your first trip' }))
-    expect(await screen.findByLabelText('Trip name')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'New trip' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Destination')).toBeInTheDocument()
   })
 
   it('launches the guided set-up from New trip (AC5)', async () => {
@@ -150,18 +151,5 @@ describe('MyTripsPage', () => {
       expect(screen.getByRole('heading', { name: 'Oslo' })).toBeInTheDocument()
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
-  })
-
-  it('saves a new trip and returns to the list', async () => {
-    const fetchMock = stubApi({
-      'GET /trips': { status: 200, body: [{ id: 't9', name: 'Lisbon' }] },
-      'POST /trips': { status: 201, body: { id: 't9', name: 'Lisbon' } },
-    })
-    renderAt('/trips/new')
-    fireEvent.change(await screen.findByLabelText('Trip name'), { target: { value: 'Lisbon' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save trip' }))
-    expect(await screen.findByRole('link', { name: 'Open Lisbon' })).toBeInTheDocument()
-    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
-    expect(JSON.parse(post![1]!.body as string).name).toBe('Lisbon')
   })
 })

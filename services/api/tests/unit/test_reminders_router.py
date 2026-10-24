@@ -3,10 +3,11 @@ from datetime import date
 from app.main import app
 from app.routers import deps
 from app.trips.store import ChosenOption, Reminder, Trip, can_edit_trip, visible_reminders
+from tests.trip_body import trip_body
 
 
 def _lisbon(client) -> str:
-    body = {"name": "Lisbon", "start_date": "2027-03-03", "end_date": "2027-03-05"}
+    body = trip_body(start_date="2027-03-03", end_date="2027-03-05")
     return client.post("/trips", json=body).json()["id"]
 
 

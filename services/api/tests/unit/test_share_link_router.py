@@ -6,10 +6,11 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.trips.store import ChosenOption, Editor, Reminder, Traveller
+from tests.trip_body import trip_body
 
 
 def _trip(owner, make):
-    body = {"name": "Lisbon", "start_date": "2027-03-04", "end_date": "2027-03-05", "budget": 900}
+    body = trip_body(start_date="2027-03-04", end_date="2027-03-05", budget=900)
     tid = owner.post("/trips", json=body).json()["id"]
     owner_id = next(iter(make.trips._trips))[0]
     trip = make.trips.get_trip(owner_id, tid)
@@ -42,7 +43,7 @@ def _token(share_url: str) -> str:
 
 def test_owner_creates_a_read_only_link(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     r = owner.post(f"/trips/{tid}/share-link")
     assert r.status_code == 201
     assert r.json()["share_url"].startswith("/trips/read-only/")
@@ -74,7 +75,7 @@ def test_public_body_is_an_allow_list(sign_in_as):
 
 def test_the_token_is_not_a_credential_on_trip_routes(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon", "start_date": "2027-03-04", "end_date": "2027-03-04"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body(start_date="2027-03-04", end_date="2027-03-04")).json()["id"]
     token = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
     visitor = TestClient(app)
     assert visitor.post(f"/trips/{tid}/activities", json={"name": "x", "date": "2027-03-04"}).status_code == 401
@@ -97,7 +98,7 @@ def test_turned_off_link_is_the_same_404_as_an_unknown_one(sign_in_as):
 
 def test_a_new_link_after_turning_off_has_a_different_token(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     old = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
     owner.delete(f"/trips/{tid}/share-link")
     new = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
@@ -109,7 +110,7 @@ def test_a_new_link_after_turning_off_has_a_different_token(sign_in_as):
 
 def test_deleting_the_trip_kills_the_link(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     token = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
     assert owner.delete(f"/trips/{tid}").status_code == 204
     assert TestClient(app).get(f"/shared/{token}").status_code == 404
@@ -118,7 +119,7 @@ def test_deleting_the_trip_kills_the_link(sign_in_as):
 
 def test_editing_the_trip_keeps_the_link(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     token = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
     owner.put(f"/trips/{tid}", json={"name": "Porto"})
     assert TestClient(app).get(f"/shared/{token}").json()["name"] == "Porto"
@@ -127,7 +128,7 @@ def test_editing_the_trip_keeps_the_link(sign_in_as):
 @pytest.fixture
 def with_editor(sign_in_as):
     owner, ana, ben = (sign_in_as(e) for e in ("o@example.com", "ana@example.com", "ben@example.com"))
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     owner_id = next(iter(sign_in_as.trips._trips))[0]
     trip = sign_in_as.trips.get_trip(owner_id, tid)
     sign_in_as.trips.save_trip(
@@ -164,6 +165,6 @@ def test_owner_view_hides_the_raw_token_but_shows_the_url(with_editor):
 
 def test_trip_stored_before_share_links_has_no_link(sign_in_as):
     owner = sign_in_as("o@example.com")
-    tid = owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    tid = owner.post("/trips", json=trip_body()).json()["id"]
     assert owner.get(f"/trips/{tid}").json()["share_url"] is None
     assert TestClient(app).get("/shared/anything").status_code == 404

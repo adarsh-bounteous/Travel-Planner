@@ -36,6 +36,7 @@ from app.trips.store import (
     Traveller,
     TravellerFields,
     Trip,
+    TripCreate,
     TripFields,
     TripPlace,
     TripPlaceFields,
@@ -225,7 +226,7 @@ def list_trips(
 
 @router.post("", status_code=201)
 def create_trip(
-    body: TripFields,
+    body: TripCreate,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
     rates: RateSource = Depends(get_rates),

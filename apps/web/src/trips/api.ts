@@ -50,6 +50,7 @@ export type Trip = {
   end_date?: string | null
   budget?: number | null
   currency?: string
+  traveller_count?: number | null
   days?: Day[]
   options?: ChosenOption[]
   needed_categories?: string[]
@@ -68,6 +69,17 @@ export type Trip = {
 }
 
 export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'>
+
+/** Everything New trip set-up collects; the API refuses a create without any of them. */
+export type TripCreateInput = {
+  name: string
+  destination: string
+  start_date: string
+  end_date: string
+  budget: number
+  currency: string
+  traveller_count: number
+}
 
 export type Profile = { display_name: string; home_city: string; dietary_notes: string }
 
@@ -104,7 +116,7 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
 
 export const fetchTrips = () => call<Trip[]>('/trips')
 
-export const createTrip = (trip: TripInput) => call<Trip>('/trips', 'POST', trip)
+export const createTrip = (trip: TripCreateInput) => call<Trip>('/trips', 'POST', trip)
 
 export const fetchTrip = (id: string) => call<Trip>(`/trips/${encodeURIComponent(id)}`)
 

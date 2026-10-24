@@ -2,11 +2,12 @@ from datetime import date
 from decimal import Decimal
 
 from app.trips.store import ChosenOption, Editor
+from tests.trip_body import trip_body
 
 
 def _save(make, owner_email: str, editor_email: str) -> str:
     owner = make(owner_email)
-    trip_id = owner.post("/trips", json={"name": "Lisbon", "budget": 150}).json()["id"]
+    trip_id = owner.post("/trips", json=trip_body(budget=150)).json()["id"]
     owner_id = next(iter(make.trips._trips))[0]
     options = [
         ChosenOption(id="o1", title="Hotel", category="Stays", date=date(2027, 3, 3), price=Decimal(120), currency="EUR"),

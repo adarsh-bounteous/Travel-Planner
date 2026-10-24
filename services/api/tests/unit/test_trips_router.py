@@ -1,20 +1,22 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.trip_body import trip_body
 
 
 def test_each_traveller_lists_only_their_own_trips(sign_in_as):
     a = sign_in_as("a@example.com")
     b = sign_in_as("b@example.com")
-    a.post("/trips", json={"name": "Lisbon"})
-    b.post("/trips", json={"name": "Oslo"})
+    a.post("/trips", json=trip_body(name="Lisbon"))
+    b.post("/trips", json=trip_body(name="Oslo"))
     assert [t["name"] for t in a.get("/trips").json()] == ["Lisbon"]
     assert [t["name"] for t in b.get("/trips").json()] == ["Oslo"]
 
 
 def test_saved_trip_is_listed(sign_in_as):
     a = sign_in_as("a@example.com")
-    response = a.post("/trips", json={"name": "Lisbon", "destination": "Portugal"})
+    response = a.post("/trips", json=trip_body(destination="Portugal"))
     assert response.status_code == 201
     assert response.json()["id"]
     assert [t["id"] for t in a.get("/trips").json()] == [response.json()["id"]]
@@ -23,7 +25,7 @@ def test_saved_trip_is_listed(sign_in_as):
 def test_other_traveller_cannot_open_or_change_a_trip(sign_in_as):
     a = sign_in_as("a@example.com")
     b = sign_in_as("b@example.com")
-    trip_id = a.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    trip_id = a.post("/trips", json=trip_body()).json()["id"]
     assert b.get(f"/trips/{trip_id}").status_code == 404
     assert b.get(f"/trips/{trip_id}").json() == {"code": "not_found"}
     assert b.put(f"/trips/{trip_id}", json={"name": "Hijacked"}).status_code == 404
@@ -33,7 +35,7 @@ def test_other_traveller_cannot_open_or_change_a_trip(sign_in_as):
 
 def test_owner_can_update_a_trip(sign_in_as):
     a = sign_in_as("a@example.com")
-    trip_id = a.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    trip_id = a.post("/trips", json=trip_body()).json()["id"]
     response = a.put(f"/trips/{trip_id}", json={"name": "Lisbon 2", "start_date": "2026-05-01", "end_date": "2026-05-02"})
     assert response.status_code == 200
     assert a.get(f"/trips/{trip_id}").json()["name"] == "Lisbon 2"
@@ -43,7 +45,7 @@ def test_owner_can_update_a_trip(sign_in_as):
 def test_body_cannot_name_an_owner(sign_in_as):
     a = sign_in_as("a@example.com")
     b = sign_in_as("b@example.com")
-    a.post("/trips", json={"name": "Lisbon", "owner_id": "user-2", "id": "chosen"})
+    a.post("/trips", json=trip_body(owner_id="user-2", id="chosen"))
     assert [t["name"] for t in b.get("/trips").json()] == []
     assert a.get("/trips").json()[0]["id"] != "chosen"
 
@@ -59,7 +61,7 @@ def test_signed_out_calls_are_rejected(sign_in_as):
 
 
 def _lisbon(a):
-    body = {"name": "Lisbon", "start_date": "2027-03-03", "end_date": "2027-03-05"}
+    body = trip_body(start_date="2027-03-03", end_date="2027-03-05")
     return a.post("/trips", json=body).json()["id"]
 
 
@@ -108,14 +110,14 @@ def test_bad_budget_is_refused(sign_in_as):
     tid = _lisbon(a)
     assert a.put(f"/trips/{tid}", json={"name": "Lisbon", "budget": -5}).status_code == 422
     assert a.put(f"/trips/{tid}", json={"name": "Lisbon", "budget": "abc"}).status_code == 422
-    assert a.get(f"/trips/{tid}").json()["budget"] is None
+    assert a.get(f"/trips/{tid}").json()["budget"] == 1800
 
 
 def test_bad_date_ranges_are_refused(sign_in_as):
     a = sign_in_as("a@example.com")
-    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-05", "end_date": "2027-03-03"}).status_code == 422
-    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-01", "end_date": "2027-06-01"}).status_code == 422
-    assert a.post("/trips", json={"name": "x", "start_date": "2027-03-01"}).status_code == 422
+    assert a.post("/trips", json=trip_body(start_date="2027-03-05", end_date="2027-03-03")).status_code == 422
+    assert a.post("/trips", json=trip_body(start_date="2027-03-01", end_date="2027-06-01")).status_code == 422
+    assert a.post("/trips", json=trip_body(end_date=None)).status_code == 422
 
 
 def test_changing_dates_keeps_names_adds_and_removes_days(sign_in_as):
@@ -219,11 +221,62 @@ def test_list_is_newest_updated_first(sign_in_as):  # AC9
     t0 = datetime(2026, 1, 1, tzinfo=UTC)
     try:
         app.dependency_overrides[auth.get_now] = lambda: t0
-        first = a.post("/trips", json={"name": "Lisbon"}).json()["id"]
+        first = a.post("/trips", json=trip_body(name="Lisbon")).json()["id"]
         app.dependency_overrides[auth.get_now] = lambda: t0 + timedelta(days=1)
-        a.post("/trips", json={"name": "Oslo"})
+        a.post("/trips", json=trip_body(name="Oslo"))
         app.dependency_overrides[auth.get_now] = lambda: t0 + timedelta(days=2)
         a.put(f"/trips/{first}", json={"name": "Lisbon 2"})
         assert [t["name"] for t in a.get("/trips").json()] == ["Lisbon 2", "Oslo"]
     finally:
         app.dependency_overrides[auth.get_now] = lambda: t0
+
+
+VALID = trip_body()
+
+
+def test_create_stores_every_basic(sign_in_as):
+    a = sign_in_as("a@example.com")
+    res = a.post("/trips", json=VALID)
+    assert res.status_code == 201
+    assert res.json()["currency"] == "EUR" and res.json()["traveller_count"] == 2
+    assert res.json()["budget"] == 1800 and res.json()["destination"] == "Lisbon"
+
+
+def test_create_keeps_the_chosen_currency(sign_in_as):
+    a = sign_in_as("a@example.com")
+    assert a.post("/trips", json={**VALID, "currency": "GBP"}).json()["currency"] == "GBP"
+
+
+@pytest.mark.parametrize("missing", ["destination", "start_date", "end_date", "budget", "currency", "traveller_count", "name"])
+def test_create_refuses_a_missing_basic(sign_in_as, missing):
+    a = sign_in_as("a@example.com")
+    body = {k: v for k, v in VALID.items() if k != missing}
+    assert a.post("/trips", json=body).status_code == 422
+    assert a.get("/trips").json() == []
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"traveller_count": 0},
+        {"traveller_count": 21},
+        {"budget": 0},
+        {"budget": -1},
+        {"currency": "XXX"},
+        {"currency": None},
+        {"start_date": "2027-03-15", "end_date": "2027-03-12"},
+        {"start_date": "2027-03-01", "end_date": "2027-06-01"},
+    ],
+)
+def test_create_refuses_an_invalid_basic(sign_in_as, change):
+    a = sign_in_as("a@example.com")
+    assert a.post("/trips", json={**VALID, **change}).status_code == 422
+
+
+def test_trips_saved_before_traveller_count_still_list(sign_in_as):
+    from app.trips.store import Trip
+
+    a = sign_in_as("a@example.com")
+    a.post("/trips", json=VALID)
+    assert a.get("/trips").json()[0]["traveller_count"] == 2
+    assert Trip(id="old", name="Old").traveller_count is None

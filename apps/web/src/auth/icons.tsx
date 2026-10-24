@@ -75,6 +75,13 @@ export const XIcon = () => (
   </Icon>
 )
 
+export const ArrowLeftIcon = () => (
+  <Icon>
+    <path d="m12 19-7-7 7-7" />
+    <path d="M19 12H5" />
+  </Icon>
+)
+
 export const PlusIcon = () => (
   <Icon>
     <path d="M5 12h14" />

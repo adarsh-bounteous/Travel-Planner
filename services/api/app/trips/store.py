@@ -95,6 +95,14 @@ class Invite(BaseModel):
     email: str
 
 
+class ShareLink(BaseModel):
+    """Index record that finds the trip behind a read-only link."""
+
+    token: str
+    owner_id: str
+    trip_id: str
+
+
 class Trip(TripFields):
     id: str
     updated_at: datetime | None = None
@@ -106,6 +114,7 @@ class Trip(TripFields):
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
+    share_token: str | None = None  # server-owned: changed only through the share-link routes
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:
@@ -159,6 +168,12 @@ class TripStore(Protocol):
 
     def delete_invite(self, token: str) -> None: ...
 
+    def save_share_link(self, link: ShareLink) -> None: ...
+
+    def get_share_link(self, token: str) -> ShareLink | None: ...
+
+    def delete_share_link(self, token: str) -> None: ...
+
     def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
         """Index that lets an editor find the owner's partition. The Trip's own editors list still decides access."""
 
@@ -172,6 +187,7 @@ class InMemoryTripStore:
     def __init__(self) -> None:
         self._trips: dict[tuple[str, str], Trip] = {}
         self._invites: dict[str, Invite] = {}
+        self._share_links: dict[str, ShareLink] = {}
         self._editors: dict[tuple[str, str], str] = {}
 
     def list_trips(self, owner_id: str) -> list[Trip]:
@@ -194,6 +210,15 @@ class InMemoryTripStore:
 
     def delete_invite(self, token: str) -> None:
         self._invites.pop(token, None)
+
+    def save_share_link(self, link: ShareLink) -> None:
+        self._share_links[link.token] = link
+
+    def get_share_link(self, token: str) -> ShareLink | None:
+        return self._share_links.get(token)
+
+    def delete_share_link(self, token: str) -> None:
+        self._share_links.pop(token, None)
 
     def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
         self._editors[(email, trip_id)] = owner_id
@@ -256,6 +281,16 @@ class DynamoTripStore:
 
     def delete_invite(self, token: str) -> None:
         self._table.delete_item(Key={"pk": f"INVITE#{token}", "sk": "INVITE"})
+
+    def save_share_link(self, link: ShareLink) -> None:
+        self._table.put_item(Item={**link.model_dump(), "pk": f"SHARE#{link.token}", "sk": "SHARE"})
+
+    def get_share_link(self, token: str) -> ShareLink | None:
+        item = self._table.get_item(Key={"pk": f"SHARE#{token}", "sk": "SHARE"}).get("Item")
+        return ShareLink.model_validate({k: v for k, v in item.items() if k not in ("pk", "sk")}) if item else None
+
+    def delete_share_link(self, token: str) -> None:
+        self._table.delete_item(Key={"pk": f"SHARE#{token}", "sk": "SHARE"})
 
     def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
         self._table.put_item(

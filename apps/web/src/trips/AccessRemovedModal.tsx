@@ -1,7 +1,17 @@
 import { Overlay } from './Overlay'
 
-/** Shown over an open trip when the owner has removed this editor's access. */
-export function AccessRemovedModal({ onOk }: { onOk: () => void }) {
+type AccessRemovedModalProps = {
+  onOk: () => void
+  text?: string
+  action?: string
+}
+
+/** Shown over an open trip when access to it was removed: an editor's by default, or a viewer's via `text`. */
+export function AccessRemovedModal({
+  onOk,
+  text = 'Your access to this trip was removed. Changes were not saved.',
+  action = 'OK',
+}: AccessRemovedModalProps) {
   return (
     <Overlay
       kind="modal"
@@ -12,12 +22,10 @@ export function AccessRemovedModal({ onOk }: { onOk: () => void }) {
     >
       <div className="stack stack-lg">
         <h2 id="access-removed-title">Access removed</h2>
-        <p id="access-removed-text">
-          Your access to this trip was removed. Changes were not saved.
-        </p>
+        <p id="access-removed-text">{text}</p>
         <div className="overlay-actions">
           <button className="btn btn-primary" type="button" onClick={onOk}>
-            OK
+            {action}
           </button>
         </div>
       </div>

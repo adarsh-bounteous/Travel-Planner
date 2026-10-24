@@ -70,6 +70,16 @@ class Activity(ActivityFields):
     id: str
 
 
+class TripPlaceFields(BaseModel):
+    place_id: str = Field(min_length=1, max_length=120)
+    name: TrimmedName
+    image_url: str | None = Field(default=None, max_length=500)
+
+
+class TripPlace(TripPlaceFields):
+    id: str
+
+
 class TravellerFields(BaseModel):
     name: TrimmedName
 
@@ -111,6 +121,7 @@ class Trip(TripFields):
     options: list[ChosenOption] = []  # server-owned: never read from a request body
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
+    places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for

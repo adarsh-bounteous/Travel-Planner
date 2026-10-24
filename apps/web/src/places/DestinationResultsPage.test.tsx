@@ -66,7 +66,9 @@ describe('Destination results filters and map', () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon&type=museum&view=map')
     fireEvent.click(await screen.findByRole('tab', { name: 'List' }))
-    expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Belém Tower'])
+    expect(
+      screen.getAllByRole('listitem').map((li) => within(li).getByRole('img').getAttribute('alt')),
+    ).toEqual(['Belém Tower'])
   })
 
   it('the List tab replaces the map with place cards (AC6)', async () => {

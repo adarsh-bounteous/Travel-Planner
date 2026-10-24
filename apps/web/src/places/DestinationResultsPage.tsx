@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from './api'
 import type { Place, PlaceFilters as Filters } from './api'
+import { useAddToTrip } from './AddToTrip'
 import { PlaceCard } from './PlaceCard'
 import { PlaceFilters } from './PlaceFilters'
 import { PlacesMap } from './PlacesMap'
@@ -22,6 +23,7 @@ export function DestinationResultsPage() {
   const view: PlacesView = params.get('view') === 'map' ? 'map' : 'list'
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const { onAdd, pendingPlaceId, panel } = useAddToTrip()
 
   useEffect(() => {
     if (!query) return
@@ -87,6 +89,7 @@ export function DestinationResultsPage() {
     <div className="stack">
       {back}
       <h1>Places in {query}</h1>
+      {panel}
       <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
       <ViewToggle
         view={view}
@@ -119,7 +122,12 @@ export function DestinationResultsPage() {
       ) : (
         <ul className="grid">
           {places.map((place) => (
-            <PlaceCard key={place.id} place={place} />
+            <PlaceCard
+              key={place.id}
+              place={place}
+              onAdd={onAdd}
+              pending={pendingPlaceId === place.id}
+            />
           ))}
         </ul>
       )}

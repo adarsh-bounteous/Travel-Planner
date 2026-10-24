@@ -37,6 +37,8 @@ from app.trips.store import (
     TravellerFields,
     Trip,
     TripFields,
+    TripPlace,
+    TripPlaceFields,
     TripStore,
     can_edit_trip,
     reconcile_days,
@@ -50,6 +52,8 @@ MAX_REMINDERS = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
 MAX_ACTIVITIES = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
+MAX_PLACES = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
+
 MAX_TRAVELLERS = 50  # keeps the Trip item well under DynamoDB's 400 KB limit
 
 MAX_EDITORS = 50  # keeps the Trip item well under DynamoDB's 400 KB limit
@@ -61,6 +65,8 @@ FORBIDDEN = ApiError(403, "forbidden")
 INVALID_DATES = ApiError(422, "invalid_dates")
 INVALID_REMINDER = ApiError(422, "invalid_reminder")
 INVALID_ACTIVITY = ApiError(422, "invalid_activity")
+ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
+INVALID_PLACE = ApiError(422, "invalid_place")
 INVALID_TRAVELLER = ApiError(422, "invalid_traveller")
 INVALID_EMAIL = ApiError(422, "invalid_email")
 ALREADY_EDITOR = ApiError(409, "already_editor")
@@ -489,6 +495,27 @@ def add_activity(
         raise INVALID_ACTIVITY
     activity = Activity(id=uuid.uuid4().hex, **body.model_dump())
     return _save_activities(trips, rates, user, owner, trip, [*trip.activities, activity], now)
+
+
+@router.post("/{trip_id}/places", status_code=201)
+def add_place(
+    trip_id: str,
+    body: TripPlaceFields,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip, owner = _editable_trip(trips, identity, user, trip_id)
+    if any(p.place_id == body.place_id for p in trip.places):
+        raise ALREADY_ON_TRIP
+    if len(trip.places) >= MAX_PLACES:
+        raise INVALID_PLACE
+    trip.places = [*trip.places, TripPlace(id=uuid.uuid4().hex, **body.model_dump())]
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, user, owner)
 
 
 @router.put("/{trip_id}/activities/{activity_id}")

@@ -1,3 +1,4 @@
+import logging
 import re
 import secrets
 import uuid
@@ -39,6 +40,7 @@ from app.trips.store import (
 )
 
 router = APIRouter(prefix="/trips")
+logger = logging.getLogger(__name__)
 
 MAX_REMINDERS = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
@@ -289,7 +291,10 @@ def invite_editor(
     trip.updated_at = now
     trips.save_invite(Invite(token=token, owner_id=owner, trip_id=trip.id, email=email))
     trips.save_trip(owner, trip)
-    sender.send(email, trip.name, f"{settings.web_origin}/invite/{token}")
+    try:
+        sender.send(email, trip.name, f"{settings.web_origin}/invite/{token}")
+    except Exception:  # best effort: the invite is saved, and the owner can copy its link
+        logger.exception("could not send the editor invite email")
     return _view(trip, owner)
 
 

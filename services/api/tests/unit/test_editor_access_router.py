@@ -133,3 +133,19 @@ def test_stranger_still_gets_404_everywhere(sign_in_as):
     assert eve.post(f"/trips/{tid}/travellers", json={"name": "Z"}).status_code == 404
     assert eve.post(f"/trips/{tid}/editors", json={"email": "z@example.com"}).status_code == 404
     assert eve.post(f"/trips/{tid}/activities", json={"name": "Z", "date": "2027-03-04"}).status_code == 404
+
+
+def test_invite_is_kept_when_the_email_cannot_be_sent(sign_in_as):
+    from app.main import app
+    from app.routers import deps
+
+    class Failing:
+        def send(self, email, trip_name, link):
+            raise RuntimeError("ses down")
+
+    owner = sign_in_as("o@example.com")
+    tid = _trip_with_day(owner)
+    app.dependency_overrides[deps.get_invite_sender] = lambda: Failing()
+    r = owner.post(f"/trips/{tid}/editors", json={"email": "ana@example.com"})
+    assert r.status_code == 201
+    assert r.json()["editors"][0]["invite_url"].startswith("/invite/")

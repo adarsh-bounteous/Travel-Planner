@@ -25,6 +25,7 @@ def sign_in_as():
     from app.routers import auth, deps
     from app.places.search import InMemoryPlaceSearch, Place
     from app.trips.profile_store import InMemoryProfileStore
+    from app.trips.saved_store import InMemorySavedPlaceStore
     from app.trips.invites import InMemoryInviteSender
     from app.trips.rates import InMemoryRates
     from app.trips.store import InMemoryTripStore
@@ -32,6 +33,7 @@ def sign_in_as():
     fake = FakeIdentityProvider()
     trips = InMemoryTripStore()
     profiles = InMemoryProfileStore()
+    saved_places = InMemorySavedPlaceStore()
     places = InMemoryPlaceSearch(
         {
             "Lisbon": [
@@ -57,6 +59,7 @@ def sign_in_as():
     app.dependency_overrides[deps.get_invite_sender] = lambda: invites
     app.dependency_overrides[deps.get_profiles] = lambda: profiles
     app.dependency_overrides[deps.get_places] = lambda: places
+    app.dependency_overrides[deps.get_saved_places] = lambda: saved_places
     rates = InMemoryRates({("USD", "EUR"): Decimal("0.92")})
     app.dependency_overrides[deps.get_rates] = lambda: rates
     password = "abcdefghij12"

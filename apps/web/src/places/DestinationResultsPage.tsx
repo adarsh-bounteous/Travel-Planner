@@ -6,6 +6,7 @@ import { useAddToTrip } from './AddToTrip'
 import { PlaceCard } from './PlaceCard'
 import { PlaceFilters } from './PlaceFilters'
 import { PlacesMap } from './PlacesMap'
+import { useSavedPlaces } from './useSavedPlaces'
 import { ViewToggle } from './ViewToggle'
 import type { PlacesView } from './ViewToggle'
 
@@ -24,6 +25,7 @@ export function DestinationResultsPage() {
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [failed, setFailed] = useState(false)
   const { onAdd, pendingPlaceId, panel } = useAddToTrip()
+  const { savedIds, toggle, pendingIds, panel: savedPanel } = useSavedPlaces()
 
   useEffect(() => {
     if (!query) return
@@ -90,6 +92,7 @@ export function DestinationResultsPage() {
       {back}
       <h1>Places in {query}</h1>
       {panel}
+      {savedPanel}
       <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
       <ViewToggle
         view={view}
@@ -118,7 +121,7 @@ export function DestinationResultsPage() {
           </button>
         </div>
       ) : view === 'map' ? (
-        <PlacesMap places={places} />
+        <PlacesMap places={places} savedIds={savedIds} />
       ) : (
         <ul className="grid">
           {places.map((place) => (
@@ -127,6 +130,9 @@ export function DestinationResultsPage() {
               place={place}
               onAdd={onAdd}
               pending={pendingPlaceId === place.id}
+              saved={savedIds.has(place.id)}
+              onToggleSave={toggle}
+              savePending={pendingIds.has(place.id)}
             />
           ))}
         </ul>

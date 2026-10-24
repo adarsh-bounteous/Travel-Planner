@@ -20,9 +20,9 @@ def test_blank_destination_is_refused(sign_in_as):
     assert a.get("/places", params={"destination": "  "}).status_code == 422
 
 
-def test_signed_out_calls_are_rejected(sign_in_as):
+def test_search_is_readable_without_signing_in(sign_in_as):
     sign_in_as("a@example.com")
-    assert TestClient(app).get("/places", params={"destination": "Lisbon"}).status_code == 401
+    assert TestClient(app).get("/places", params={"destination": "Lisbon"}).status_code == 200
 
 
 def test_q_filters_by_name_ignoring_case_and_accents(sign_in_as):

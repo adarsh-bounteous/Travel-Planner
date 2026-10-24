@@ -1,0 +1,42 @@
+from fastapi.testclient import TestClient
+
+from app.main import app
+from app.places.search import Place
+
+PLACE = Place(
+    id="alfama",
+    name="Alfama",
+    image_url="/alfama.jpg",
+    place_type="landmark",
+    price="free",
+    lat=38.711,
+    lng=-9.130,
+)
+
+
+def test_save_then_list(sign_in_as):
+    a = sign_in_as("a@example.com")
+    assert a.put("/saved-places/alfama", json=PLACE.model_dump()).status_code == 200
+    assert [p["id"] for p in a.get("/saved-places").json()] == ["alfama"]
+
+
+def test_save_is_idempotent_and_unsave_removes(sign_in_as):
+    a = sign_in_as("a@example.com")
+    a.put("/saved-places/alfama", json=PLACE.model_dump())
+    a.put("/saved-places/alfama", json=PLACE.model_dump())
+    assert len(a.get("/saved-places").json()) == 1
+    assert a.delete("/saved-places/alfama").status_code == 204
+    assert a.delete("/saved-places/alfama").status_code == 204
+    assert a.get("/saved-places").json() == []
+
+
+def test_saved_places_are_per_traveller(sign_in_as):
+    a, b = sign_in_as("a@example.com"), sign_in_as("b@example.com")
+    a.put("/saved-places/alfama", json=PLACE.model_dump())
+    assert b.get("/saved-places").json() == []
+
+
+def test_signed_out_is_rejected_and_mismatched_id_is_422(sign_in_as):
+    a = sign_in_as("a@example.com")
+    assert TestClient(app).get("/saved-places").status_code == 401
+    assert a.put("/saved-places/other", json=PLACE.model_dump()).status_code == 422

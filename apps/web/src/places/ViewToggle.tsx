@@ -8,12 +8,14 @@ const VIEWS: { id: PlacesView; label: string }[] = [
 export function ViewToggle({
   view,
   onChange,
+  label = 'Results view',
 }: {
   view: PlacesView
   onChange: (view: PlacesView) => void
+  label?: string
 }) {
   return (
-    <div className="tabs" role="tablist" aria-label="Results view">
+    <div className="tabs" role="tablist" aria-label={label}>
       {VIEWS.map(({ id, label }) => (
         <button
           key={id}

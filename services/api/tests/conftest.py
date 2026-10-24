@@ -15,6 +15,7 @@ def sign_in_as():
     """
     from dataclasses import replace
     from datetime import UTC, datetime
+    from decimal import Decimal
 
     from fastapi.testclient import TestClient
 
@@ -25,6 +26,7 @@ def sign_in_as():
     from app.places.search import InMemoryPlaceSearch, Place
     from app.trips.profile_store import InMemoryProfileStore
     from app.trips.invites import InMemoryInviteSender
+    from app.trips.rates import InMemoryRates
     from app.trips.store import InMemoryTripStore
 
     fake = FakeIdentityProvider()
@@ -43,6 +45,8 @@ def sign_in_as():
     app.dependency_overrides[deps.get_invite_sender] = lambda: invites
     app.dependency_overrides[deps.get_profiles] = lambda: profiles
     app.dependency_overrides[deps.get_places] = lambda: places
+    rates = InMemoryRates({("USD", "EUR"): Decimal("0.92")})
+    app.dependency_overrides[deps.get_rates] = lambda: rates
     password = "abcdefghij12"
 
     def make(email: str) -> TestClient:
@@ -54,5 +58,7 @@ def sign_in_as():
         return client
 
     make.invites = invites
+    make.trips = trips
+    make.rates = rates
     yield make
     app.dependency_overrides.clear()

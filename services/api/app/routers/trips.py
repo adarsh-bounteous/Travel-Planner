@@ -14,10 +14,13 @@ from app.routers.deps import (
     ApiError,
     get_current_user,
     get_invite_sender,
+    get_rates,
     get_recommendations,
     get_trips,
 )
+from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
+from app.trips.rates import RateSource
 from app.trips.recommendations import Recommendation, RecommendationSource
 from app.trips.store import (
     Activity,
@@ -80,9 +83,10 @@ class TripView(Trip):
     editors: list[EditorView] = []  # empty unless the viewer is the owner
     is_owner: bool = True
     can_edit: bool = True
+    cost: CostSummary | None = None
 
 
-def _view(trip: Trip, user_id: str, owner_id: str | None = None) -> TripView:
+def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = None) -> TripView:
     """The trip as `user_id` sees it. Editors never see the access list or invite tokens."""
     is_owner = owner_id is None or user_id == owner_id
     editors = (
@@ -96,6 +100,7 @@ def _view(trip: Trip, user_id: str, owner_id: str | None = None) -> TripView:
     data = {**trip.model_dump(), "reminders": visible_reminders(trip), "editors": editors}
     return TripView(
         **data,
+        cost=summarise_cost(trip, rates),
         is_owner=is_owner,
         can_edit=can_edit_trip(trip, user_id, user_id) if is_owner else True,  # a non-owner got here as a checked editor
     )
@@ -154,13 +159,19 @@ def _check_reminder(trip: Trip, body: ReminderFields) -> date | None:
 
 
 def _save_reminders(
-    trips: TripStore, user: str, owner: str, trip: Trip, reminders: list[Reminder], now: datetime
+    trips: TripStore,
+    rates: RateSource,
+    user: str,
+    owner: str,
+    trip: Trip,
+    reminders: list[Reminder],
+    now: datetime,
 ) -> TripView:
     trip.reminders = reminders
     trip.reminders = visible_reminders(trip)  # drop stale activity notes so they cannot reappear
     trip.updated_at = now
     trips.save_trip(owner, trip)
-    return _view(trip, user, owner)
+    return _view(trip, rates, user, owner)
 
 
 def _days(trip: Trip, start: date | None, end: date | None) -> list[Day]:
@@ -191,12 +202,13 @@ def create_trip(
     body: TripFields,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     now: datetime = Depends(get_now),
 ) -> TripView:
     trip = Trip(id=uuid.uuid4().hex, updated_at=now, **body.model_dump())
     trip.days = _days(trip, trip.start_date, trip.end_date)
     trips.save_trip(owner, trip)
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.get("/{trip_id}")
@@ -204,12 +216,13 @@ def get_trip(
     trip_id: str,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
 ) -> TripView:
     trip, owner, _ = _load(trips, identity, user, trip_id)  # same 404 for another traveller's trip and one that never existed
     if not trip.days and trip.start_date and trip.end_date:
         trip = trip.model_copy(update={"days": _days(trip, trip.start_date, trip.end_date)})  # saved before days existed; not written
-    return _view(trip, user, owner)
+    return _view(trip, rates, user, owner)
 
 
 @router.put("/{trip_id}")
@@ -218,6 +231,7 @@ def update_trip(
     body: TripFields,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -226,7 +240,7 @@ def update_trip(
     days = _days(existing, body.start_date, body.end_date)
     trip = existing.model_copy(update={**body.model_dump(), "days": days, "updated_at": now})
     trips.save_trip(owner, trip)
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.put("/{trip_id}/days/{day_date}")
@@ -236,6 +250,7 @@ def rename_day(
     body: DayName,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -248,7 +263,7 @@ def rename_day(
     day.name = body.name
     trip.updated_at = now
     trips.save_trip(owner, trip)
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.post("/{trip_id}/travellers", status_code=201)
@@ -257,6 +272,7 @@ def add_traveller(
     body: TravellerFields,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -266,7 +282,7 @@ def add_traveller(
     trip.travellers = [*trip.travellers, Traveller(id=uuid.uuid4().hex, name=body.name)]
     trip.updated_at = now
     trips.save_trip(owner, trip)
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.post("/{trip_id}/editors", status_code=201)
@@ -275,6 +291,7 @@ def invite_editor(
     body: EditorEmail,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     sender: InviteSender = Depends(get_invite_sender),
     settings: Settings = Depends(get_settings),
@@ -295,7 +312,7 @@ def invite_editor(
         sender.send(email, trip.name, f"{settings.web_origin}/invite/{token}")
     except Exception:  # best effort: the invite is saved, and the owner can copy its link
         logger.exception("could not send the editor invite email")
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.delete("/{trip_id}/editors/{email}")
@@ -304,6 +321,7 @@ def revoke_editor(
     email: str,
     owner: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -317,7 +335,7 @@ def revoke_editor(
     trips.save_trip(owner, trip)  # the Trip item decides access, so it goes first
     trips.delete_invite(editor.token)
     trips.unlink_editor(email, trip.id)
-    return _view(trip, owner)
+    return _view(trip, rates, owner)
 
 
 @router.post("/{trip_id}/reminders", status_code=201)
@@ -326,6 +344,7 @@ def add_reminder(
     body: ReminderFields,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -334,7 +353,7 @@ def add_reminder(
     if len(trip.reminders) >= MAX_REMINDERS:
         raise INVALID_REMINDER
     reminder = Reminder(id=uuid.uuid4().hex, option_date=option_date, **body.model_dump())
-    return _save_reminders(trips, user, owner, trip, [*trip.reminders, reminder], now)
+    return _save_reminders(trips, rates, user, owner, trip, [*trip.reminders, reminder], now)
 
 
 @router.put("/{trip_id}/reminders/{reminder_id}")
@@ -344,6 +363,7 @@ def update_reminder(
     body: ReminderFields,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -353,7 +373,7 @@ def update_reminder(
     option_date = _check_reminder(trip, body)
     changed = Reminder(id=reminder_id, option_date=option_date, **body.model_dump())
     reminders = [changed if r.id == reminder_id else r for r in trip.reminders]
-    return _save_reminders(trips, user, owner, trip, reminders, now)
+    return _save_reminders(trips, rates, user, owner, trip, reminders, now)
 
 
 @router.delete("/{trip_id}/reminders/{reminder_id}")
@@ -362,6 +382,7 @@ def delete_reminder(
     reminder_id: str,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -369,11 +390,12 @@ def delete_reminder(
     if reminder_id not in {r.id for r in visible_reminders(trip)}:
         raise NOT_FOUND
     reminders = [r for r in trip.reminders if r.id != reminder_id]
-    return _save_reminders(trips, user, owner, trip, reminders, now)
+    return _save_reminders(trips, rates, user, owner, trip, reminders, now)
 
 
 def _save_activities(
     trips: TripStore,
+    rates: RateSource,
     user: str,
     owner: str,
     trip: Trip,
@@ -383,7 +405,7 @@ def _save_activities(
     trip.activities = activities
     trip.updated_at = now
     trips.save_trip(owner, trip)
-    return _view(trip, user, owner)
+    return _view(trip, rates, user, owner)
 
 
 def _check_activity_day(trip: Trip, day: date) -> None:
@@ -413,6 +435,7 @@ def add_activity(
     body: ActivityFields,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -421,7 +444,7 @@ def add_activity(
     if len(trip.activities) >= MAX_ACTIVITIES:
         raise INVALID_ACTIVITY
     activity = Activity(id=uuid.uuid4().hex, **body.model_dump())
-    return _save_activities(trips, user, owner, trip, [*trip.activities, activity], now)
+    return _save_activities(trips, rates, user, owner, trip, [*trip.activities, activity], now)
 
 
 @router.put("/{trip_id}/activities/{activity_id}")
@@ -431,6 +454,7 @@ def move_activity(
     body: ActivityMove,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -442,7 +466,7 @@ def move_activity(
         a.model_copy(update={"date": body.date}) if a.id == activity_id else a
         for a in trip.activities
     ]
-    return _save_activities(trips, user, owner, trip, moved, now)
+    return _save_activities(trips, rates, user, owner, trip, moved, now)
 
 
 @router.delete("/{trip_id}/activities/{activity_id}")
@@ -451,6 +475,7 @@ def remove_activity(
     activity_id: str,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
 ) -> TripView:
@@ -458,7 +483,7 @@ def remove_activity(
     if activity_id not in {a.id for a in trip.activities}:
         raise NOT_FOUND
     kept = [a for a in trip.activities if a.id != activity_id]
-    return _save_activities(trips, user, owner, trip, kept, now)
+    return _save_activities(trips, rates, user, owner, trip, kept, now)
 
 
 @router.delete("/{trip_id}", status_code=204)

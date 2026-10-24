@@ -152,3 +152,18 @@ def test_dynamo_editor_and_invite_index_key_shapes():
     store.unlink_editor("a@example.com", "t")
     store.delete_invite("tok")
     assert store._table.items == {}
+
+
+def test_trip_saved_before_prices_and_needed_categories_still_loads():
+    trip = Trip.model_validate(
+        {"id": "t1", "name": "Old", "options": [{"id": "o", "title": "x", "category": "Stays", "date": "2027-03-03"}]}
+    )
+    assert trip.needed_categories == [] and trip.options[0].price is None
+
+
+def test_priced_option_round_trips_through_json_dump():
+    trip = Trip.model_validate(
+        {"id": "t1", "name": "New", "options": [{"id": "o", "title": "x", "category": "Stays", "date": "2027-03-03", "price": "120.50", "currency": "USD"}]}
+    )
+    again = Trip.model_validate(trip.model_dump(mode="json"))
+    assert again.options[0].price == Decimal("120.50") and again.options[0].currency == "USD"

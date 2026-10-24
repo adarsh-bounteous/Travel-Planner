@@ -1,10 +1,27 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
-import type { Trip } from './api'
+import type { CostSummary, Trip } from './api'
 
 afterEach(() => vi.unstubAllGlobals())
 
-const trip = (overrides: Partial<Trip> = {}): Trip => ({
+const trip = (overrides: Partial<Trip> = {}): Trip => {
+  const made = baseTrip(overrides)
+  return { cost: costFor(made), ...made, ...overrides }
+}
+
+// The server sends the cost summary; with no priced options the total is 0.
+const costFor = (t: Trip): CostSummary => ({
+  currency: 'EUR',
+  total: 0,
+  budget: t.budget ?? null,
+  over_budget_by: 0,
+  missing_categories: [],
+  unpriced_count: 0,
+  unconvertible_count: 0,
+  rates: [],
+})
+
+const baseTrip = (overrides: Partial<Trip> = {}): Trip => ({
   id: 't1',
   name: 'Lisbon',
   start_date: '2027-03-03',
@@ -70,7 +87,41 @@ describe('TripDetailPage itinerary', () => {
 
   it('shows the budget with its currency', async () => {
     open()
-    expect(await screen.findByText('Budget 1,500.00 EUR')).toBeInTheDocument()
+    expect(await screen.findByText('Budget 1,500 EUR')).toBeInTheDocument()
+  })
+
+  it('shows the trip total with its currency code (AC7)', async () => {
+    open(trip({ cost: { ...costFor(trip()), total: 200 } }))
+    expect(await screen.findByRole('heading', { level: 1, name: '200 EUR' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['owner', true],
+    ['editor', false],
+  ])('shows a new over-budget warning without reloading, as the %s (AC12)', async (_who, isOwner) => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const within150 = { ...costFor(trip()), budget: 150, total: 140 }
+      const over150 = { ...within150, total: 170, over_budget_by: 20 }
+      const bodies = [trip({ is_owner: isOwner, cost: within150 }), trip({ is_owner: isOwner, cost: over150 })]
+      let reads = 0
+      const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
+        if (path === '/auth/me')
+          return new Response(JSON.stringify({ email: 'maya@example.com', method: 'email' }))
+        if (path === '/trips/t1' && (init?.method ?? 'GET') === 'GET')
+          return new Response(JSON.stringify(bodies[Math.min(reads++, 1)]))
+        return new Response(null, { status: 404 })
+      })
+      vi.stubGlobal('fetch', fetchMock)
+      renderAt('/trips/t1')
+      expect(await screen.findByRole('heading', { level: 1, name: '140 EUR' })).toBeInTheDocument()
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      await act(() => vi.advanceTimersByTimeAsync(30_000))
+      expect(await screen.findByRole('alert')).toHaveTextContent('Over budget by 20 EUR')
+      expect(reads).toBeGreaterThan(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('hides every owner control from a non-owner (AC8, AC12)', async () => {
@@ -105,7 +156,7 @@ describe('TripDetailPage owner edits', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Lisbon Spring' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Budget 2,000.00 EUR')).toBeInTheDocument()
+    expect(screen.getByText('Budget 2,000 EUR')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Trip saved')
     const body = JSON.parse(sent(fetchMock, 'PUT')[0][1]!.body as string)
     expect(body).toMatchObject({ name: 'Lisbon Spring', budget: 2000 })
@@ -165,7 +216,7 @@ describe('TripDetailPage owner edits', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
     expect(await within(drawer).findByRole('alert')).toHaveTextContent("Budget can't be negative")
     expect(sent(fetchMock, 'PUT')).toHaveLength(0)
-    expect(screen.getByText('Budget 1,500.00 EUR')).toBeInTheDocument()
+    expect(screen.getByText('Budget 1,500 EUR')).toBeInTheDocument()
   })
 
   it('refuses an end date before the start date', async () => {

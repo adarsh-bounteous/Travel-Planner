@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
-import type { Activity, Day, Reminder, Trip } from './api'
+import type { Activity, ChosenOption, Day, Reminder, Trip } from './api'
+import { formatMoney } from './TripTotalCard'
 
 // Dates are plain calendar days, so format them in UTC: 3 March must stay 3 March everywhere.
 const dayMonth = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })
@@ -39,6 +40,22 @@ function Note({ reminder, editable, onEdit, activity }: NoteProps) {
           Edit
         </button>
       )}
+    </div>
+  )
+}
+
+/** An option's price in the trip currency; a foreign price also shows the rate it was converted at. */
+function OptionPrice({ option, trip }: { option: ChosenOption; trip: Trip }) {
+  if (option.price == null) return <div className="opt-price">No price</div>
+  const tripCurrency = trip.currency ?? 'EUR'
+  const currency = option.currency ?? tripCurrency
+  const rate = trip.cost?.rates.find((r) => r.currency === currency)?.rate
+  if (currency === tripCurrency || rate === undefined)
+    return <div className="opt-price">{formatMoney(option.price, currency)}</div>
+  return (
+    <div className="opt-price">
+      {formatMoney(option.price * rate, tripCurrency)}
+      <small>{`${formatMoney(option.price, currency)} at ${rate}`}</small>
     </div>
   )
 }
@@ -140,6 +157,7 @@ export function ItineraryTab({
                           <div className="option-title">{option.title}</div>
                           <div className="text-sm text-muted">{option.category}</div>
                         </div>
+                        <OptionPrice option={option} trip={trip} />
                         {editable && (
                           <button
                             className="btn btn-ghost btn-sm"

@@ -1,12 +1,19 @@
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import BaseModel
+
+PlaceType = Literal["landmark", "museum", "park", "food", "shopping"]
+Price = Literal["free", "budget", "moderate", "premium"]
 
 
 class Place(BaseModel):
     id: str
     name: str
     image_url: str
+    place_type: PlaceType
+    price: Price
+    lat: float
+    lng: float
 
 
 class PlaceSearch(Protocol):
@@ -25,13 +32,31 @@ class InMemoryPlaceSearch:
         return list(self._catalogue.get(destination.strip().casefold(), []))
 
 
-def _place(slug: str, name: str) -> Place:
-    return Place(id=slug, name=name, image_url=f"https://picsum.photos/seed/{slug}/400/300")
+def _place(slug: str, name: str, place_type: PlaceType, price: Price, lat: float, lng: float) -> Place:
+    return Place(
+        id=slug,
+        name=name,
+        image_url=f"https://picsum.photos/seed/{slug}/400/300",
+        place_type=place_type,
+        price=price,
+        lat=lat,
+        lng=lng,
+    )
 
 
 # Seeded default until a places provider is chosen.
 SEED_CATALOGUE = {
-    "lisbon": [_place("alfama", "Alfama"), _place("belem-tower", "Belém Tower"), _place("lx-factory", "LX Factory")],
-    "paris": [_place("louvre", "Louvre Museum"), _place("montmartre", "Montmartre")],
-    "oslo": [_place("vigeland-park", "Vigeland Park"), _place("opera-house", "Oslo Opera House")],
+    "lisbon": [
+        _place("alfama", "Alfama", "landmark", "free", 38.7110, -9.1300),
+        _place("belem-tower", "Belém Tower", "museum", "budget", 38.6916, -9.2160),
+        _place("lx-factory", "LX Factory", "shopping", "moderate", 38.7036, -9.1786),
+    ],
+    "paris": [
+        _place("louvre", "Louvre Museum", "museum", "moderate", 48.8606, 2.3376),
+        _place("montmartre", "Montmartre", "landmark", "free", 48.8867, 2.3431),
+    ],
+    "oslo": [
+        _place("vigeland-park", "Vigeland Park", "park", "free", 59.9270, 10.7005),
+        _place("opera-house", "Oslo Opera House", "landmark", "budget", 59.9075, 10.7529),
+    ],
 }

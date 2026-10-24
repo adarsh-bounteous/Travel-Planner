@@ -13,6 +13,7 @@ from app.trips.recommendations import (
     RecommendationSource,
 )
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
+from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
 from app.trips.store import DynamoTripStore, TripStore
 
 
@@ -42,6 +43,16 @@ def _places() -> PlaceSearch:
 @lru_cache
 def _recommendations() -> RecommendationSource:
     return InMemoryRecommendations(SEED_RECOMMENDATIONS)
+
+
+@lru_cache
+def _invite_sender() -> InviteSender:
+    address = get_settings().invite_from_address
+    return SesInviteSender(address) if address else NoInviteSender()
+
+
+def get_invite_sender() -> InviteSender:
+    return _invite_sender()
 
 
 def get_recommendations() -> RecommendationSource:

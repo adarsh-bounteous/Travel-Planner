@@ -25,5 +25,7 @@ export function takeReturnTo(): string | null {
 }
 
 export function pageLabel(path: string): string {
-  return LABELS[path.split(/[?#]/)[0]] ?? 'that page'
+  const pathname = path.split(/[?#]/)[0]
+  if (pathname.startsWith('/invite/')) return 'your invite'
+  return LABELS[pathname] ?? 'that page'
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BellIcon, EditIcon } from '../auth/icons'
-import { NotFoundError, addReminder, fetchTrip, moveActivity } from './api'
+import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, Trip } from './api'
+import { AccessRemovedModal } from './AccessRemovedModal'
 import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
 import { DeleteTripModal } from './DeleteTripModal'
@@ -11,10 +12,11 @@ import { ReminderModal } from './ReminderModal'
 import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
 import { Toast } from './Toast'
+import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
-type Tab = 'overview' | 'itinerary'
+type Tab = 'overview' | 'itinerary' | 'travelers'
 type Panel =
   | { id: 'none' }
   | { id: 'settings' }
@@ -26,9 +28,12 @@ type Panel =
   | { id: 'add-activity'; day: Day }
   | { id: 'remove-activity'; activity: Activity }
 
+const EDITOR_REFRESH_MS = 30_000
+
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'itinerary', label: 'Itinerary' },
+  { id: 'travelers', label: 'Travelers' },
 ]
 
 function formatBudget(trip: Trip) {
@@ -46,6 +51,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
   const [trip, setTrip] = useState<Trip | null>(null)
   const [load, setLoad] = useState<LoadState>('loading')
   const [tab, setTab] = useState<Tab>('itinerary')
+  const [accessRemoved, setAccessRemoved] = useState(false)
   const [panel, setPanel] = useState<Panel>({ id: 'none' })
   const [toast, setToast] = useState<{ id: number; message: string; undo?: () => void } | null>(
     null,
@@ -60,6 +66,25 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       (reason) => setLoad(reason instanceof NotFoundError ? 'notFound' : 'failed'),
     )
   }, [tripId])
+
+  // An editor's access can be revoked while the trip is open: re-check on focus, every 30 s and
+  // after any refused change. The server refuses the change itself; this only tells the editor.
+  const isEditor = trip !== null && trip.is_owner === false
+  useEffect(() => {
+    if (!isEditor) return
+    const recheck = () =>
+      fetchTrip(tripId).then(setTrip, (reason) => {
+        if (reason instanceof NotFoundError) setAccessRemoved(true)
+      })
+    const timer = setInterval(recheck, EDITOR_REFRESH_MS)
+    window.addEventListener('focus', recheck)
+    window.addEventListener(TRIP_WRITE_REFUSED, recheck)
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('focus', recheck)
+      window.removeEventListener(TRIP_WRITE_REFUSED, recheck)
+    }
+  }, [isEditor, tripId])
 
   if (load === 'loading')
     return (
@@ -191,6 +216,14 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onMoveActivity={move}
             onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
           />
+        ) : tab === 'travelers' ? (
+          <TravelersTab
+            trip={trip}
+            onChanged={(updated, message, undo) => {
+              setTrip(updated)
+              setToast({ id: Date.now(), message, undo })
+            }}
+          />
         ) : (
           <p className="text-muted">Trip overview is shown on its own page.</p>
         )}
@@ -249,6 +282,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         />
       )}
       {panel.id === 'book' && <BookTripDrawer options={options} onClose={close} />}
+      {accessRemoved && <AccessRemovedModal onOk={() => navigate('/')} />}
       <Toast key={toast?.id} message={toast?.message ?? null} undo={toast?.undo} />
     </div>
   )

@@ -17,7 +17,9 @@ type Props = {
   googleLabel: string
   passwordPlaceholder: string
   passwordHint?: ReactNode
-  footer: { prompt: string; linkLabel: string; to: string }
+  /** Hides the footer link, the Google button and the sign-up link: used when arriving from an invite. */
+  noSignUp?: boolean
+  footer?: { prompt: string; linkLabel: string; to: string }
   problem: Problem | null
   email: string
   onEmailChange: (value: string) => void
@@ -59,7 +61,7 @@ export function AuthForm(props: Props) {
           {message.tone === 'danger' ? <AlertIcon /> : <InfoIcon />}
           <span>
             {message.text}
-            {problem === 'no_account' && (
+            {problem === 'no_account' && !props.noSignUp && (
               <>
                 {' '}
                 <Link to="/sign-up">Sign up</Link>.
@@ -121,33 +123,39 @@ export function AuthForm(props: Props) {
             props.primaryLabel
           )}
         </button>
-        <p className="or text-sm text-muted" aria-hidden="true">
-          or
-        </p>
-        <button
-          className="btn btn-secondary fill"
-          type="button"
-          onClick={google}
-          disabled={waitingForGoogle}
-        >
-          {waitingForGoogle ? (
-            <>
-              <span className="spinner" aria-hidden="true" />
-              Waiting for Google
-            </>
-          ) : (
-            <>
-              <span className="gmark" aria-hidden="true">
-                G
-              </span>
-              {props.googleLabel}
-            </>
-          )}
-        </button>
-        <p className="cluster center">
-          <span className="text-muted">{props.footer.prompt}</span>
-          <Link to={props.footer.to}>{props.footer.linkLabel}</Link>
-        </p>
+        {!props.noSignUp && (
+          <>
+            <p className="or text-sm text-muted" aria-hidden="true">
+              or
+            </p>
+            <button
+              className="btn btn-secondary fill"
+              type="button"
+              onClick={google}
+              disabled={waitingForGoogle}
+            >
+              {waitingForGoogle ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Waiting for Google
+                </>
+              ) : (
+                <>
+                  <span className="gmark" aria-hidden="true">
+                    G
+                  </span>
+                  {props.googleLabel}
+                </>
+              )}
+            </button>
+          </>
+        )}
+        {props.footer && !props.noSignUp && (
+          <p className="cluster center">
+            <span className="text-muted">{props.footer.prompt}</span>
+            <Link to={props.footer.to}>{props.footer.linkLabel}</Link>
+          </p>
+        )}
       </form>
     </div>
   )

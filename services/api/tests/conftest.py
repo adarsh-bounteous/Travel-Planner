@@ -24,6 +24,7 @@ def sign_in_as():
     from app.routers import auth, deps
     from app.places.search import InMemoryPlaceSearch, Place
     from app.trips.profile_store import InMemoryProfileStore
+    from app.trips.invites import InMemoryInviteSender
     from app.trips.store import InMemoryTripStore
 
     fake = FakeIdentityProvider()
@@ -32,12 +33,14 @@ def sign_in_as():
     places = InMemoryPlaceSearch(
         {"Lisbon": [Place(id="p1", name="Alfama", image_url="/alfama.jpg")]}
     )
+    invites = InMemoryInviteSender()
     settings = replace(get_settings(), cookie_secure=False)
     now = datetime(2026, 1, 1, tzinfo=UTC)
     app.dependency_overrides[auth.get_identity] = lambda: fake
     app.dependency_overrides[auth.get_now] = lambda: now
     app.dependency_overrides[auth.get_settings] = lambda: settings
     app.dependency_overrides[deps.get_trips] = lambda: trips
+    app.dependency_overrides[deps.get_invite_sender] = lambda: invites
     app.dependency_overrides[deps.get_profiles] = lambda: profiles
     app.dependency_overrides[deps.get_places] = lambda: places
     password = "abcdefghij12"
@@ -50,5 +53,6 @@ def sign_in_as():
         assert response.status_code == 200
         return client
 
+    make.invites = invites
     yield make
     app.dependency_overrides.clear()

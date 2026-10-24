@@ -6,12 +6,18 @@ import { AuthProvider } from './auth/AuthProvider'
 export type Reply = { status: number; body?: unknown }
 
 /** Stubs fetch: the traveller is signed in, and other calls answer from `replies` ("METHOD path"). */
-export function stubApi(replies: Record<string, Reply>) {
+export function stubApi(
+  replies: Record<string, Reply>,
+  options: { signedOut?: boolean; email?: string } = {},
+) {
   const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
     if (path === '/auth/me')
-      return new Response(JSON.stringify({ email: 'maya@example.com', method: 'email' }), {
-        status: 200,
-      })
+      return options.signedOut
+        ? new Response(null, { status: 401 })
+        : new Response(
+            JSON.stringify({ email: options.email ?? 'maya@example.com', method: 'email' }),
+            { status: 200 },
+          )
     const reply = replies[`${init?.method ?? 'GET'} ${path}`] ?? { status: 404 }
     return new Response(reply.body === undefined ? null : JSON.stringify(reply.body), {
       status: reply.status,

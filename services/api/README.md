@@ -19,7 +19,8 @@ FastAPI service. Python 3.12.
 | `GOOGLE_REDIRECT_URI` | empty | The API's `/auth/google/callback` URL registered with the pool. |
 | `WEB_ORIGIN` | empty (same origin) | Web App origin the API redirects back to. |
 | `ACCOUNTS_TABLE_NAME` | `trip-planner-accounts` | DynamoDB table holding account-link records (`pk = USER#<id>`). |
-| `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; needs `GetItem`, `PutItem`, `Query`. |
+| `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
+| `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
 
 Sessions are HttpOnly cookies that are re-issued on every authenticated request, so they

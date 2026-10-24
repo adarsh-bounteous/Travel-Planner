@@ -117,3 +117,38 @@ def test_reconcile_days_keeps_names_of_dates_still_in_range():
     days = reconcile_days(date(2027, 3, 4), date(2027, 3, 6), existing)
     assert [(d.date.day, d.name) for d in days] == [(4, "N4"), (5, "N5"), (6, "Day 3")]
     assert reconcile_days(None, None, existing) == []
+
+
+def test_stored_trip_without_travellers_or_editors_still_loads():
+    t = Trip.model_validate({"id": "t1", "name": "Old"})
+    assert (t.travellers, t.editors) == ([], [])
+
+
+def test_in_memory_editor_and_invite_index():
+    from app.trips.store import Invite
+
+    store = InMemoryTripStore()
+    store.save_invite(Invite(token="tok", owner_id="o", trip_id="t", email="a@example.com"))
+    assert store.get_invite("tok").trip_id == "t"
+    store.delete_invite("tok")
+    assert store.get_invite("tok") is None
+    store.link_editor("a@example.com", "o", "t")
+    assert store.shared_trips("a@example.com") == [("o", "t")]
+    store.unlink_editor("a@example.com", "t")
+    assert store.shared_trips("a@example.com") == []
+
+
+def test_dynamo_editor_and_invite_index_key_shapes():
+    from app.trips.store import Invite
+
+    store = DynamoTripStore.__new__(DynamoTripStore)
+    store._table = FakeTable()
+    store.save_invite(Invite(token="tok", owner_id="o", trip_id="t", email="a@example.com"))
+    assert ("INVITE#tok", "INVITE") in store._table.items
+    assert store.get_invite("tok").owner_id == "o"
+    store.link_editor("a@example.com", "o", "t")
+    assert ("EDITOR#a@example.com", "TRIP#t") in store._table.items
+    assert store.shared_trips("a@example.com") == [("o", "t")]
+    store.unlink_editor("a@example.com", "t")
+    store.delete_invite("tok")
+    assert store._table.items == {}

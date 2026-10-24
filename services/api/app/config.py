@@ -17,6 +17,7 @@ class Settings:
     accounts_table_name: str
     trips_table_name: str
     cookie_secure: bool
+    invite_from_address: str = ""
 
 
 def session_secret() -> bytes:
@@ -39,4 +40,5 @@ def get_settings() -> Settings:
         accounts_table_name=env.get("ACCOUNTS_TABLE_NAME", "trip-planner-accounts"),
         trips_table_name=env.get("TRIPS_TABLE_NAME", "trip-planner-trips"),
         cookie_secure=env.get("COOKIE_SECURE", "true").lower() != "false",
+        invite_from_address=env.get("INVITE_FROM_ADDRESS", ""),
     )

@@ -20,6 +20,11 @@ export type Activity = { id: string; name: string; date: string; detail?: string
 export type ActivityInput = { name: string; date: string; detail?: string | null }
 export type Recommendation = { id: string; name: string; detail: string }
 
+export type Traveller = { id: string; name: string }
+/** An editor as the owner sees them; `invite_url` is a path on this site. */
+export type Editor = { email: string; accepted: boolean; invite_url?: string }
+export type Invite = { email: string; trip_name: string }
+
 export type Trip = {
   id: string
   name: string
@@ -32,6 +37,8 @@ export type Trip = {
   options?: ChosenOption[]
   reminders?: Reminder[]
   activities?: Activity[]
+  travellers?: Traveller[]
+  editors?: Editor[]
   is_owner?: boolean
   can_edit?: boolean
 }
@@ -46,6 +53,9 @@ export class ForbiddenError extends Error {}
 /** The server refused the values (422); the UI shows its own message for it. */
 export class ValidationError extends Error {}
 
+/** Fired when a change to a trip is answered 404: an editor's access may have just been removed. */
+export const TRIP_WRITE_REFUSED = 'trip-write-refused'
+
 // No client-side cache: every load asks the server, so every device shows the same data.
 export async function call<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const response = await fetch(path, {
@@ -55,7 +65,10 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   if (response.status === 403) throw new ForbiddenError()
-  if (response.status === 404) throw new NotFoundError()
+  if (response.status === 404) {
+    if (method !== 'GET' && path.startsWith('/trips/')) window.dispatchEvent(new Event(TRIP_WRITE_REFUSED))
+    throw new NotFoundError()
+  }
   if (response.status === 422) throw new ValidationError()
   if (!response.ok) throw new Error(`request failed: ${response.status}`)
   if (response.status === 204) return undefined as T
@@ -94,6 +107,20 @@ export const moveActivity = (tripId: string, id: string, date: string) =>
 
 export const removeActivity = (tripId: string, id: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities/${encodeURIComponent(id)}`, 'DELETE')
+
+export const addTraveller = (tripId: string, name: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })
+
+export const inviteEditor = (tripId: string, email: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/editors`, 'POST', { email })
+
+export const revokeEditor = (tripId: string, email: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/editors/${encodeURIComponent(email)}`, 'DELETE')
+
+export const fetchInvite = (token: string) => call<Invite>(`/invites/${encodeURIComponent(token)}`)
+
+export const acceptInvite = (token: string) =>
+  call<{ trip_id: string }>(`/invites/${encodeURIComponent(token)}/accept`, 'POST')
 
 export const deleteTrip =(id: string) =>
   call<void>(`/trips/${encodeURIComponent(id)}`, 'DELETE')

@@ -68,6 +68,31 @@ class Activity(ActivityFields):
     id: str
 
 
+class TravellerFields(BaseModel):
+    name: TrimmedName
+
+
+class Traveller(TravellerFields):
+    id: str
+
+
+class Editor(BaseModel):
+    """A companion invited to change the plan. The token is the owner's to share, never shown to editors."""
+
+    email: str  # lower-cased
+    token: str
+    accepted: bool = False
+
+
+class Invite(BaseModel):
+    """Index record that finds the trip behind an invite link."""
+
+    token: str
+    owner_id: str
+    trip_id: str
+    email: str
+
+
 class Trip(TripFields):
     id: str
     updated_at: datetime | None = None
@@ -76,6 +101,8 @@ class Trip(TripFields):
     options: list[ChosenOption] = []  # server-owned: never read from a request body
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
+    travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
+    editors: list[Editor] = []  # server-owned: changed only through the editor routes
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:
@@ -86,9 +113,13 @@ def visible_reminders(trip: Trip) -> list[Reminder]:
     ]
 
 
-def can_edit_trip(trip: Trip, user_id: str, owner_id: str) -> bool:
-    """The single rule for changing a trip's itinerary: the owner, or an editor once sharing exists."""
-    return user_id == owner_id
+def can_edit_trip(trip: Trip, user_id: str, owner_id: str, email: str | None = None) -> bool:
+    """The single rule for changing a trip's itinerary: the owner, or an editor whose accepted email is on the trip."""
+    if user_id == owner_id:
+        return True
+    return email is not None and any(
+        e.accepted and e.email == email.strip().lower() for e in trip.editors
+    )
 
 
 def reconcile_days(start: date | None, end: date | None, existing: list[Day]) -> list[Day]:
@@ -119,10 +150,26 @@ class TripStore(Protocol):
 
     def delete_trip(self, owner_id: str, trip_id: str) -> None: ...
 
+    def save_invite(self, invite: Invite) -> None: ...
+
+    def get_invite(self, token: str) -> Invite | None: ...
+
+    def delete_invite(self, token: str) -> None: ...
+
+    def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
+        """Index that lets an editor find the owner's partition. The Trip's own editors list still decides access."""
+
+    def unlink_editor(self, email: str, trip_id: str) -> None: ...
+
+    def shared_trips(self, email: str) -> list[tuple[str, str]]:
+        """(owner id, trip id) pairs the email may have been linked to; callers re-check the Trip."""
+
 
 class InMemoryTripStore:
     def __init__(self) -> None:
         self._trips: dict[tuple[str, str], Trip] = {}
+        self._invites: dict[str, Invite] = {}
+        self._editors: dict[tuple[str, str], str] = {}
 
     def list_trips(self, owner_id: str) -> list[Trip]:
         return [t for (owner, _), t in self._trips.items() if owner == owner_id]
@@ -135,6 +182,24 @@ class InMemoryTripStore:
 
     def delete_trip(self, owner_id: str, trip_id: str) -> None:
         self._trips.pop((owner_id, trip_id), None)
+
+    def save_invite(self, invite: Invite) -> None:
+        self._invites[invite.token] = invite
+
+    def get_invite(self, token: str) -> Invite | None:
+        return self._invites.get(token)
+
+    def delete_invite(self, token: str) -> None:
+        self._invites.pop(token, None)
+
+    def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
+        self._editors[(email, trip_id)] = owner_id
+
+    def unlink_editor(self, email: str, trip_id: str) -> None:
+        self._editors.pop((email, trip_id), None)
+
+    def shared_trips(self, email: str) -> list[tuple[str, str]]:
+        return [(owner, tid) for (e, tid), owner in self._editors.items() if e == email]
 
 
 class DynamoTripStore:
@@ -178,6 +243,31 @@ class DynamoTripStore:
 
     def delete_trip(self, owner_id: str, trip_id: str) -> None:
         self._table.delete_item(Key={"pk": self._pk(owner_id), "sk": f"TRIP#{trip_id}"})
+
+    def save_invite(self, invite: Invite) -> None:
+        self._table.put_item(Item={**invite.model_dump(), "pk": f"INVITE#{invite.token}", "sk": "INVITE"})
+
+    def get_invite(self, token: str) -> Invite | None:
+        item = self._table.get_item(Key={"pk": f"INVITE#{token}", "sk": "INVITE"}).get("Item")
+        return Invite.model_validate({k: v for k, v in item.items() if k not in ("pk", "sk")}) if item else None
+
+    def delete_invite(self, token: str) -> None:
+        self._table.delete_item(Key={"pk": f"INVITE#{token}", "sk": "INVITE"})
+
+    def link_editor(self, email: str, owner_id: str, trip_id: str) -> None:
+        self._table.put_item(
+            Item={"pk": f"EDITOR#{email}", "sk": f"TRIP#{trip_id}", "owner_id": owner_id}
+        )
+
+    def unlink_editor(self, email: str, trip_id: str) -> None:
+        self._table.delete_item(Key={"pk": f"EDITOR#{email}", "sk": f"TRIP#{trip_id}"})
+
+    def shared_trips(self, email: str) -> list[tuple[str, str]]:
+        page = self._table.query(
+            KeyConditionExpression="pk = :pk AND begins_with(sk, :sk)",
+            ExpressionAttributeValues={":pk": f"EDITOR#{email}", ":sk": "TRIP#"},
+        )
+        return [(i["owner_id"], i["sk"].removeprefix("TRIP#")) for i in page.get("Items", [])]
 
     @staticmethod
     def _to_trip(item: dict) -> Trip:

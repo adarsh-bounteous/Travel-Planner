@@ -4,8 +4,12 @@ from datetime import date, datetime
 from fastapi import APIRouter, Depends
 
 from app.routers.auth import get_now
-from app.routers.deps import ApiError, get_current_user, get_trips
+from app.routers.deps import ApiError, get_current_user, get_recommendations, get_trips
+from app.trips.recommendations import Recommendation, RecommendationSource
 from app.trips.store import (
+    Activity,
+    ActivityFields,
+    ActivityMove,
     Day,
     DayName,
     Reminder,
@@ -22,9 +26,12 @@ router = APIRouter(prefix="/trips")
 
 MAX_REMINDERS = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
+MAX_ACTIVITIES = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
+
 NOT_FOUND = ApiError(404, "not_found")
 INVALID_DATES = ApiError(422, "invalid_dates")
 INVALID_REMINDER = ApiError(422, "invalid_reminder")
+INVALID_ACTIVITY = ApiError(422, "invalid_activity")
 
 
 class TripView(Trip):
@@ -197,6 +204,86 @@ def delete_reminder(
         raise NOT_FOUND
     reminders = [r for r in trip.reminders if r.id != reminder_id]
     return _save_reminders(trips, owner, trip, reminders, now)
+
+
+def _save_activities(
+    trips: TripStore, owner: str, trip: Trip, activities: list[Activity], now: datetime
+) -> TripView:
+    trip.activities = activities
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, owner)
+
+
+def _check_activity_day(trip: Trip, day: date) -> None:
+    if day not in {d.date for d in trip.days}:
+        raise INVALID_ACTIVITY
+
+
+@router.get("/{trip_id}/days/{day_date}/recommendations")
+def day_recommendations(
+    trip_id: str,
+    day_date: date,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    source: RecommendationSource = Depends(get_recommendations),
+) -> list[Recommendation]:
+    trip = _editable_trip(trips, owner, trip_id)
+    if not trip.destination:
+        return []
+    on_day = {a.name for a in trip.activities if a.date == day_date}
+    return [r for r in source.for_destination(trip.destination) if r.name not in on_day]
+
+
+@router.post("/{trip_id}/activities", status_code=201)
+def add_activity(
+    trip_id: str,
+    body: ActivityFields,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    _check_activity_day(trip, body.date)
+    if len(trip.activities) >= MAX_ACTIVITIES:
+        raise INVALID_ACTIVITY
+    activity = Activity(id=uuid.uuid4().hex, **body.model_dump())
+    return _save_activities(trips, owner, trip, [*trip.activities, activity], now)
+
+
+@router.put("/{trip_id}/activities/{activity_id}")
+def move_activity(
+    trip_id: str,
+    activity_id: str,
+    body: ActivityMove,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    if activity_id not in {a.id for a in trip.activities}:
+        raise NOT_FOUND
+    _check_activity_day(trip, body.date)
+    moved = [
+        a.model_copy(update={"date": body.date}) if a.id == activity_id else a
+        for a in trip.activities
+    ]
+    return _save_activities(trips, owner, trip, moved, now)
+
+
+@router.delete("/{trip_id}/activities/{activity_id}")
+def remove_activity(
+    trip_id: str,
+    activity_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _editable_trip(trips, owner, trip_id)
+    if activity_id not in {a.id for a in trip.activities}:
+        raise NOT_FOUND
+    kept = [a for a in trip.activities if a.id != activity_id]
+    return _save_activities(trips, owner, trip, kept, now)
 
 
 @router.delete("/{trip_id}", status_code=204)

@@ -52,6 +52,22 @@ class Reminder(ReminderFields):
     option_date: date | None = None  # the option's day when attached; hides the note if the option later moves
 
 
+class ActivityFields(BaseModel):
+    """What an editor supplies for an Activity: a name on one day of the trip."""
+
+    name: TrimmedName
+    date: date
+    detail: str | None = Field(default=None, max_length=120)
+
+
+class ActivityMove(BaseModel):
+    date: date
+
+
+class Activity(ActivityFields):
+    id: str
+
+
 class Trip(TripFields):
     id: str
     updated_at: datetime | None = None
@@ -59,6 +75,7 @@ class Trip(TripFields):
     days: list[Day] = []
     options: list[ChosenOption] = []  # server-owned: never read from a request body
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
+    activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:

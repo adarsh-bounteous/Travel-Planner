@@ -23,3 +23,14 @@ def test_blank_destination_is_refused(sign_in_as):
 def test_signed_out_calls_are_rejected(sign_in_as):
     sign_in_as("a@example.com")
     assert TestClient(app).get("/places", params={"destination": "Lisbon"}).status_code == 401
+
+
+def test_q_filters_by_name_ignoring_case_and_accents(sign_in_as):
+    from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch
+    from app.routers import deps
+
+    a = sign_in_as("a@example.com")
+    app.dependency_overrides[deps.get_places] = lambda: InMemoryPlaceSearch(SEED_CATALOGUE)
+    assert a.get("/places", params={"destination": "Lisbon", "q": "xyz"}).json() == []
+    found = a.get("/places", params={"destination": "Lisbon", "q": "belem"}).json()
+    assert [p["name"] for p in found] == ["Belém Tower"]

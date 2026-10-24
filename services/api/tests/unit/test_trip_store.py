@@ -167,3 +167,32 @@ def test_priced_option_round_trips_through_json_dump():
     )
     again = Trip.model_validate(trip.model_dump(mode="json"))
     assert again.options[0].price == Decimal("120.50") and again.options[0].currency == "USD"
+
+
+def test_in_memory_share_link_round_trips():
+    from app.trips.store import ShareLink
+
+    store = InMemoryTripStore()
+    store.save_share_link(ShareLink(token="tok", owner_id="o", trip_id="t"))
+    assert store.get_share_link("tok").trip_id == "t"
+    store.delete_share_link("tok")
+    assert store.get_share_link("tok") is None
+
+
+def test_dynamo_share_link_key_shape_and_trip_token_omitted_when_none():
+    from app.trips.store import ShareLink
+
+    store = _dynamo_store()
+    store.save_share_link(ShareLink(token="tok", owner_id="o", trip_id="t"))
+    assert ("SHARE#tok", "SHARE") in store._table.items
+    assert store.get_share_link("tok").owner_id == "o"
+    store.delete_share_link("tok")
+    assert store._table.items == {}
+    store.save_trip("o", Trip(id="t1", name="Lisbon"))
+    assert "share_token" not in store._table.items[("USER#o", "TRIP#t1")]
+    store.save_trip("o", Trip(id="t1", name="Lisbon", share_token="tok"))
+    assert store._table.items[("USER#o", "TRIP#t1")]["share_token"] == "tok"
+
+
+def test_trip_stored_before_share_links_loads_without_a_token():
+    assert DynamoTripStore._to_trip({"pk": "USER#o", "sk": "TRIP#t1", "id": "t1", "name": "Old"}).share_token is None

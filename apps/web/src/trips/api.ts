@@ -56,6 +56,8 @@ export type Trip = {
   editors?: Editor[]
   is_owner?: boolean
   can_edit?: boolean
+  /** Owner only: a path on this site that opens the trip read-only; null when there is no link. */
+  share_url?: string | null
 }
 
 export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'>
@@ -131,6 +133,16 @@ export const inviteEditor = (tripId: string, email: string) =>
 
 export const revokeEditor = (tripId: string, email: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/editors/${encodeURIComponent(email)}`, 'DELETE')
+
+export const createShareLink = (tripId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/share-link`, 'POST')
+
+export const revokeShareLink = (tripId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/share-link`, 'DELETE')
+
+/** Public, no session: the itinerary behind a read-only link, in the Trip shape with is_owner and can_edit false. */
+export const fetchSharedTrip = (token: string) =>
+  call<Trip>(`/shared/${encodeURIComponent(token)}`)
 
 export const fetchInvite = (token: string) => call<Invite>(`/invites/${encodeURIComponent(token)}`)
 

@@ -336,3 +336,16 @@ describe('TripDetailPage book trip', () => {
     expect(book).toHaveFocus()
   })
 })
+
+describe('TripDetailPage share control', () => {
+  it('offers Share trip to the owner only (AC7)', async () => {
+    open(trip({ is_owner: true }))
+    expect(await screen.findByRole('button', { name: 'Share trip' })).toBeInTheDocument()
+  })
+
+  it('shows a signed-in non-owner no share control (AC7)', async () => {
+    open(trip({ is_owner: false, can_edit: true }))
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    expect(screen.queryByRole('button', { name: 'Share trip' })).not.toBeInTheDocument()
+  })
+})

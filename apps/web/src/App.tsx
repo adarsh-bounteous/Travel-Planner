@@ -9,10 +9,13 @@ import { SignUpPage } from './auth/SignUpPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { InvitePage } from './trips/InvitePage'
+import { SharedTripPage } from './trips/SharedTripPage'
 import { TripPage } from './trips/TripPage'
 
-// Every page other than the auth pages must be wrapped in <RequireAuth>, except the invite page:
-// it names the email to sign in with while signed out, and the server checks the session on accept.
+// Every page other than the auth pages must be wrapped in <RequireAuth>, except two:
+// the invite page names the email to sign in with while signed out, and the server checks the
+// session on accept; the read-only trip page is for people with no account, and its link is the
+// credential.
 export default function App() {
   return (
     <>
@@ -67,6 +70,7 @@ export default function App() {
               </RequireAuth>
             }
           />
+          <Route path="/trips/read-only/:token" element={<SharedTripPage />} />
           <Route path="/invite/:token" element={<InvitePage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />

@@ -32,6 +32,7 @@ from app.trips.store import (
     Invite,
     Reminder,
     ReminderFields,
+    ShareLink,
     Traveller,
     TravellerFields,
     Trip,
@@ -84,6 +85,7 @@ class TripView(Trip):
     is_owner: bool = True
     can_edit: bool = True
     cost: CostSummary | None = None
+    share_url: str | None = None  # relative; owner only. The raw share_token is never sent
 
 
 def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = None) -> TripView:
@@ -97,9 +99,15 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
         if is_owner
         else []
     )
-    data = {**trip.model_dump(), "reminders": visible_reminders(trip), "editors": editors}
+    data = {
+        **trip.model_dump(),
+        "reminders": visible_reminders(trip),
+        "editors": editors,
+        "share_token": None,
+    }
     return TripView(
         **data,
+        share_url=f"/trips/read-only/{trip.share_token}" if is_owner and trip.share_token else None,
         cost=summarise_cost(trip, rates),
         is_owner=is_owner,
         can_edit=can_edit_trip(trip, user_id, user_id) if is_owner else True,  # a non-owner got here as a checked editor
@@ -187,13 +195,13 @@ def list_trips(
     trips: TripStore = Depends(get_trips),
     identity: IdentityProvider = Depends(get_identity),
 ) -> list[Trip]:
-    mine = trips.list_trips(user)
+    mine = [t.model_copy(update={"share_token": None}) for t in trips.list_trips(user)]
     email = identity.email_for(user).strip().lower()
     shared = []
     for owner_id, trip_id in trips.shared_trips(email):
         trip = trips.get_trip(owner_id, trip_id)
         if trip is not None and can_edit_trip(trip, user, owner_id, email):  # stale index rows are skipped
-            shared.append(trip.model_copy(update={"editors": []}))
+            shared.append(trip.model_copy(update={"editors": [], "share_token": None}))
     return [*mine, *shared]
 
 
@@ -335,6 +343,42 @@ def revoke_editor(
     trips.save_trip(owner, trip)  # the Trip item decides access, so it goes first
     trips.delete_invite(editor.token)
     trips.unlink_editor(email, trip.id)
+    return _view(trip, rates, owner)
+
+
+@router.post("/{trip_id}/share-link", status_code=201)
+def create_share_link(
+    trip_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    if trip.share_token is None:  # one link per trip: creating again returns the same one
+        trip.share_token = secrets.token_urlsafe(24)
+        trip.updated_at = now
+        trips.save_share_link(ShareLink(token=trip.share_token, owner_id=owner, trip_id=trip.id))
+        trips.save_trip(owner, trip)
+    return _view(trip, rates, owner)
+
+
+@router.delete("/{trip_id}/share-link")
+def revoke_share_link(
+    trip_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    token, trip.share_token = trip.share_token, None
+    if token is not None:
+        trip.updated_at = now
+        trips.save_trip(owner, trip)  # the Trip item decides access, so it goes first
+        trips.delete_share_link(token)
     return _view(trip, rates, owner)
 
 
@@ -497,4 +541,6 @@ def delete_trip(
     for editor in trip.editors:
         trips.delete_invite(editor.token)
         trips.unlink_editor(editor.email, trip_id)
+    if trip.share_token is not None:
+        trips.delete_share_link(trip.share_token)
     trips.delete_trip(owner, trip_id)

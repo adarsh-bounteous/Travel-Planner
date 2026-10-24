@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { BellIcon, EditIcon } from '../auth/icons'
+import { BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -11,6 +11,7 @@ import { ItineraryTab } from './ItineraryTab'
 import { ReminderModal } from './ReminderModal'
 import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
+import { ShareTripModal } from './ShareTripModal'
 import { Toast } from './Toast'
 import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
@@ -23,6 +24,7 @@ type Panel =
   | { id: 'settings' }
   | { id: 'delete' }
   | { id: 'book' }
+  | { id: 'share' }
   | { id: 'rename'; day: Day; position: number }
   | { id: 'reminder-add'; optionId?: string }
   | { id: 'reminder-edit'; reminder: Reminder }
@@ -171,6 +173,16 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             <button
               className="btn btn-secondary"
               type="button"
+              onClick={() => setPanel({ id: 'share' })}
+            >
+              <EyeIcon />
+              Share trip
+            </button>
+          )}
+          {trip.is_owner && (
+            <button
+              className="btn btn-secondary"
+              type="button"
               onClick={() => setPanel({ id: 'settings' })}
             >
               <EditIcon />
@@ -236,6 +248,17 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           trip={trip}
           onCancel={() => setPanel({ id: 'settings' })}
           onDeleted={() => navigate('/', { state: { toast: 'Trip deleted' } })}
+        />
+      )}
+      {trip.is_owner && panel.id === 'share' && (
+        <ShareTripModal
+          trip={trip}
+          onClose={close}
+          onChanged={(updated, message) => {
+            setTrip(updated)
+            setToast({ id: Date.now(), message })
+          }}
+          onCopied={() => setToast({ id: Date.now(), message: 'Link copied.' })}
         />
       )}
       {trip.is_owner && panel.id === 'rename' && (

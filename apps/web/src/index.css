@@ -163,6 +163,8 @@ a.btn { text-decoration: none; }
 .overlay-actions.end { justify-content: flex-end; }
 .form-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
 .form-row .field { flex: 1 1 14rem; }
+.form-row .input[readonly] { overflow-wrap: anywhere; }
+.unavailable { max-width: 36rem; margin: var(--space-5) auto; text-align: center; align-items: center; }
 .person-list { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .person { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); overflow-wrap: anywhere; }
 .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--size-avatar); height: var(--size-avatar); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); color: var(--color-on-primary); background: var(--color-primary); border-radius: var(--radius-full); overflow: hidden; }

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BellIcon, EditIcon } from '../auth/icons'
-import { NotFoundError, addReminder, fetchTrip } from './api'
-import type { Day, Reminder, Trip } from './api'
+import { NotFoundError, addReminder, fetchTrip, moveActivity } from './api'
+import type { Activity, Day, Reminder, Trip } from './api'
+import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
 import { DeleteTripModal } from './DeleteTripModal'
 import { ItineraryTab } from './ItineraryTab'
 import { ReminderModal } from './ReminderModal'
+import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
 import { Toast } from './Toast'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
@@ -21,6 +23,8 @@ type Panel =
   | { id: 'rename'; day: Day; position: number }
   | { id: 'reminder-add'; optionId?: string }
   | { id: 'reminder-edit'; reminder: Reminder }
+  | { id: 'add-activity'; day: Day }
+  | { id: 'remove-activity'; activity: Activity }
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -85,6 +89,11 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     close()
   }
   const canEdit = trip.can_edit ?? trip.is_owner ?? false
+  const dayName = (date: string) => trip.days?.find((d) => d.date === date)?.name ?? date
+  const move = async (activity: Activity, date: string) => {
+    const updated = await moveActivity(trip.id, activity.id, date)
+    saved(updated, `${activity.name} moved to ${dayName(date)}.`)
+  }
   const reminderDeleted = (updated: Trip, reminder: Reminder) => {
     const undo = async () => {
       try {
@@ -178,6 +187,9 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onRename={(day, index) => setPanel({ id: 'rename', day, position: index + 1 })}
             onAddReminder={(optionId) => setPanel({ id: 'reminder-add', optionId })}
             onEditReminder={(reminder) => setPanel({ id: 'reminder-edit', reminder })}
+            onAddActivity={(day) => setPanel({ id: 'add-activity', day })}
+            onMoveActivity={move}
+            onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
           />
         ) : (
           <p className="text-muted">Trip overview is shown on its own page.</p>
@@ -216,6 +228,24 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           onClose={close}
           onSaved={saved}
           onDeleted={reminderDeleted}
+        />
+      )}
+      {canEdit && panel.id === 'add-activity' && (
+        <AddActivityDrawer
+          trip={trip}
+          day={panel.day}
+          onClose={close}
+          onAdded={(updated, name) => saved(updated, `${name} added to ${panel.day.name}.`)}
+        />
+      )}
+      {canEdit && panel.id === 'remove-activity' && (
+        <RemoveActivityModal
+          tripId={trip.id}
+          activity={panel.activity}
+          onClose={close}
+          onRemoved={(updated, activity) =>
+            saved(updated, `${activity.name} removed from ${dayName(activity.date)}.`)
+          }
         />
       )}
       {panel.id === 'book' && <BookTripDrawer options={options} onClose={close} />}

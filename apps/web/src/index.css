@@ -137,6 +137,12 @@ a.btn { text-decoration: none; }
 .day-name { font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
 .options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .option { padding: var(--space-2) var(--space-3); background: var(--color-surface); border-left: var(--border-width-strong) solid var(--color-border-strong); border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm); }
+.row-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.move-to { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.pick-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.pick { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--color-primary); background: var(--color-surface); }
+.pick-body { display: flex; flex-direction: column; overflow-wrap: anywhere; }
 .title-actions { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-1); }
 .link-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .option-title { font-weight: var(--font-weight-medium); overflow-wrap: anywhere; }

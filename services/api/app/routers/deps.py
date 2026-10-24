@@ -7,6 +7,11 @@ from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
+from app.trips.recommendations import (
+    SEED_RECOMMENDATIONS,
+    InMemoryRecommendations,
+    RecommendationSource,
+)
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.store import DynamoTripStore, TripStore
 
@@ -32,6 +37,15 @@ def _profiles() -> ProfileStore:
 @lru_cache
 def _places() -> PlaceSearch:
     return InMemoryPlaceSearch(SEED_CATALOGUE)
+
+
+@lru_cache
+def _recommendations() -> RecommendationSource:
+    return InMemoryRecommendations(SEED_RECOMMENDATIONS)
+
+
+def get_recommendations() -> RecommendationSource:
+    return _recommendations()
 
 
 def get_places() -> PlaceSearch:

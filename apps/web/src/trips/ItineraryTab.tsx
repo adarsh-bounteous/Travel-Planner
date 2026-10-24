@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
-import type { Day, Reminder, Trip } from './api'
+import type { Activity, Day, Reminder, Trip } from './api'
 
 // Dates are plain calendar days, so format them in UTC: 3 March must stay 3 March everywhere.
 const dayMonth = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })
@@ -47,11 +48,25 @@ type ItineraryTabProps = {
   onRename: (day: Day, index: number) => void
   onAddReminder: (optionId?: string) => void
   onEditReminder: (reminder: Reminder) => void
+  onAddActivity: (day: Day) => void
+  onMoveActivity: (activity: Activity, date: string) => Promise<void>
+  onRemoveActivity: (activity: Activity) => void
 }
 
-/** One stack per day, in date order, each holding only that day's chosen options and reminders. */
-export function ItineraryTab({ trip, onRename, onAddReminder, onEditReminder }: ItineraryTabProps) {
+/** One stack per day, in date order, each holding only that day's chosen options, activities and reminders. */
+export function ItineraryTab({
+  trip,
+  onRename,
+  onAddReminder,
+  onEditReminder,
+  onAddActivity,
+  onMoveActivity,
+  onRemoveActivity,
+}: ItineraryTabProps) {
+  const [movingId, setMovingId] = useState<string | null>(null)
+  const [moveFailed, setMoveFailed] = useState(false)
   const days = trip.days ?? []
+  const activities = trip.activities ?? []
   const options = trip.options ?? []
   const reminders = trip.reminders ?? []
   const editable = trip.can_edit ?? trip.is_owner ?? false
@@ -72,6 +87,7 @@ export function ItineraryTab({ trip, onRename, onAddReminder, onEditReminder }: 
     <div className="grid">
       {days.map((day, index) => {
         const chosen = options.filter((option) => option.date === day.date)
+        const planned = activities.filter((activity) => activity.date === day.date)
         const dated = reminders.filter((r) => r.date === day.date)
         // Notes not shown under an option of this day: trip notes, and activity notes dated on another day.
         const loose = dated.filter((r) => !chosen.some((option) => option.id === r.option_id))
@@ -82,10 +98,23 @@ export function ItineraryTab({ trip, onRename, onAddReminder, onEditReminder }: 
             className="card stack stack-sm"
             aria-labelledby={headingId}
           >
-            <h3 className="text-lg" id={headingId}>
-              {formatDay(day.date)}{' '}
-              <span className="text-sm text-muted">{weekday.format(asDate(day.date))}</span>
-            </h3>
+            <div className="title-row">
+              <h3 className="text-lg" id={headingId}>
+                {formatDay(day.date)}{' '}
+                <span className="text-sm text-muted">{weekday.format(asDate(day.date))}</span>
+              </h3>
+              {editable && (
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  aria-label={`Add activity to ${day.name}`}
+                  onClick={() => onAddActivity(day)}
+                >
+                  <PlusIcon />
+                  Add activity
+                </button>
+              )}
+            </div>
             <p className="day-name">{day.name}</p>
             {trip.is_owner && (
               <div>
@@ -135,12 +164,82 @@ export function ItineraryTab({ trip, onRename, onAddReminder, onEditReminder }: 
                 })}
               </ul>
             ) : (
-              <div className="empty-state">
-                <p>Nothing chosen for this day yet</p>
-                <p className="text-sm">
-                  Options you choose for {formatDay(day.date)} will show up here.
-                </p>
-              </div>
+              planned.length === 0 && (
+                <div className="empty-state">
+                  <p>Nothing chosen for this day yet</p>
+                  <p className="text-sm">
+                    Options you choose for {formatDay(day.date)} will show up here.
+                  </p>
+                </div>
+              )
+            )}
+            {planned.length > 0 && (
+              <ul className="options">
+                {planned.map((activity) => (
+                  <li key={activity.id} className="option option-head">
+                    <div>
+                      <div className="option-title">{activity.name}</div>
+                      {activity.detail && <div className="text-sm text-muted">{activity.detail}</div>}
+                    </div>
+                    {editable && (
+                      <div className="row-actions">
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          type="button"
+                          aria-label={`Move ${activity.name}`}
+                          aria-expanded={movingId === activity.id}
+                          onClick={() => {
+                            setMoveFailed(false)
+                            setMovingId(movingId === activity.id ? null : activity.id)
+                          }}
+                        >
+                          Move
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          type="button"
+                          aria-label={`Remove ${activity.name}`}
+                          onClick={() => onRemoveActivity(activity)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                    {editable && movingId === activity.id && (
+                      <div className="move-to" role="group" aria-label={`Move ${activity.name} to`}>
+                        <span className="note-for">Move to</span>
+                        {days
+                          .filter((other) => other.date !== day.date)
+                          .map((other) => (
+                            <button
+                              key={other.date}
+                              className="btn btn-secondary"
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await onMoveActivity(activity, other.date)
+                                  setMovingId(null)
+                                } catch {
+                                  setMoveFailed(true)
+                                }
+                              }}
+                            >
+                              {`${formatDay(other.date)}, ${other.name}`}
+                            </button>
+                          ))}
+                        <button className="btn btn-ghost" type="button" onClick={() => setMovingId(null)}>
+                          Cancel
+                        </button>
+                        {moveFailed && (
+                          <p className="field-error" role="alert">
+                            We couldn't move that activity. Try again.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
             {loose.map((r) => (
               <Note

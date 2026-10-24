@@ -16,6 +16,10 @@ export type Reminder = {
 }
 export type ReminderInput = { text: string; date: string; option_id: string | null }
 
+export type Activity = { id: string; name: string; date: string; detail?: string | null }
+export type ActivityInput = { name: string; date: string; detail?: string | null }
+export type Recommendation = { id: string; name: string; detail: string }
+
 export type Trip = {
   id: string
   name: string
@@ -27,6 +31,7 @@ export type Trip = {
   days?: Day[]
   options?: ChosenOption[]
   reminders?: Reminder[]
+  activities?: Activity[]
   is_owner?: boolean
   can_edit?: boolean
 }
@@ -77,6 +82,18 @@ export const updateReminder = (tripId: string, id: string, input: ReminderInput)
 
 export const deleteReminder = (tripId: string, id: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/reminders/${encodeURIComponent(id)}`, 'DELETE')
+
+export const fetchRecommendations = (tripId: string, date: string) =>
+  call<Recommendation[]>(`/trips/${encodeURIComponent(tripId)}/days/${date}/recommendations`)
+
+export const addActivity = (tripId: string, input: ActivityInput) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities`, 'POST', input)
+
+export const moveActivity = (tripId: string, id: string, date: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities/${encodeURIComponent(id)}`, 'PUT', { date })
+
+export const removeActivity = (tripId: string, id: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities/${encodeURIComponent(id)}`, 'DELETE')
 
 export const deleteTrip =(id: string) =>
   call<void>(`/trips/${encodeURIComponent(id)}`, 'DELETE')

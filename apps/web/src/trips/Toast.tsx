@@ -7,10 +7,12 @@ type ToastProps = {
   message: string | null
   /** An optional action on the toast, such as undoing the change it reports. */
   undo?: () => void
+  /** An optional navigation action, such as opening the trip the change was made to. */
+  action?: { label: string; onAction: () => void }
 }
 
 /** A short confirmation that a change was saved; it hides itself. Give it a new `key` to show it again. */
-export function Toast({ message, undo }: ToastProps) {
+export function Toast({ message, undo, action }: ToastProps) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
@@ -34,6 +36,18 @@ export function Toast({ message, undo }: ToastProps) {
               }}
             >
               Undo
+            </button>
+          )}
+          {action && (
+            <button
+              className="btn btn-ghost btn-sm"
+              type="button"
+              onClick={() => {
+                setVisible(false)
+                action.onAction()
+              }}
+            >
+              {action.label}
             </button>
           )}
         </div>

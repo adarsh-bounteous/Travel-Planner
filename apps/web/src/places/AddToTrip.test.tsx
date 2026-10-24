@@ -76,25 +76,58 @@ describe('Add a place to a trip', () => {
       'GET /trips': { status: 200, body: [] },
       'POST /trips': { status: 201, body: { id: 'new-id', name: 'Lisbon' } },
       'POST /trips/new-id/places': { status: 201, body: { id: 'new-id', name: 'Lisbon' } },
+      'GET /trips/new-id': { status: 200, body: { id: 'new-id', name: 'Lisbon', destination: 'Lisbon' } },
     })
     renderAt('/destinations?q=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
-    expect(await screen.findByRole('dialog', { name: 'New trip' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'You have no trips yet' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: 'New trip' }))
+    await screen.findByLabelText('Trip name')
     expect(placesPosts(fetchMock)).toHaveLength(0)
-    fireEvent.change(screen.getByLabelText('Trip name'), { target: { value: 'Lisbon' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save trip and add place' }))
+    const type = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } })
+    type('Destination', 'Lisbon')
+    type('Start date', '2027-03-12')
+    type('End date', '2027-03-15')
+    type('Number of travellers', '2')
+    type('Budget', '1800')
+    type('Trip currency', 'EUR')
+    type('Trip name', 'Lisbon')
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     await waitFor(() => expect(placesPosts(fetchMock)).toHaveLength(1))
-    expect(await screen.findByText('Place added')).toBeInTheDocument()
+    expect(JSON.parse(String(placesPosts(fetchMock)[0][1]?.body))).toEqual({
+      place_id: 'p1',
+      name: 'Alfama',
+      image_url: '/a.jpg',
+    })
+    expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
+    expect(screen.queryByText("We couldn't add that place. Try again.")).not.toBeInTheDocument()
   })
 
-  it('needs a trip name in the set-up before anything is added (AC5)', async () => {
-    const fetchMock = stubApi({ ...base, 'GET /trips': { status: 200, body: [] } })
+  it('still lands on Shortlists when the place cannot be added to the new trip', async () => {
+    stubApi({
+      ...base,
+      'GET /trips': { status: 200, body: [] },
+      'POST /trips': { status: 201, body: { id: 'new-id', name: 'Lisbon' } },
+      'POST /trips/new-id/places': { status: 500 },
+      'GET /trips/new-id': { status: 200, body: { id: 'new-id', name: 'Lisbon', destination: 'Lisbon' } },
+    })
     renderAt('/destinations?q=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
-    await screen.findByRole('dialog', { name: 'New trip' })
-    fireEvent.click(screen.getByRole('button', { name: 'Save trip and add place' }))
-    expect(await screen.findByText('Enter a trip name to save this trip.')).toBeInTheDocument()
-    expect(placesPosts(fetchMock)).toHaveLength(0)
+    fireEvent.click(await screen.findByRole('link', { name: 'New trip' }))
+    await screen.findByLabelText('Trip name')
+    const type = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } })
+    type('Destination', 'Lisbon')
+    type('Start date', '2027-03-12')
+    type('End date', '2027-03-15')
+    type('Number of travellers', '2')
+    type('Budget', '1800')
+    type('Trip currency', 'EUR')
+    type('Trip name', 'Lisbon')
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
+    expect(screen.getByText("We couldn't add that place. Try again.")).toBeInTheDocument()
   })
 
   it('dismisses the confirmation by itself and stays on results (AC9, 10)', async () => {

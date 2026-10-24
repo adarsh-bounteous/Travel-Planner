@@ -1,5 +1,8 @@
+from tests.trip_body import trip_body
+
+
 def _trip(owner):
-    return owner.post("/trips", json={"name": "Lisbon"}).json()["id"]
+    return owner.post("/trips", json=trip_body()).json()["id"]
 
 
 def test_owner_adds_a_traveller_without_an_account(sign_in_as):

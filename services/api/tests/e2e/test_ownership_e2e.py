@@ -7,6 +7,7 @@ from app.auth.fake_identity import FakeIdentityProvider
 from app.config import get_settings
 from app.main import app
 from app.routers import auth, deps
+from tests.trip_body import trip_body
 from app.trips.profile_store import InMemoryProfileStore
 from app.trips.store import InMemoryTripStore
 
@@ -33,7 +34,7 @@ def test_two_devices_see_the_same_trips_and_profile():
             await device1.post("/auth/sign-up", json=creds)
             fake.confirm(creds["email"])
             await device1.post("/auth/sign-in", json=creds)
-            tid = (await device1.post("/trips", json={"name": "Lisbon"})).json()["id"]
+            tid = (await device1.post("/trips", json=trip_body())).json()["id"]
             await device1.put("/profile", json={"display_name": "Maya"})
 
             await device2.post("/auth/sign-in", json=creds)

@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Annotated, Protocol
+from typing import Annotated, Literal, Protocol
 
 from pydantic import BaseModel, Field, HttpUrl, StringConstraints
 
@@ -36,6 +36,17 @@ class TripFields(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     budget: float | None = Field(default=None, ge=0, le=1_000_000_000)
+
+
+class TripCreate(TripFields):
+    """What New trip set-up supplies: every basic is required, and the trip currency is chosen here."""
+
+    destination: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+    start_date: date
+    end_date: date
+    budget: float = Field(gt=0, le=1_000_000_000)
+    currency: Literal["EUR", "GBP", "USD", "JPY", "AUD"]
+    traveller_count: int = Field(ge=1, le=20)
 
 
 ReminderText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=280)]
@@ -117,6 +128,7 @@ class Trip(TripFields):
     id: str
     updated_at: datetime | None = None
     currency: str = "EUR"
+    traveller_count: int | None = None  # how many are going; set at New trip set-up, the named people are `travellers`
     days: list[Day] = []
     options: list[ChosenOption] = []  # server-owned: never read from a request body
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes

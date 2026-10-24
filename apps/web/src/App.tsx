@@ -6,11 +6,13 @@ import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
 import { SignUpPage } from './auth/SignUpPage'
+import { AddPlaceNoTripsPage } from './places/AddPlaceNoTripsPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { SavedPage } from './saved/SavedPage'
 import { InvitePage } from './trips/InvitePage'
 import { SharedTripPage } from './trips/SharedTripPage'
+import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripPage } from './trips/TripPage'
 
 // Every page other than the auth pages must be wrapped in <RequireAuth>, except three:
@@ -65,6 +67,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/shortlists"
+            element={
+              <RequireAuth>
+                <ShortlistsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/places/add"
+            element={
+              <RequireAuth>
+                <AddPlaceNoTripsPage />
               </RequireAuth>
             }
           />

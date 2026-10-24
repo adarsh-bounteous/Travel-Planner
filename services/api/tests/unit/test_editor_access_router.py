@@ -1,5 +1,7 @@
 import pytest
 
+from tests.trip_body import trip_body
+
 
 def _invite(owner, tid, email):
     r = owner.post(f"/trips/{tid}/editors", json={"email": email})
@@ -9,7 +11,7 @@ def _invite(owner, tid, email):
 
 
 def _trip_with_day(owner):
-    body = {"name": "Lisbon", "start_date": "2027-03-04", "end_date": "2027-03-05"}
+    body = trip_body(start_date="2027-03-04", end_date="2027-03-05")
     return owner.post("/trips", json=body).json()["id"]
 
 
@@ -154,7 +156,7 @@ def test_invite_is_kept_when_the_email_cannot_be_sent(sign_in_as):
 def test_list_marks_shared_trips_and_hides_owner_only_fields(sign_in_as):  # AC1, AC7, AC8
     owner, ana = sign_in_as("o@example.com"), sign_in_as("ana@example.com")
     shared_id = _trip_with_day(owner)
-    ana.post("/trips", json={"name": "Mine"})
+    ana.post("/trips", json=trip_body(name="Mine"))
     assert ana.post(f"/invites/{_invite(owner, shared_id, 'ana@example.com')}/accept").status_code == 200
     listed = {t["name"]: t for t in ana.get("/trips").json()}
     assert set(listed) == {"Mine", "Lisbon"}

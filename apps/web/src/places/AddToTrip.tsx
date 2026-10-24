@@ -4,26 +4,25 @@ import { AlreadyOnTripError, addPlaceToTrip, fetchTrips } from '../trips/api'
 import type { Trip } from '../trips/api'
 import { Toast } from '../trips/Toast'
 import type { Place } from './api'
-import { NewTripDrawer } from './NewTripDrawer'
 import { TripChoiceDrawer } from './TripChoiceDrawer'
 
-type Step = { kind: 'choose'; trips: Trip[] } | { kind: 'set-up' }
 type Message = 'failed' | 'already' | null
 
 /**
  * Adds a place to a trip: straight away with one trip, after a choice with several, after a
- * guided New trip set-up with none. `panel` holds the drawers, toast and messages to render.
+ * guided New trip set-up with none (reached through the no-trips screen, which carries the place on).
+ * `panel` holds the drawer, toast and messages to render.
  */
 export function useAddToTrip() {
   const navigate = useNavigate()
   const [place, setPlace] = useState<Place | null>(null)
-  const [step, setStep] = useState<Step | null>(null)
+  const [choice, setChoice] = useState<Trip[] | null>(null)
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState<Message>(null)
   const [toast, setToast] = useState<{ key: number; tripId: string } | null>(null)
 
   const finish = () => {
-    setStep(null)
+    setChoice(null)
     setPlace(null)
     setPending(false)
   }
@@ -57,9 +56,10 @@ export function useAddToTrip() {
       return
     }
     if (trips.length === 1) await addTo(target, trips[0].id)
+    else if (trips.length === 0) navigate('/places/add', { state: { place: target } })
     else {
       setPending(false)
-      setStep(trips.length === 0 ? { kind: 'set-up' } : { kind: 'choose', trips })
+      setChoice(trips)
     }
   }
 
@@ -82,16 +82,13 @@ export function useAddToTrip() {
           action={{ label: 'Open trip', onAction: () => navigate(`/trips/${toast.tripId}`) }}
         />
       )}
-      {place && step?.kind === 'choose' && (
+      {place && choice && (
         <TripChoiceDrawer
-          trips={step.trips}
+          trips={choice}
           pending={pending}
           onChoose={(trip) => void addTo(place, trip.id)}
           onClose={finish}
         />
-      )}
-      {place && step?.kind === 'set-up' && (
-        <NewTripDrawer onCreated={(trip) => void addTo(place, trip.id)} onClose={finish} />
       )}
     </>
   )

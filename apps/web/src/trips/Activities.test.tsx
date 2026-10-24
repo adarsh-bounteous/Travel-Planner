@@ -131,6 +131,22 @@ describe('add activity drawer', () => {
     expect(await day.findByText('Cooking class')).toBeInTheDocument()
   })
 
+  it('lets an editor add a custom activity to a day (editor AC4)', async () => {
+    const editor = { is_owner: false, can_edit: true }
+    open(trip(editor), {
+      'POST /trips/t1/activities': {
+        status: 201,
+        body: trip({ ...editor, activities: [{ id: 'n1', name: 'Cooking class', date: '2027-03-04' }] }),
+      },
+    })
+    await openDrawer()
+    fireEvent.click(await screen.findByRole('tab', { name: 'Custom activity' }))
+    fireEvent.change(screen.getByLabelText('Activity name'), { target: { value: 'Cooking class' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save activity' }))
+    const day = within(await screen.findByRole('region', { name: /4 March/ }))
+    expect(await day.findByText('Cooking class')).toBeInTheDocument()
+  })
+
   it('refuses a whitespace-only name and sends nothing (AC9, AC10)', async () => {
     const fetchMock = open(trip())
     await openDrawer()

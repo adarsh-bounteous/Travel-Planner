@@ -57,6 +57,7 @@ export function SignInPage() {
         primaryLabel="Sign in"
         googleLabel="Continue with Google"
         passwordPlaceholder="Password"
+        noSignUp={returnTo?.startsWith('/invite/')}
         footer={{ prompt: 'No account?', linkLabel: 'Sign up', to: '/sign-up' }}
         problem={problem}
         email={email}

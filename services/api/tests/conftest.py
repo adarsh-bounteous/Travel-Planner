@@ -33,7 +33,19 @@ def sign_in_as():
     trips = InMemoryTripStore()
     profiles = InMemoryProfileStore()
     places = InMemoryPlaceSearch(
-        {"Lisbon": [Place(id="p1", name="Alfama", image_url="/alfama.jpg")]}
+        {
+            "Lisbon": [
+                Place(
+                    id="p1",
+                    name="Alfama",
+                    image_url="/alfama.jpg",
+                    place_type="landmark",
+                    price="free",
+                    lat=38.711,
+                    lng=-9.130,
+                )
+            ]
+        }
     )
     invites = InMemoryInviteSender()
     settings = replace(get_settings(), cookie_secure=False)

@@ -118,6 +118,10 @@ a.btn { text-decoration: none; }
 }
 .tab:hover { color: var(--color-fg); background: var(--color-surface); }
 .tab[aria-selected="true"] { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.chip { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-control-sm); padding: 0 var(--space-2); font: inherit; font-size: var(--font-size-sm); color: var(--color-fg); background: var(--color-bg); border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-full); cursor: pointer; }
+.chip:hover { background: var(--color-surface); }
+.chip[aria-pressed="true"] { background: var(--color-primary-subtle); border-color: var(--color-primary); color: var(--color-primary-hover); }
+.chip:focus-visible { outline: var(--border-width-strong) solid var(--color-focus); outline-offset: var(--border-width-strong); }
 .tab:focus-visible, .modal:focus-visible { outline: var(--border-width-strong) solid var(--color-focus); outline-offset: calc(var(--border-width-strong) * -1); }
 
 .drawer {

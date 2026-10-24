@@ -134,6 +134,13 @@ a.btn { text-decoration: none; }
 .crumbs li + li::before { content: "/"; margin-right: var(--space-1); }
 .crumbs [aria-current] { color: var(--color-fg); }
 .title-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.total-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.total-row h1 { margin: 0; }
+.fx-rate { font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+.budget-line { color: var(--color-fg); }
+.note-line { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+.opt-price { text-align: right; font-weight: var(--font-weight-medium); }
+.opt-price small { display: block; font-weight: var(--font-weight-regular); color: var(--color-fg-muted); font-size: var(--font-size-sm); }
 .day-name { font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
 .options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .option { padding: var(--space-2) var(--space-3); background: var(--color-surface); border-left: var(--border-width-strong) solid var(--color-border-strong); border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm); }

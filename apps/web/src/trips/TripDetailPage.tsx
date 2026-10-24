@@ -14,6 +14,7 @@ import { RenameDayModal } from './RenameDayModal'
 import { Toast } from './Toast'
 import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
+import { TripTotalCard } from './TripTotalCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
 type Tab = 'overview' | 'itinerary' | 'travelers'
@@ -28,22 +29,13 @@ type Panel =
   | { id: 'add-activity'; day: Day }
   | { id: 'remove-activity'; activity: Activity }
 
-const EDITOR_REFRESH_MS = 30_000
+const REFRESH_MS = 30_000
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'itinerary', label: 'Itinerary' },
   { id: 'travelers', label: 'Travelers' },
 ]
-
-function formatBudget(trip: Trip) {
-  if (trip.budget == null) return 'No budget set'
-  const amount = new Intl.NumberFormat('en-GB', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(trip.budget)
-  return `Budget ${amount} ${trip.currency ?? 'EUR'}`
-}
 
 /** A trip day by day. Only the owner sees the controls that change it. */
 export function TripDetailPage({ tripId }: { tripId: string }) {
@@ -67,24 +59,26 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     )
   }, [tripId])
 
-  // An editor's access can be revoked while the trip is open: re-check on focus, every 30 s and
-  // after any refused change. The server refuses the change itself; this only tells the editor.
-  const isEditor = trip !== null && trip.is_owner === false
+  // The open trip is re-fetched on focus and every 30 s, so a changed price shows its new total
+  // and warning without a reload. An editor's access can also be revoked meanwhile: a 404 tells
+  // them, and so does any refused change. The server refuses the change itself.
+  const loaded = trip !== null
+  const isEditor = trip?.is_owner === false
   useEffect(() => {
-    if (!isEditor) return
+    if (!loaded) return
     const recheck = () =>
       fetchTrip(tripId).then(setTrip, (reason) => {
-        if (reason instanceof NotFoundError) setAccessRemoved(true)
+        if (isEditor && reason instanceof NotFoundError) setAccessRemoved(true)
       })
-    const timer = setInterval(recheck, EDITOR_REFRESH_MS)
+    const timer = setInterval(recheck, REFRESH_MS)
     window.addEventListener('focus', recheck)
-    window.addEventListener(TRIP_WRITE_REFUSED, recheck)
+    if (isEditor) window.addEventListener(TRIP_WRITE_REFUSED, recheck)
     return () => {
       clearInterval(timer)
       window.removeEventListener('focus', recheck)
       window.removeEventListener(TRIP_WRITE_REFUSED, recheck)
     }
-  }, [isEditor, tripId])
+  }, [loaded, isEditor, tripId])
 
   if (load === 'loading')
     return (
@@ -184,11 +178,11 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             </button>
           )}
         </div>
-        <p className="text-muted">{formatBudget(trip)}</p>
         <p className="text-sm text-muted">
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
+      {trip.cost && <TripTotalCard cost={trip.cost} />}
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
           <button

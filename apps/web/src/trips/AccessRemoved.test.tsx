@@ -45,13 +45,14 @@ describe('access removed', () => {
     expect(dialog).toHaveTextContent('Your access to this trip was removed. Changes were not saved.')
   })
 
-  it('never polls for the owner', async () => {
+  it('refetches for the owner so the trip total stays current, without an access dialog', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const fetchMock = stub(trip({ is_owner: true }), false)
     renderAt('/trips/t1')
     await screen.findByRole('heading', { name: 'Lisbon' })
     await act(() => vi.advanceTimersByTimeAsync(60_000))
-    expect(getsOfTrip(fetchMock)).toHaveLength(1)
+    expect(getsOfTrip(fetchMock).length).toBeGreaterThan(1)
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 
   it('shows it and saves nothing when a change is refused after revocation (AC14)', async () => {

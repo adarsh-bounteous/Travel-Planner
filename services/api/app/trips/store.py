@@ -24,6 +24,8 @@ class ChosenOption(BaseModel):
     category: str
     date: date
     booking_url: HttpUrl | None = None
+    price: Decimal | None = None
+    currency: str | None = None  # None means the trip's currency
 
 
 class TripFields(BaseModel):
@@ -103,6 +105,7 @@ class Trip(TripFields):
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes
+    needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:

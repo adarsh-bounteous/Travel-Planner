@@ -14,6 +14,7 @@ from app.trips.recommendations import (
 )
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
+from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
 from app.trips.store import DynamoTripStore, TripStore
 
 
@@ -46,6 +47,11 @@ def _recommendations() -> RecommendationSource:
 
 
 @lru_cache
+def _rates() -> RateSource:
+    return InMemoryRates(SEED_RATES)
+
+
+@lru_cache
 def _invite_sender() -> InviteSender:
     address = get_settings().invite_from_address
     return SesInviteSender(address) if address else NoInviteSender()
@@ -53,6 +59,10 @@ def _invite_sender() -> InviteSender:
 
 def get_invite_sender() -> InviteSender:
     return _invite_sender()
+
+
+def get_rates() -> RateSource:
+    return _rates()
 
 
 def get_recommendations() -> RecommendationSource:

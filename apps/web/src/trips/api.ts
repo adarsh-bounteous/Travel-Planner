@@ -5,6 +5,19 @@ export type ChosenOption = {
   category: string
   date: string
   booking_url?: string | null
+  price?: number | null
+  currency?: string | null
+}
+
+export type CostSummary = {
+  currency: string
+  total: number
+  budget: number | null
+  over_budget_by: number
+  missing_categories: string[]
+  unpriced_count: number
+  unconvertible_count: number
+  rates: { currency: string; rate: number }[]
 }
 
 export type Reminder = {
@@ -35,6 +48,8 @@ export type Trip = {
   currency?: string
   days?: Day[]
   options?: ChosenOption[]
+  needed_categories?: string[]
+  cost?: CostSummary | null
   reminders?: Reminder[]
   activities?: Activity[]
   travellers?: Traveller[]

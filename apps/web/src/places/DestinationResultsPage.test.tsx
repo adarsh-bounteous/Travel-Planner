@@ -252,6 +252,27 @@ describe('Saving places', () => {
     expect(sessionStorage.getItem('returnTo')).toBe('/destinations?q=Lisbon')
   })
 
+  it('a failed save after sign-in alerts and shows no success toast', async () => {
+    stubApi(
+      {
+        ...lisbon,
+        'POST /auth/sign-in': { status: 200 },
+        'GET /saved-places': { status: 200, body: [] },
+        'PUT /saved-places/p1': { status: 500 },
+      },
+      { signedOut: true },
+    )
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'maya@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
+    expect(screen.queryByText('Alfama saved to your account.')).not.toBeInTheDocument()
+  })
+
   it('the place is saved once sign-in completes (AC12)', async () => {
     const fetchMock = stubApi(
       {

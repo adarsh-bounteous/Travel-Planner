@@ -16,8 +16,7 @@ export function SavedPage() {
   const [removed, setRemoved] = useState<{ key: number; place: Place } | null>(null)
 
   const unsave = async (place: Place) => {
-    setRemoved({ key: Date.now(), place })
-    await toggle(place)
+    if (await toggle(place)) setRemoved({ key: Date.now(), place })
   }
 
   const changeView = (next: PlacesView) => {

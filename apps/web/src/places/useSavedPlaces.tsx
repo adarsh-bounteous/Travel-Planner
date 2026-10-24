@@ -33,13 +33,15 @@ export function useSavedPlaces() {
   const busy = useRef(new Set<string>())
 
   const add = useCallback(
-    async (place: Place) => {
+    async (place: Place): Promise<boolean> => {
       setSaved((current) => [...(current ?? []).filter((p) => p.id !== place.id), place])
       try {
         await savePlace(place)
+        return true
       } catch {
         setSaved((current) => (current ?? []).filter((p) => p.id !== place.id))
         setFailed(true)
+        return false
       }
     },
     [],
@@ -58,8 +60,8 @@ export function useSavedPlaces() {
       if (!pending) return
       sessionStorage.removeItem(PENDING_KEY)
       takeReturnTo()
-      await add(pending)
-      setToast({ key: Date.now(), message: `${pending.name} saved to your account.` })
+      if (await add(pending))
+        setToast({ key: Date.now(), message: `${pending.name} saved to your account.` })
     })()
     return () => {
       cancelled = true
@@ -68,14 +70,16 @@ export function useSavedPlaces() {
 
   const savedIds = useMemo(() => new Set((saved ?? []).map((p) => p.id)), [saved])
 
-  const toggle = async (place: Place) => {
+  /** Resolves to whether the change was made, so callers can confirm only real changes. */
+  const toggle = async (place: Place): Promise<boolean> => {
     if (status !== 'signedIn') {
       sessionStorage.setItem(PENDING_KEY, JSON.stringify(place))
       rememberReturnTo(here)
       navigate('/sign-in')
-      return
+      return false
     }
-    if (busy.current.has(place.id)) return
+    if (busy.current.has(place.id)) return false
+    let ok = true
     busy.current.add(place.id)
     setPendingIds(new Set(busy.current))
     setFailed(false)
@@ -87,12 +91,14 @@ export function useSavedPlaces() {
       } catch {
         setSaved((current) => [...(current ?? []), place])
         setFailed(true)
+        ok = false
       }
     } else {
-      await add(place)
+      ok = await add(place)
     }
     busy.current.delete(place.id)
     setPendingIds(new Set(busy.current))
+    return ok
   }
 
   const panel = (

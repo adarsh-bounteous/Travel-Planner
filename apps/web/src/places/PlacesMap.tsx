@@ -12,20 +12,30 @@ const scale = (value: number, min: number, max: number, start: number, end: numb
   max === min ? (start + end) / 2 : start + ((value - min) / (max - min)) * (end - start)
 
 /** The pin shape from the design: a filled heart pin when saved, an outlined dot pin when not. */
-function Pin({ saved }: { saved: boolean }) {
+function PinShape({ saved }: { saved: boolean }) {
   return saved ? (
-    <svg width={36} height={46} viewBox="0 0 24 32" x={-18} y={-46} aria-hidden="true">
+    <>
       <path d={PIN_PATH} fill="var(--color-primary)" stroke="var(--color-primary-hover)" />
       <path
         d={HEART_PATH}
         transform="translate(6.500 5.500) scale(0.45)"
         fill="var(--color-on-primary)"
       />
-    </svg>
+    </>
   ) : (
-    <svg width={28} height={36} viewBox="0 0 24 32" x={-14} y={-36} aria-hidden="true">
+    <>
       <path d={PIN_PATH} fill="var(--color-bg)" stroke="var(--color-border-strong)" />
       <circle cx={12} cy={11} r={3.5} fill="var(--color-border-strong)" />
+    </>
+  )
+}
+
+/** A pin whose tip sits at the origin of the surrounding `<g>`; saved pins are larger. */
+function Pin({ saved }: { saved: boolean }) {
+  const [width, height] = saved ? [36, 46] : [28, 36]
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 32" x={-width / 2} y={-height} aria-hidden="true">
+      <PinShape saved={saved} />
     </svg>
   )
 }
@@ -34,21 +44,7 @@ function LegendItem({ saved }: { saved: boolean }) {
   return (
     <span className="cluster" style={{ gap: 'var(--space-1)' }}>
       <svg width={20} height={26} viewBox="0 0 24 32" aria-hidden="true">
-        {saved ? (
-          <>
-            <path d={PIN_PATH} fill="var(--color-primary)" stroke="var(--color-primary-hover)" />
-            <path
-              d={HEART_PATH}
-              transform="translate(6.500 5.500) scale(0.45)"
-              fill="var(--color-on-primary)"
-            />
-          </>
-        ) : (
-          <>
-            <path d={PIN_PATH} fill="var(--color-bg)" stroke="var(--color-border-strong)" />
-            <circle cx={12} cy={11} r={3.5} fill="var(--color-border-strong)" />
-          </>
-        )}
+        <PinShape saved={saved} />
       </svg>
       {saved ? 'Saved place' : 'Not saved'}
     </span>

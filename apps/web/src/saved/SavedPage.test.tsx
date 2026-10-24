@@ -67,7 +67,7 @@ describe('Saved page', () => {
     renderAt('/saved')
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
     await waitFor(() => expect(screen.queryByRole('img', { name: 'Alfama' })).not.toBeInTheDocument())
-    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
     expect(await screen.findByRole('img', { name: 'Alfama' })).toBeInTheDocument()
   })
 
@@ -90,5 +90,6 @@ describe('Saved page', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
     expect(screen.getByRole('img', { name: 'Alfama' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
   })
 })

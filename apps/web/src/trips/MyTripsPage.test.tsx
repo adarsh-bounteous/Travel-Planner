@@ -37,6 +37,15 @@ describe('MyTripsPage', () => {
     expect(within(row).getByText(/Mar 9, 2027/)).toBeInTheDocument()
   })
 
+  it('shows how many stays each trip has', async () => {
+    const stay = { id: 's1', place: 'Porto', start_date: '2027-01-10', end_date: '2027-01-12' }
+    stubApi({ 'GET /trips': { status: 200, body: [lisbon, { ...oslo, stays: [stay] }] } })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'Lisbon' })
+    expect(within(screen.getByRole('heading', { name: 'Lisbon' }).closest('li')!).getByText('No stays yet')).toBeInTheDocument()
+    expect(within(screen.getByRole('heading', { name: 'Oslo' }).closest('li')!).getByText('1 stay')).toBeInTheDocument()
+  })
+
   it('shows the Shared badge only on shared trips (AC7, AC8)', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [lisbon, oslo] } })
     renderAt('/')

@@ -59,6 +59,14 @@ export const BellIcon = () => (
   </Icon>
 )
 
+export const HomeIcon = () => (
+  <Icon>
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.5V21h14V9.5" />
+    <path d="M10 21v-6h4v6" />
+  </Icon>
+)
+
 export const CalendarIcon = () => (
   <Icon>
     <rect width="18" height="18" x="3" y="4" rx="2" />

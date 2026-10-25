@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal, Protocol
 
-from pydantic import BaseModel, Field, HttpUrl, StringConstraints
+from pydantic import BaseModel, Field, HttpUrl, StringConstraints, model_validator
 
 MAX_TRIP_DAYS = 60
 
@@ -78,6 +78,24 @@ class ActivityMove(BaseModel):
 
 
 class Activity(ActivityFields):
+    id: str
+
+
+class StayFields(BaseModel):
+    """What an editor supplies for a Stay: a place and the dates spent there."""
+
+    place: TrimmedName
+    start_date: date
+    end_date: date
+
+    @model_validator(mode="after")
+    def _end_not_before_start(self) -> "StayFields":
+        if self.end_date < self.start_date:
+            raise ValueError("end_date is before start_date")
+        return self
+
+
+class Stay(StayFields):
     id: str
 
 
@@ -160,6 +178,7 @@ class Trip(TripFields):
     options: list[ChosenOption] = []  # server-owned: never read from a request body
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
+    stays: list[Stay] = []  # server-owned: changed only through the stay routes
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes

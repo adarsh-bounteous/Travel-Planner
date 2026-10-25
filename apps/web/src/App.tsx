@@ -6,6 +6,7 @@ import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
 import { SignUpPage } from './auth/SignUpPage'
+import { ExplorePage } from './explore/ExplorePage'
 import { AddPlaceNoTripsPage } from './places/AddPlaceNoTripsPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
@@ -38,6 +39,14 @@ export default function App() {
           <Route
             path="/destinations"
             element={<DestinationResultsPage />}
+          />
+          <Route
+            path="/explore"
+            element={
+              <RequireAuth>
+                <ExplorePage />
+              </RequireAuth>
+            }
           />
           <Route
             path="/saved"

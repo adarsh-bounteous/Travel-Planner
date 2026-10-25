@@ -99,8 +99,11 @@ a.btn { text-decoration: none; }
 .col { width: 100%; max-width: 40rem; }
 .signout-row { display: flex; justify-content: flex-end; }
 .toast-slot .toast { position: static; display: flex; max-width: none; width: 100%; align-items: center; gap: var(--space-2); background: var(--color-fg); }
-.shell-link { font-weight: var(--font-weight-medium); text-decoration: none; }
-.shell-link[aria-current="page"] { text-decoration: underline; }
+.shell-nav { display: flex; flex: 1; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.shell-nav ul { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.shell-link { display: flex; align-items: center; min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-fg); font-weight: var(--font-weight-medium); text-decoration: none; border-radius: var(--radius-md); }
+.shell-link:hover { background: var(--color-surface); color: var(--color-fg); }
+.shell-link[aria-current="page"], .shell-link.active { color: var(--color-primary); background: var(--color-primary-subtle); }
 
 .stack-sm { gap: var(--space-2); }
 .stack-lg { gap: var(--space-4); }

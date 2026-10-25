@@ -57,7 +57,7 @@ describe('AccountPage', () => {
   it('links to the traveller profile (AC6)', async () => {
     stubApi('email')
     renderAccount()
-    expect(await screen.findByRole('link', { name: 'View your traveller profile' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: 'Traveller profile' })).toHaveAttribute(
       'href',
       '/profile',
     )

@@ -29,6 +29,7 @@ export const COUNTRIES = [
   'Canada',
   'France',
   'Germany',
+  'India',
   'Ireland',
   'Japan',
   'Portugal',

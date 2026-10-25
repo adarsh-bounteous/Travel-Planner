@@ -95,12 +95,28 @@ class TravellerFields(BaseModel):
     name: TrimmedName
 
 
+# The same options the web offers (apps/web/src/trips/profileQuestions.ts); anything else is refused.
+Country = Literal[
+    "Australia",
+    "Canada",
+    "France",
+    "Germany",
+    "India",
+    "Ireland",
+    "Japan",
+    "Portugal",
+    "United Kingdom",
+    "United States",
+]
+HealthStatus = Literal["No health needs to share", "Mobility needs", "Chronic condition", "Allergies"]
+
+
 class CompanionDetails(BaseModel):
     """What the owner supplies for an additional traveller. They live on the trip only, never in a profile."""
 
-    citizenship: TrimmedName
-    residence: TrimmedName
-    health_status: TrimmedName
+    citizenship: Country
+    residence: Country
+    health_status: HealthStatus
 
 
 class Traveller(TravellerFields):

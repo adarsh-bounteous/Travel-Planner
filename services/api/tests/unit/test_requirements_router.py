@@ -68,3 +68,7 @@ def test_pure_rules():
     assert "don't have visa advice" in visa_for("Lisbon", "India", "India")
     assert medical_for("") is None
     assert medical_for("No health needs to share") == medical_for("None reported")
+
+
+def test_chronic_condition_advice_does_not_name_a_country():
+    assert "Japan" not in medical_for("Chronic condition")

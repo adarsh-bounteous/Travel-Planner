@@ -134,3 +134,11 @@ def test_a_traveller_stored_without_detail_keys_loads_as_blank():
 
     stored = Trip.model_validate({"id": "x", "name": "Old", "travellers": [{"id": "a", "name": "Ana"}]})
     assert stored.travellers[0].citizenship == ""
+
+
+@pytest.mark.parametrize("field", ["citizenship", "residence", "health_status"])
+def test_a_value_outside_the_option_lists_is_refused(sign_in_as, field):
+    a = sign_in_as("a@example.com")
+    tid, url = _with_ana(a)
+    assert a.put(url, json={**OK, field: "Atlantis"}).status_code == 422
+    assert a.get(f"/trips/{tid}").json()["travellers"][0][field] == ""

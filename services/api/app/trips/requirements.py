@@ -13,7 +13,7 @@ _MEDICAL = {
     "No health needs to share": _NONE_REPORTED,
     "Allergies": "Carry an allergy card and any medication in its original packaging",
     "Mobility needs": "Ask for step-free transport and rooms before you book",
-    "Chronic condition": "Carry a doctor's letter and prescriptions; check Japan's medication import limits",
+    "Chronic condition": "Carry a doctor's letter and prescriptions; check the destination's medication import limits",
 }
 
 

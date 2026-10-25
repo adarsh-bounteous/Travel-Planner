@@ -28,5 +28,7 @@ expire after 7 days without use. No email or password is logged.
 
 Trips and the traveller profile belong to the signed-in traveller: the owner is always the
 session's user id, never taken from the path or body, and another traveller's trip answers 404.
-The profile is stored as a `profile` map on the account item. Trip and profile contents are
+The profile is stored as a `profile` map on the account item. It also holds the answers New trip
+set-up collects (citizenship, residence, health status, religion, diet, tastes, travel style);
+all default to empty, so older stored profiles still read. Trip and profile contents are
 personal data and are not logged.

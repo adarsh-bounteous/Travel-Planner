@@ -3,6 +3,18 @@ import { renderAt, stubApi } from '../test-api'
 
 afterEach(() => vi.unstubAllGlobals())
 
+const blank = {
+  display_name: '',
+  home_city: '',
+  dietary_notes: '',
+  citizenship: '',
+  residence: '',
+  health_status: '',
+  religion: '',
+  diet: '',
+  tastes: [],
+  travel_style: '',
+}
 const lisbon = { id: 't1', name: 'Lisbon', destination: 'Portugal' }
 const oslo = {
   id: 't2',
@@ -58,18 +70,18 @@ describe('MyTripsPage', () => {
   })
 
   it('launches the guided set-up from Plan your first trip (AC4)', async () => {
-    stubApi({ 'GET /trips': { status: 200, body: [] } })
+    stubApi({ 'GET /trips': { status: 200, body: [] }, 'GET /profile': { status: 200, body: blank } })
     renderAt('/')
     fireEvent.click(await screen.findByRole('link', { name: 'Plan your first trip' }))
-    expect(await screen.findByRole('heading', { name: 'New trip' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Destination')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Your profile' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Citizenship')).toBeInTheDocument()
   })
 
   it('launches the guided set-up from New trip (AC5)', async () => {
-    stubApi({ 'GET /trips': { status: 200, body: [lisbon] } })
+    stubApi({ 'GET /trips': { status: 200, body: [lisbon] }, 'GET /profile': { status: 200, body: blank } })
     renderAt('/')
     fireEvent.click(await screen.findByRole('link', { name: 'New trip' }))
-    expect(await screen.findByLabelText('Trip name')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Residence')).toBeInTheDocument()
   })
 
   it('keeps the server order (AC9)', async () => {

@@ -346,6 +346,15 @@ describe('New trip set-up profile step', () => {
     expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
   })
 
+  it('never shows or asks for companion details (AC6)', async () => {
+    stubApi(replies)
+    renderAt('/trips/new')
+    await screen.findByRole('heading', { name: 'Your profile' })
+    expect(screen.queryByText(/Citizenship:/)).toBeNull()
+    expect(screen.queryByText('Not yet entered')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Edit details for/ })).toBeNull()
+  })
+
   it('says so, with no Continue, when the profile cannot be loaded', async () => {
     stubApi({ ...replies, 'GET /profile': { status: 500 } })
     renderAt('/trips/new')

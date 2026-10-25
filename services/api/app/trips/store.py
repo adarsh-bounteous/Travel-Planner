@@ -95,8 +95,19 @@ class TravellerFields(BaseModel):
     name: TrimmedName
 
 
+class CompanionDetails(BaseModel):
+    """What the owner supplies for an additional traveller. They live on the trip only, never in a profile."""
+
+    citizenship: TrimmedName
+    residence: TrimmedName
+    health_status: TrimmedName
+
+
 class Traveller(TravellerFields):
     id: str
+    citizenship: str = ""
+    residence: str = ""
+    health_status: str = ""
 
 
 class Editor(BaseModel):

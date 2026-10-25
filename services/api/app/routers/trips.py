@@ -14,18 +14,22 @@ from app.routers.deps import (
     ApiError,
     get_current_user,
     get_invite_sender,
+    get_profiles,
     get_rates,
     get_recommendations,
     get_trips,
 )
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
+from app.trips.profile_store import ProfileStore
 from app.trips.rates import RateSource
 from app.trips.recommendations import Recommendation, RecommendationSource
+from app.trips.requirements import TravellerRequirement, medical_for, visa_for
 from app.trips.store import (
     Activity,
     ActivityFields,
     ActivityMove,
+    CompanionDetails,
     Day,
     DayName,
     Editor,
@@ -106,8 +110,14 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
         if is_owner
         else []
     )
+    travellers = (
+        trip.travellers
+        if is_owner
+        else [Traveller(id=t.id, name=t.name) for t in trip.travellers]  # companion details are the owner's alone
+    )
     data = {
         **trip.model_dump(),
+        "travellers": travellers,
         "reminders": visible_reminders(trip),
         "editors": editors,
         "share_token": None,
@@ -310,6 +320,86 @@ def add_traveller(
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
+
+
+def _traveller(trip: Trip, traveller_id: str) -> Traveller:
+    for traveller in trip.travellers:
+        if traveller.id == traveller_id:
+            return traveller
+    raise NOT_FOUND
+
+
+@router.put("/{trip_id}/travellers/{traveller_id}")
+def update_traveller_details(
+    trip_id: str,
+    traveller_id: str,
+    body: CompanionDetails,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    traveller = _traveller(trip, traveller_id)
+    traveller.citizenship = body.citizenship
+    traveller.residence = body.residence
+    traveller.health_status = body.health_status
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, owner)
+
+
+@router.delete("/{trip_id}/travellers/{traveller_id}")
+def remove_traveller(
+    trip_id: str,
+    traveller_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    traveller = _traveller(trip, traveller_id)
+    trip.travellers = [t for t in trip.travellers if t is not traveller]
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, owner)
+
+
+@router.get("/{trip_id}/requirements")
+def trip_requirements(
+    trip_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    profiles: ProfileStore = Depends(get_profiles),
+    identity: IdentityProvider = Depends(get_identity),
+) -> list[TravellerRequirement]:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    profile = profiles.get_profile(owner)  # read only: the owner's own answers
+    people = [
+        (
+            None,
+            "You (owner)",
+            profile.citizenship if profile else "",
+            profile.residence if profile else "",
+            profile.health_status if profile else "",
+        ),
+        *((t.id, t.name, t.citizenship, t.residence, t.health_status) for t in trip.travellers),
+    ]
+    return [
+        TravellerRequirement(
+            traveller_id=tid,
+            name=name,
+            citizenship=cit,
+            residence=res,
+            health_status=health,
+            visa=visa_for(trip.destination, cit, res),
+            medical=medical_for(health),
+        )
+        for tid, name, cit, res, health in people
+    ]
 
 
 @router.post("/{trip_id}/editors", status_code=201)

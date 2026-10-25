@@ -20,7 +20,21 @@ const belem = { ...alfama, id: 'p2', name: 'Belém Tower', image_url: '/b.jpg' }
 const lisbonTrip = { id: 't1', name: 'Lisbon trip' }
 const romeTrip = { id: 't2', name: 'Rome' }
 
+const savedProfile = {
+  display_name: '',
+  home_city: '',
+  dietary_notes: '',
+  citizenship: 'Ireland',
+  residence: 'Portugal',
+  health_status: 'Allergies',
+  religion: 'Hindu',
+  diet: 'Vegan',
+  tastes: ['Food'],
+  travel_style: 'Relaxed',
+}
+
 const base: Record<string, Reply> = {
+  'GET /profile': { status: 200, body: savedProfile },
   'GET /places?destination=Lisbon': { status: 200, body: [alfama, belem] },
 }
 const placesPosts = (fetchMock: ReturnType<typeof stubApi>) =>
@@ -82,6 +96,7 @@ describe('Add a place to a trip', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     expect(await screen.findByRole('heading', { name: 'You have no trips yet' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('link', { name: 'New trip' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue' }))
     await screen.findByLabelText('Trip name')
     expect(placesPosts(fetchMock)).toHaveLength(0)
     const type = (label: string, value: string) =>
@@ -115,6 +130,7 @@ describe('Add a place to a trip', () => {
     renderAt('/destinations?q=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     fireEvent.click(await screen.findByRole('link', { name: 'New trip' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue' }))
     await screen.findByLabelText('Trip name')
     const type = (label: string, value: string) =>
       fireEvent.change(screen.getByLabelText(label), { target: { value } })

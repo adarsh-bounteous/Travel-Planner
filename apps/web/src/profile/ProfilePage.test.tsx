@@ -3,7 +3,18 @@ import { renderAt, stubApi } from '../test-api'
 
 afterEach(() => vi.unstubAllGlobals())
 
-const BLANK = { display_name: '', home_city: '', dietary_notes: '' }
+const BLANK = {
+  display_name: '',
+  home_city: '',
+  dietary_notes: '',
+  citizenship: '',
+  residence: '',
+  health_status: '',
+  religion: '',
+  diet: '',
+  tastes: [],
+  travel_style: '',
+}
 
 describe('ProfilePage', () => {
   it('shows a blank form when nothing is saved (AC7)', async () => {
@@ -15,7 +26,10 @@ describe('ProfilePage', () => {
 
   it('prefills saved values and saves the form values (AC5)', async () => {
     const fetchMock = stubApi({
-      'GET /profile': { status: 200, body: { ...BLANK, display_name: 'Maya' } },
+      'GET /profile': {
+        status: 200,
+        body: { ...BLANK, display_name: 'Maya', citizenship: 'Ireland', tastes: ['Food'] },
+      },
       'PUT /profile': { status: 200, body: BLANK },
     })
     renderAt('/profile')
@@ -24,10 +38,13 @@ describe('ProfilePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save profile' }))
     expect(await screen.findByText('Profile saved.')).toBeInTheDocument()
     const put = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT')
+    // The set-up answers ride along untouched, so editing the three fields never wipes them.
     expect(JSON.parse(put![1]!.body as string)).toEqual({
+      ...BLANK,
       display_name: 'Maya',
       home_city: 'Leeds',
-      dietary_notes: '',
+      citizenship: 'Ireland',
+      tastes: ['Food'],
     })
   })
 })

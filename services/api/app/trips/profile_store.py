@@ -1,6 +1,6 @@
-from typing import Protocol
+from typing import Annotated, Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 
 class Profile(BaseModel):
@@ -9,6 +9,16 @@ class Profile(BaseModel):
     display_name: str = Field(default="", max_length=80)
     home_city: str = Field(default="", max_length=80)
     dietary_notes: str = Field(default="", max_length=500)
+    # Answers collected in New trip set-up. An answer counts as given when it is non-empty.
+    citizenship: str = Field(default="", max_length=80)
+    residence: str = Field(default="", max_length=80)
+    health_status: str = Field(default="", max_length=80)
+    religion: str = Field(default="", max_length=80)
+    diet: str = Field(default="", max_length=80)
+    tastes: list[Annotated[str, StringConstraints(max_length=40)]] = Field(
+        default_factory=list, max_length=20
+    )
+    travel_style: str = Field(default="", max_length=80)
 
 
 class ProfileStore(Protocol):

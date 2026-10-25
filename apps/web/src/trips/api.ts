@@ -81,7 +81,18 @@ export type TripCreateInput = {
   traveller_count: number
 }
 
-export type Profile = { display_name: string; home_city: string; dietary_notes: string }
+export type Profile = {
+  display_name: string
+  home_city: string
+  dietary_notes: string
+  citizenship: string
+  residence: string
+  health_status: string
+  religion: string
+  diet: string
+  tastes: string[]
+  travel_style: string
+}
 
 export class NotFoundError extends Error {}
 /** The traveller may see this trip but not change it (403). */

@@ -197,3 +197,23 @@ legend { padding: 0; }
 .trip-row .btn { flex: none; }
 .trip-info { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
 .trip-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+.traveller { display: flex; flex-direction: column; gap: var(--space-2); }
+.traveller p { margin: 0; }
+.traveller .k { color: var(--color-fg-muted); }
+.traveller .missing { color: var(--color-warning); font-weight: var(--font-weight-medium); }
+.traveller-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.traveller-actions.between { justify-content: space-between; }
+.req-wrap { overflow-x: auto; }
+.req { width: 100%; border-collapse: collapse; }
+.req th, .req td { text-align: left; vertical-align: top; padding: var(--space-2); border-bottom: var(--border-width) solid var(--color-border); overflow-wrap: anywhere; }
+.req th { font-size: var(--font-size-sm); color: var(--color-fg-muted); font-weight: var(--font-weight-medium); }
+@media (max-width: 47.99rem) {
+  .req thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .req, .req tbody, .req tr, .req td { display: block; width: 100%; }
+  .req tr { padding: var(--space-2); margin-bottom: var(--space-2); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg); }
+  .req td { border: 0; padding: var(--space-1) 0; }
+  .req td::before { content: attr(data-label) ": "; color: var(--color-fg-muted); }
+  .req td:first-child { font-weight: var(--font-weight-medium); }
+  .req td:first-child::before { content: ""; }
+}

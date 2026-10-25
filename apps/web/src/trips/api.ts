@@ -37,7 +37,25 @@ export type Recommendation = { id: string; name: string; detail: string }
 export type TripPlace = { id: string; place_id: string; name: string; image_url?: string | null }
 export type TripPlaceInput = { place_id: string; name: string; image_url: string }
 
-export type Traveller ={ id: string; name: string }
+export type Traveller = {
+  id: string
+  name: string
+  citizenship?: string
+  residence?: string
+  health_status?: string
+}
+
+export type CompanionDetailsInput = { citizenship: string; residence: string; health_status: string }
+
+export type TravellerRequirement = {
+  traveller_id: string | null
+  name: string
+  citizenship: string
+  residence: string
+  health_status: string
+  visa: string | null
+  medical: string | null
+}
 /** An editor as the owner sees them; `invite_url` is a path on this site. */
 export type Editor = { email: string; accepted: boolean; invite_url?: string }
 export type Invite = { email: string; trip_name: string }
@@ -160,6 +178,26 @@ export const moveActivity = (tripId: string, id: string, date: string) =>
 
 export const removeActivity = (tripId: string, id: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities/${encodeURIComponent(id)}`, 'DELETE')
+
+export const saveTravellerDetails = (
+  tripId: string,
+  travellerId: string,
+  input: CompanionDetailsInput,
+) =>
+  call<Trip>(
+    `/trips/${encodeURIComponent(tripId)}/travellers/${encodeURIComponent(travellerId)}`,
+    'PUT',
+    input,
+  )
+
+export const removeTraveller = (tripId: string, travellerId: string) =>
+  call<Trip>(
+    `/trips/${encodeURIComponent(tripId)}/travellers/${encodeURIComponent(travellerId)}`,
+    'DELETE',
+  )
+
+export const fetchRequirements = (tripId: string) =>
+  call<TravellerRequirement[]>(`/trips/${encodeURIComponent(tripId)}/requirements`)
 
 export const addTraveller = (tripId: string, name: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })

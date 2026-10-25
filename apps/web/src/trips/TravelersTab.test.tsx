@@ -50,10 +50,10 @@ describe('Travelers tab', () => {
         ],
       }),
     )
-    const list = screen.getByRole('list', { name: 'Travellers on this trip' })
-    expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'AAna',
-      'BBen',
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'You (owner)',
+      'Ana',
+      'Ben',
     ])
   })
 
@@ -67,8 +67,10 @@ describe('Travelers tab', () => {
     )
     expect(input).toHaveAttribute('aria-invalid', 'true')
     expect(posts(fetchMock)).toHaveLength(0)
-    const list = screen.getByRole('list', { name: 'Travellers on this trip' })
-    expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['AAna'])
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'You (owner)',
+      'Ana',
+    ])
   })
 
   it('revokes an editor and offers undo (AC3)', async () => {
@@ -126,5 +128,90 @@ describe('Travelers tab', () => {
     expect(screen.queryByRole('button', { name: 'Invite editor' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Revoke access/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Edit trip' })).toBeNull()
+  })
+
+  describe('companion details', () => {
+    const ana = { id: 'a', name: 'Ana', citizenship: 'Canada', residence: 'Canada', health_status: 'Allergies' }
+    const ben = { id: 'b', name: 'Ben' }
+    const put = (fetchMock: ReturnType<typeof stubApi>) =>
+      fetchMock.mock.calls.filter(([, init]) => init?.method === 'PUT')
+
+    it('shows citizenship, residence and health status fields for a companion (AC1)', async () => {
+      await openTab(trip({ travellers: [ana, ben] }))
+      fireEvent.click(screen.getByRole('button', { name: 'Edit details for Ana' }))
+      const drawer = await screen.findByRole('dialog', { name: 'Ana' })
+      for (const label of ['Citizenship', 'Residence', 'Health status'])
+        expect(within(drawer).getByLabelText(label)).toBeInTheDocument()
+    })
+
+    it('shows no tastes, diet or religion field (AC5)', async () => {
+      await openTab(trip({ travellers: [ana] }))
+      fireEvent.click(screen.getByRole('button', { name: 'Edit details for Ana' }))
+      await screen.findByRole('dialog', { name: 'Ana' })
+      for (const label of ['Tastes', 'Diet', 'Religion'])
+        expect(screen.queryByLabelText(label)).toBeNull()
+    })
+
+    it('shows the stored values, and Not yet entered when blank', async () => {
+      await openTab(trip({ travellers: [ana, ben] }))
+      expect(screen.getAllByText('Health status:')[0].parentElement).toHaveTextContent('Allergies')
+      expect(screen.getAllByText('Not yet entered')).toHaveLength(3)
+    })
+
+    it('shows no companion fields when the owner travels alone (AC4)', async () => {
+      await openTab(trip({ travellers: [] }))
+      expect(screen.queryByText('Citizenship:')).toBeNull()
+      expect(screen.queryByRole('button', { name: /Edit details for/ })).toBeNull()
+      expect(screen.getByText(/Only you are travelling/)).toBeInTheDocument()
+    })
+
+    it('saves all three and shows the new value (AC7, AC10)', async () => {
+      const fetchMock = await openTab(trip({ travellers: [ben] }), {
+        'PUT /trips/t1/travellers/b': {
+          status: 200,
+          body: trip({ travellers: [{ ...ben, citizenship: 'Canada', residence: 'Portugal', health_status: 'Allergies' }] }),
+        },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Edit details for Ben' }))
+      for (const [label, value] of [['Citizenship', 'Canada'], ['Residence', 'Portugal'], ['Health status', 'Allergies']])
+        fireEvent.change(await screen.findByLabelText(label), { target: { value } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+      expect(await screen.findByText('Ben details saved.')).toBeInTheDocument()
+      expect(put(fetchMock)).toHaveLength(1)
+      expect(screen.getByText('Residence:').parentElement).toHaveTextContent('Portugal')
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+
+    it('blocks saving with a blank field and shows the error by it (AC8)', async () => {
+      const fetchMock = await openTab(trip({ travellers: [{ ...ana, residence: '' }] }))
+      fireEvent.click(screen.getByRole('button', { name: 'Edit details for Ana' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Save' }))
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('Enter residence')
+      expect(screen.getByLabelText('Residence')).toHaveAttribute('aria-invalid', 'true')
+      expect(screen.getByLabelText('Citizenship')).not.toHaveAttribute('aria-invalid')
+      expect(put(fetchMock)).toHaveLength(0)
+    })
+
+    it('removes a traveller after confirming, and Cancel sends nothing (AC9)', async () => {
+      const fetchMock = await openTab(trip({ travellers: [ana] }), {
+        'DELETE /trips/t1/travellers/a': { status: 200, body: trip({ travellers: [] }) },
+      })
+      const deletes = () => fetchMock.mock.calls.filter(([, init]) => init?.method === 'DELETE')
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Ana' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }))
+      expect(deletes()).toHaveLength(0)
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Ana' }))
+      expect(await screen.findByText('Remove Ana from this trip?')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
+      expect(await screen.findByText('Ana removed from this trip.')).toBeInTheDocument()
+      expect(screen.queryByText('Ana')).toBeNull()
+    })
+
+    it('shows an editor no companion details (AC11)', async () => {
+      await openTab(trip({ is_owner: false, travellers: [{ id: 'a', name: 'Ana', citizenship: '' }] }))
+      expect(screen.queryByText('Citizenship:')).toBeNull()
+      expect(screen.queryByRole('button', { name: /Edit details for/ })).toBeNull()
+    })
   })
 })

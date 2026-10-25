@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import lru_cache
 
 from fastapi import Cookie, Depends, Response
@@ -7,6 +7,8 @@ from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
+from app.stays.options import StayProvider
+from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.trips.recommendations import (
     SEED_RECOMMENDATIONS,
     InMemoryRecommendations,
@@ -48,6 +50,14 @@ def _places() -> PlaceSearch:
 
 
 @lru_cache
+def _stay_providers() -> list[StayProvider]:
+    def clock() -> datetime:
+        return datetime.now(UTC)
+
+    return [InMemoryStayProvider(name, catalogue, clock) for name, catalogue in SEED_CATALOGUES.items()]
+
+
+@lru_cache
 def _recommendations() -> RecommendationSource:
     return InMemoryRecommendations(SEED_RECOMMENDATIONS)
 
@@ -73,6 +83,10 @@ def get_rates() -> RateSource:
 
 def get_recommendations() -> RecommendationSource:
     return _recommendations()
+
+
+def get_stay_providers() -> list[StayProvider]:
+    return _stay_providers()
 
 
 def get_places() -> PlaceSearch:

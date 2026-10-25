@@ -232,3 +232,26 @@ legend { padding: 0; }
 .answer-row .select { flex: 1 1 10rem; width: auto; }
 .answer-link { flex: none; min-height: var(--size-control-md); display: inline-flex; align-items: center; padding: 0 var(--space-1); background: none; border: 0; font: inherit; font-weight: var(--font-weight-medium); color: var(--color-primary-hover); text-decoration: underline; cursor: pointer; }
 .chipset { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* Stay options */
+.select { width: 100%; min-height: var(--size-control-md); padding: var(--space-1) var(--space-2); font: inherit; color: var(--color-fg); background: var(--color-bg); border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-md); }
+.check { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.text-bold { font-weight: var(--font-weight-bold); }
+.alert-title { font-weight: var(--font-weight-bold); }
+.badge-neutral { background: var(--color-surface); color: var(--color-fg); }
+.options-body { display: grid; gap: var(--space-4); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 48rem) { .options-body { grid-template-columns: 280px 1fr; } }
+.filters { display: flex; flex-direction: column; gap: var(--space-3); }
+.filter-optional { padding-top: var(--space-3); border-top: var(--border-width) solid var(--color-border); display: flex; flex-direction: column; gap: var(--space-3); }
+.offers { display: grid; gap: var(--space-2); grid-template-columns: 1fr; }
+@media (min-width: 30rem) { .offers { grid-template-columns: 1fr 1fr; } }
+.offer { display: flex; flex-direction: column; gap: var(--space-1); background: var(--color-surface); }
+.offer-price { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
+.provider-name { font-weight: var(--font-weight-medium); }
+.property { display: flex; flex-direction: column; gap: var(--space-2); }
+.prop-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); align-items: baseline; }
+.note { display: flex; gap: var(--space-1); align-items: flex-start; font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+.note .icon { flex: none; margin-top: var(--space-1); }
+.actions-end { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
+.sk-card { display: flex; flex-direction: column; gap: var(--space-2); }

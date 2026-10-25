@@ -55,6 +55,14 @@ describe('stays tab', () => {
     expect(screen.getAllByRole('button', { name: 'Add stay' })).toHaveLength(1)
   })
 
+  it('gives each stay a Find stays link to its options', async () => {
+    await open(trip({ stays: [lisbon] }))
+    expect(await screen.findByRole('link', { name: 'Find stays' })).toHaveAttribute(
+      'href',
+      '/trips/t1/stays/s1/options',
+    )
+  })
+
   it('adds a first stay and toasts (AC1)', async () => {
     const fetchMock = await open(trip(), {
       'POST /trips/t1/stays': { status: 201, body: trip({ stays: [lisbon] }) },

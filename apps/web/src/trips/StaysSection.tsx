@@ -1,8 +1,10 @@
-import { AlertIcon, HomeIcon, PlusIcon } from '../auth/icons'
+import { Link } from 'react-router'
+import { AlertIcon, HomeIcon, PlusIcon, SearchIcon } from '../auth/icons'
 import type { Stay } from './api'
 import { formatRange, nights, sortStays, warningFor } from './stays'
 
 type StaysSectionProps = {
+  tripId: string
   stays: Stay[]
   canEdit: boolean
   onAdd: () => void
@@ -11,7 +13,7 @@ type StaysSectionProps = {
 }
 
 /** The trip's stays in date order, each with its dates; a stay that overlaps or leaves a gap carries a badge. */
-export function StaysSection({ stays, canEdit, onAdd, onEdit, onRemove }: StaysSectionProps) {
+export function StaysSection({ tripId, stays, canEdit, onAdd, onEdit, onRemove }: StaysSectionProps) {
   return (
     <section className="stack" aria-labelledby="stays-heading">
       <div className="title-row">
@@ -50,16 +52,25 @@ export function StaysSection({ stays, canEdit, onAdd, onEdit, onRemove }: StaysS
                     </div>
                   )}
                 </div>
-                {canEdit && (
-                  <div className="cluster">
+                <div className="cluster">
+                  <Link
+                    className="btn btn-primary"
+                    to={`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stay.id)}/options`}
+                  >
+                    <SearchIcon />
+                    Find stays
+                  </Link>
+                  {canEdit && (
+                    <>
                     <button className="btn btn-secondary" type="button" onClick={() => onEdit(stay)}>
                       Edit stay
                     </button>
                     <button className="btn btn-ghost" type="button" onClick={() => onRemove(stay)}>
                       Remove
                     </button>
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )

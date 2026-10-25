@@ -232,6 +232,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           />
         ) : tab === 'stays' ? (
           <StaysSection
+            tripId={tripId}
             stays={trip.stays ?? []}
             canEdit={canEdit}
             onAdd={() => setPanel({ id: 'add-stay' })}

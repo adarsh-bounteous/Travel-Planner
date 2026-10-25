@@ -33,7 +33,46 @@ export type Activity = { id: string; name: string; date: string; detail?: string
 export type ActivityInput = { name: string; date: string; detail?: string | null }
 export type Stay = { id: string; place: string; start_date: string; end_date: string }
 export type StayInput = { place: string; start_date: string; end_date: string }
-export type Recommendation = { id: string; name: string; detail: string }
+export type PropertyType = 'hotel' | 'homestay' | 'other'
+export type Amenity = 'wifi' | 'breakfast' | 'parking' | 'pool' | 'ac'
+export type StayCriteria = {
+  property_type: PropertyType
+  rooms: number
+  max_price: number | null
+  location: string
+  amenities: Amenity[]
+  stars: number[]
+  widen: boolean
+}
+export type StayOffer = {
+  provider: string
+  price_per_night: string
+  total: string
+  currency: string
+  fetched_at: string
+  url: string
+}
+export type StayProperty = {
+  id: string
+  name: string
+  property_type: PropertyType
+  rooms: number
+  stars: number
+  area: string
+  amenities: Amenity[]
+  nearby: boolean
+  offers: StayOffer[]
+}
+export type StayOptions = {
+  place: string
+  start_date: string
+  end_date: string
+  nights: number
+  properties: StayProperty[]
+  price_min: string | null
+  price_max: string | null
+}
+export type Recommendation ={ id: string; name: string; detail: string }
 
 /** A place from Destination results kept on a trip; it has no day until it is scheduled. */
 export type TripPlace = { id: string; place_id: string; name: string; image_url?: string | null }
@@ -181,6 +220,22 @@ export const updateStay = (tripId: string, id: string, input: StayInput) =>
 
 export const removeStay = (tripId: string, id: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(id)}`, 'DELETE')
+
+/** Only the filters that are turned on are sent, so the server sees an empty one as "not turned on". */
+export function stayQuery(c: StayCriteria) {
+  const q = new URLSearchParams({ property_type: c.property_type, rooms: String(c.rooms) })
+  if (c.max_price !== null) q.set('max_price', String(c.max_price))
+  if (c.location.trim() !== '') q.set('location', c.location.trim())
+  c.amenities.forEach((a) => q.append('amenities', a))
+  c.stars.forEach((s) => q.append('stars', String(s)))
+  if (c.widen) q.set('widen', 'true')
+  return q.toString()
+}
+
+export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria) =>
+  call<StayOptions>(
+    `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/options?${stayQuery(c)}`,
+  )
 
 export const addPlaceToTrip = (tripId: string, input: TripPlaceInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/places`, 'POST', input)

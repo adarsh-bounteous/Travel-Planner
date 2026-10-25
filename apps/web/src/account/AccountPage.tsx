@@ -207,7 +207,9 @@ export function AccountPage() {
     <div className="col stack">
       <h1>Account</h1>
       <div className="card">
-        <Link to="/profile">View your traveller profile</Link>
+        <Link className="btn btn-secondary" to="/profile">
+          Traveller profile
+        </Link>
       </div>
       {method === 'email' && (
         <>

@@ -37,6 +37,8 @@ from app.trips.store import (
     Reminder,
     ReminderFields,
     ShareLink,
+    Stay,
+    StayFields,
     Traveller,
     TravellerFields,
     Trip,
@@ -55,6 +57,7 @@ logger = logging.getLogger(__name__)
 
 MAX_REMINDERS = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
+MAX_STAYS = 50  # keeps the Trip item under DynamoDB's 400 KB limit
 MAX_ACTIVITIES = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
 
 MAX_PLACES = 200  # keeps the Trip item well under DynamoDB's 400 KB limit
@@ -70,6 +73,7 @@ FORBIDDEN = ApiError(403, "forbidden")
 INVALID_DATES = ApiError(422, "invalid_dates")
 INVALID_REMINDER = ApiError(422, "invalid_reminder")
 INVALID_ACTIVITY = ApiError(422, "invalid_activity")
+INVALID_STAY = ApiError(422, "invalid_stay")
 ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
 INVALID_PLACE = ApiError(422, "invalid_place")
 INVALID_TRAVELLER = ApiError(422, "invalid_traveller")
@@ -658,6 +662,73 @@ def remove_activity(
         raise NOT_FOUND
     kept = [a for a in trip.activities if a.id != activity_id]
     return _save_activities(trips, rates, user, owner, trip, kept, now)
+
+
+def _save_stays(
+    trips: TripStore,
+    rates: RateSource,
+    user: str,
+    owner: str,
+    trip: Trip,
+    stays: list[Stay],
+    now: datetime,
+) -> TripView:
+    trip.stays = stays
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, user, owner)
+
+
+@router.post("/{trip_id}/stays", status_code=201)
+def add_stay(
+    trip_id: str,
+    body: StayFields,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip, owner = _editable_trip(trips, identity, user, trip_id)
+    if len(trip.stays) >= MAX_STAYS:
+        raise INVALID_STAY
+    stay = Stay(id=uuid.uuid4().hex, **body.model_dump())
+    return _save_stays(trips, rates, user, owner, trip, [*trip.stays, stay], now)
+
+
+@router.put("/{trip_id}/stays/{stay_id}")
+def change_stay(
+    trip_id: str,
+    stay_id: str,
+    body: StayFields,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip, owner = _editable_trip(trips, identity, user, trip_id)
+    if stay_id not in {s.id for s in trip.stays}:
+        raise NOT_FOUND
+    changed = [Stay(id=stay_id, **body.model_dump()) if s.id == stay_id else s for s in trip.stays]
+    return _save_stays(trips, rates, user, owner, trip, changed, now)
+
+
+@router.delete("/{trip_id}/stays/{stay_id}")
+def remove_stay(
+    trip_id: str,
+    stay_id: str,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    trip, owner = _editable_trip(trips, identity, user, trip_id)
+    if stay_id not in {s.id for s in trip.stays}:
+        raise NOT_FOUND
+    kept = [s for s in trip.stays if s.id != stay_id]
+    return _save_stays(trips, rates, user, owner, trip, kept, now)
 
 
 @router.delete("/{trip_id}", status_code=204)

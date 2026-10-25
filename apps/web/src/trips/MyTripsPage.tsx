@@ -26,6 +26,7 @@ function formatDates(trip: Trip): string {
 
 function TripRow({ trip }: { trip: Trip }) {
   const dates = formatDates(trip)
+  const stayCount = trip.stays?.length ?? 0
   return (
     <li className="card trip-row">
       <div className="trip-info">
@@ -35,6 +36,9 @@ function TripRow({ trip }: { trip: Trip }) {
         </div>
         {trip.destination && <p>{trip.destination}</p>}
         {dates && <p className="text-sm text-muted">{dates}</p>}
+        <p className="text-sm text-muted">
+          {stayCount === 0 ? 'No stays yet' : `${stayCount} ${stayCount === 1 ? 'stay' : 'stays'}`}
+        </p>
       </div>
       <Link className="btn btn-secondary" to={`/trips/${trip.id}`} aria-label={`Open ${trip.name}`}>
         Open

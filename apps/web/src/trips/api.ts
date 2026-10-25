@@ -31,6 +31,8 @@ export type ReminderInput = { text: string; date: string; option_id: string | nu
 
 export type Activity = { id: string; name: string; date: string; detail?: string | null }
 export type ActivityInput = { name: string; date: string; detail?: string | null }
+export type Stay = { id: string; place: string; start_date: string; end_date: string }
+export type StayInput = { place: string; start_date: string; end_date: string }
 export type Recommendation = { id: string; name: string; detail: string }
 
 /** A place from Destination results kept on a trip; it has no day until it is scheduled. */
@@ -75,6 +77,7 @@ export type Trip = {
   cost?: CostSummary | null
   reminders?: Reminder[]
   activities?: Activity[]
+  stays?: Stay[]
   places?: TripPlace[]
   travellers?: Traveller[]
   editors?: Editor[]
@@ -169,6 +172,15 @@ export const fetchRecommendations = (tripId: string, date: string) =>
 
 export const addActivity = (tripId: string, input: ActivityInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities`, 'POST', input)
+
+export const addStay = (tripId: string, input: StayInput) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/stays`, 'POST', input)
+
+export const updateStay = (tripId: string, id: string, input: StayInput) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(id)}`, 'PUT', input)
+
+export const removeStay = (tripId: string, id: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(id)}`, 'DELETE')
 
 export const addPlaceToTrip = (tripId: string, input: TripPlaceInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/places`, 'POST', input)

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
-import type { Activity, Day, Reminder, Trip } from './api'
+import type { Activity, Day, Reminder, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
 import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
@@ -11,14 +11,18 @@ import { ItineraryTab } from './ItineraryTab'
 import { ReminderModal } from './ReminderModal'
 import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
+import { RemoveStayModal } from './RemoveStayModal'
 import { ShareTripModal } from './ShareTripModal'
+import { StayDrawer } from './StayDrawer'
+import { StaysSection } from './StaysSection'
+import { formatRange } from './stays'
 import { Toast } from './Toast'
 import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripTotalCard } from './TripTotalCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
-type Tab = 'overview' | 'itinerary' | 'travelers'
+type Tab = 'overview' | 'itinerary' | 'stays' | 'travelers'
 type Panel =
   | { id: 'none' }
   | { id: 'settings' }
@@ -30,12 +34,16 @@ type Panel =
   | { id: 'reminder-edit'; reminder: Reminder }
   | { id: 'add-activity'; day: Day }
   | { id: 'remove-activity'; activity: Activity }
+  | { id: 'add-stay' }
+  | { id: 'edit-stay'; stay: Stay }
+  | { id: 'remove-stay'; stay: Stay }
 
 const REFRESH_MS = 30_000
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'itinerary', label: 'Itinerary' },
+  { id: 'stays', label: 'Stays' },
   { id: 'travelers', label: 'Travelers' },
 ]
 
@@ -222,6 +230,14 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onMoveActivity={move}
             onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
           />
+        ) : tab === 'stays' ? (
+          <StaysSection
+            stays={trip.stays ?? []}
+            canEdit={canEdit}
+            onAdd={() => setPanel({ id: 'add-stay' })}
+            onEdit={(stay) => setPanel({ id: 'edit-stay', stay })}
+            onRemove={(stay) => setPanel({ id: 'remove-stay', stay })}
+          />
         ) : tab === 'travelers' ? (
           <TravelersTab
             trip={trip}
@@ -295,6 +311,27 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           onClose={close}
           onRemoved={(updated, activity) =>
             saved(updated, `${activity.name} removed from ${dayName(activity.date)}.`)
+          }
+        />
+      )}
+      {canEdit && (panel.id === 'add-stay' || panel.id === 'edit-stay') && (
+        <StayDrawer
+          trip={trip}
+          stay={panel.id === 'edit-stay' ? panel.stay : undefined}
+          onClose={close}
+          onSaved={(updated, verb) => {
+            const count = updated.stays?.length ?? 0
+            saved(updated, `Stay ${verb}. ${count} ${count === 1 ? 'stay' : 'stays'} in this trip.`)
+          }}
+        />
+      )}
+      {canEdit && panel.id === 'remove-stay' && (
+        <RemoveStayModal
+          tripId={trip.id}
+          stay={panel.stay}
+          onClose={close}
+          onRemoved={(updated, stay) =>
+            saved(updated, `Removed ${stay.place}, ${formatRange(stay.start_date, stay.end_date)}.`)
           }
         />
       )}

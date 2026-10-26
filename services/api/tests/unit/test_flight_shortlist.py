@@ -1,6 +1,9 @@
 from datetime import UTC, datetime, time
 from decimal import Decimal
 
+import pytest
+from pydantic import ValidationError
+
 from app.flights.options import FlightOption
 from app.flights.shortlist import preference_fit, rank_flights
 from app.trips.profile_store import TransportPreferences
@@ -8,10 +11,11 @@ from app.trips.profile_store import TransportPreferences
 NO_PREFS = TransportPreferences()
 
 
-def _f(id, fare=60, minutes=60, stops=0, departs=None, provider=None) -> FlightOption:
+def _f(id, fare=60, minutes=60, stops=0, departs=None, provider=None, mode="flight") -> FlightOption:
     return FlightOption(
         id=id,
         provider=provider or id,
+        mode=mode,
         source="Flight search API",
         fare=Decimal(fare),
         currency="EUR",
@@ -77,3 +81,32 @@ def test_fitting_budget_flights_come_first_and_none_are_dropped():
     assert flags == sorted(flags, reverse=True)
     assert ranked[-1].over_budget_by == 5 and ranked[0].over_budget_by == 0
     assert ranked[-1].reason == "Cheapest"
+
+
+def test_cheapest_mode_wins_on_equal_time_and_stops():
+    ranked = rank_flights(
+        [_f("flight", fare=90, mode="flight"), _f("train", fare=80, mode="train"), _f("bus", fare=30, mode="bus")],
+        NO_PREFS,
+        _fits,
+    )
+    assert ids(ranked)[0] == "bus"
+
+
+def test_fastest_mode_wins_on_equal_fare_and_stops():
+    ranked = rank_flights(
+        [_f("flight", minutes=120, mode="flight"), _f("train", minutes=60, mode="train"),
+         _f("bus", minutes=120, mode="bus")],
+        NO_PREFS,
+        _fits,
+    )
+    assert ids(ranked)[0] == "train"
+
+
+def test_preference_fit_follows_the_entry_mode():
+    assert preference_fit(_f("t", mode="train"), TransportPreferences(modes=["train"])) == 100
+    assert preference_fit(_f("f"), TransportPreferences(modes=["train"])) == 0
+
+
+def test_a_combined_mode_is_invalid():
+    with pytest.raises(ValidationError):
+        _f("x", mode="train+bus")

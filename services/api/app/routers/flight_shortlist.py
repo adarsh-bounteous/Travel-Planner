@@ -5,12 +5,12 @@ from pydantic import BaseModel
 
 from app.auth.identity import IdentityProvider
 from app.flights.options import FlightOption, FlightProvider, SourceResult, gather_flights
-from app.flights.shortlist import ShortlistFlight, rank_flights
+from app.flights.shortlist import ShortlistFlight, modes_without_service, rank_flights
 from app.routers.auth import get_identity
 from app.routers.deps import get_current_user, get_flight_providers, get_profiles, get_rates, get_trips
 from app.routers.trips import _load
 from app.trips.cost import fare_over_budget_by
-from app.trips.profile_store import ProfileStore, TransportPreferences
+from app.trips.profile_store import Mode, ProfileStore, TransportPreferences
 from app.trips.rates import RateSource
 from app.trips.store import TripStore
 
@@ -25,6 +25,7 @@ class FlightShortlist(BaseModel):
     currency: str  # trip currency
     sources: list[SourceResult]
     flights: list[ShortlistFlight]
+    no_service: list[Mode]  # modes with no entries on this leg, whose sources all answered
 
 
 @router.get("/{trip_id}/flights/shortlist")
@@ -57,4 +58,5 @@ def flight_shortlist(
         currency=trip.currency,
         sources=sources,
         flights=rank_flights(gathered, prefs, over_by),
+        no_service=modes_without_service(sources, gathered),
     )

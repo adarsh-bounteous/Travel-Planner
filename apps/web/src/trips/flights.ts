@@ -1,10 +1,16 @@
+import type { TransportMode } from './api'
+
 export const formatMinutes = (m: number) => {
   if (m < 60) return `${m} min`
   const rest = m % 60
   return `${Math.floor(m / 60)} h${rest ? ` ${rest} min` : ''}`
 }
 
-export const formatStops = (stops: number) =>
+const MODE_LABELS: Record<TransportMode, string> = { flight: 'Flight', train: 'Train', bus: 'Bus', taxi: 'Taxi' }
+
+export const formatMode = (mode: TransportMode) => MODE_LABELS[mode]
+
+export const formatStops =(stops: number) =>
   stops === 0 ? 'Nonstop' : stops === 1 ? '1 stop' : `${stops} stops`
 
 /** A fare with cents and its currency, in the traveller's local format. */

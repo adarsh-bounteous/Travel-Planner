@@ -6,7 +6,7 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel
 
-from app.trips.profile_store import Cabin
+from app.trips.profile_store import Cabin, Mode
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,11 @@ SourceStatus = Literal["ok", "failed", "timed_out"]
 
 
 class FlightOption(BaseModel):
-    """One flight on one leg, with the fare as fetched."""
+    """One single-mode option (flight, train, bus or taxi) on one leg, with the fare as fetched."""
 
     id: str
+    mode: Mode = "flight"
+    estimate: bool = False  # true when the fare is an estimate, as for a taxi
     provider: str  # the airline shown on the card
     source: str  # "Flight search API" | "Web search" | "Partner API"
     fare: Decimal
@@ -42,6 +44,7 @@ class FlightProvider(Protocol):
 class SourceResult(BaseModel):
     name: str
     status: SourceStatus
+    modes: list[Mode] = ["flight"]
 
 
 def gather_flights(
@@ -60,12 +63,13 @@ def gather_flights(
     flights: list[FlightOption] = []
     sources: list[SourceResult] = []
     for provider, future in zip(providers, futures):
+        modes = list(getattr(provider, "modes", ("flight",)))
         if future not in done:
-            sources.append(SourceResult(name=provider.name, status="timed_out"))
+            sources.append(SourceResult(name=provider.name, status="timed_out", modes=modes))
         elif future.exception() is not None:
             logger.error("flight provider %s failed", provider.name, exc_info=future.exception())
-            sources.append(SourceResult(name=provider.name, status="failed"))
+            sources.append(SourceResult(name=provider.name, status="failed", modes=modes))
         else:
             flights.extend(future.result())
-            sources.append(SourceResult(name=provider.name, status="ok"))
+            sources.append(SourceResult(name=provider.name, status="ok", modes=modes))
     return flights, sources

@@ -3,9 +3,9 @@ from decimal import Decimal
 
 from pydantic import BaseModel
 
-from app.flights.options import FlightOption
+from app.flights.options import FlightOption, SourceResult
 from app.transport.options import _in_window
-from app.trips.profile_store import TransportPreferences
+from app.trips.profile_store import Mode, TransportPreferences
 
 # Fare is the main factor; time, stops and preference fit share the rest.
 WEIGHTS = {"fare": Decimal("0.6"), "time": Decimal("0.2"), "stops": Decimal("0.1"), "fit": Decimal("0.1")}
@@ -20,11 +20,26 @@ class ShortlistFlight(BaseModel):
     reason: str
 
 
+MODE_ORDER: tuple[Mode, ...] = ("flight", "train", "bus", "taxi")
+
+
+def modes_without_service(sources: list[SourceResult], flights: list[FlightOption]) -> list[Mode]:
+    """Modes with no entries whose sources all answered; a failed or timed-out source is not "no service"."""
+    listed = {f.mode for f in flights}
+    return [
+        m
+        for m in MODE_ORDER
+        if m not in listed
+        and (covering := [s for s in sources if m in s.modes])
+        and all(s.status == "ok" for s in covering)
+    ]
+
+
 def preference_fit(f: FlightOption, prefs: TransportPreferences) -> int:
     """The share of the set preferences the flight meets; 100 when none are set."""
     met: list[bool] = []
     if prefs.modes:
-        met.append("flight" in prefs.modes)
+        met.append(f.mode in prefs.modes)
     if prefs.max_stops is not None:
         met.append(f.stops <= prefs.max_stops)
     if prefs.departure_window is not None:

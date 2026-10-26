@@ -9,6 +9,7 @@ from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
+from app.flights.providers import SEED_MODES as FLIGHT_SEED_MODES
 from app.flights.providers import InMemoryFlightProvider
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
@@ -68,7 +69,10 @@ def _flight_providers() -> list[FlightProvider]:
     def clock() -> datetime:
         return datetime.now(UTC)
 
-    return [InMemoryFlightProvider(name, catalogue, clock) for name, catalogue in FLIGHT_SEED_CATALOGUES.items()]
+    return [
+        InMemoryFlightProvider(name, catalogue, clock, FLIGHT_SEED_MODES.get(name, ("flight",)))
+        for name, catalogue in FLIGHT_SEED_CATALOGUES.items()
+    ]
 
 
 @lru_cache

@@ -35,6 +35,7 @@ const flight = (
 ): ShortlistFlight => ({
   rank,
   flight: {
+    mode: 'flight',
     id: provider.toLowerCase().replace(/\W+/g, '-'),
     provider,
     source,
@@ -74,6 +75,7 @@ const body = (flights: ShortlistFlight[], sources = OK): FlightShortlist => ({
   budget: 600,
   currency: 'EUR',
   sources,
+  no_service: [],
   flights,
 })
 
@@ -91,14 +93,14 @@ const open = (reply: FlightShortlist | null, status = 200) => {
 
 // The app header has its own list items, so count only the flights list.
 const findCards = async () =>
-  within(await screen.findByRole('list', { name: 'Flights ranked, best first' })).getAllByRole('listitem')
+  within(await screen.findByRole('list', { name: 'Travel options ranked, best first' })).getAllByRole('listitem')
 
 describe('flight shortlist page', () => {
   it('lists the ranked flights for the leg (AC1)', async () => {
     open(body(all()))
-    const list = await screen.findByRole('list', { name: 'Flights ranked, best first' })
+    const list = await screen.findByRole('list', { name: 'Travel options ranked, best first' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(4)
-    expect(screen.getByRole('heading', { level: 1, name: 'Flights, Lisbon to Faro, 18 Nov' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Travel options, Lisbon to Faro, 18 Nov' })).toBeInTheDocument()
     expect(screen.getByText(/Your trip budget is .*600\.00.* and you have .*70\.00.* left/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to trip' })).toHaveAttribute('href', '/trips/t1')
   })
@@ -112,7 +114,7 @@ describe('flight shortlist page', () => {
       },
     })
     renderAt('/trips/t1/flights?origin=Faro&destination=Porto&date=2027-11-22')
-    expect(await screen.findByRole('heading', { level: 1, name: 'Flights, Faro to Porto, 22 Nov' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Travel options, Faro to Porto, 22 Nov' })).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/trips/t1/flights/shortlist?origin=Faro&destination=Porto&date=2027-11-22'),
       expect.anything(),
@@ -180,7 +182,7 @@ describe('flight shortlist page', () => {
 
   it('says no flights were found and offers a change of dates or mode (AC15)', async () => {
     open(body([]))
-    expect(await screen.findByText('No flights were found for this route and date.')).toBeInTheDocument()
+    expect(await screen.findByText('No travel options were found for this route and date.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Change dates' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Choose another travel mode' })).toBeInTheDocument()
   })
@@ -189,6 +191,53 @@ describe('flight shortlist page', () => {
     open(null, 500)
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load your flights")
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+  })
+
+  it('shows the mode on each entry, with no estimate label or ride link on a flight (AC4, AC6, AC11)', async () => {
+    open(body(all()))
+    const cards = await findCards()
+    expect(within(cards[0]).getByText('Flight')).toBeInTheDocument()
+    expect(screen.queryByText(/Estimated fare/)).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Open ride provider' })).toBeNull()
+    expect(screen.queryByText('Train')).toBeNull()
+  })
+
+  it('shows train, bus and taxi like a flight, with the taxi fare as an estimate and a ride link (AC4, AC6 to AC9)', async () => {
+    const train = flight(1, 'Alfa Rail', 24, 195, 0, 'Rail search', 'Cheapest', {
+      mode: 'train',
+      deal: 'Save 15% with a railcard',
+    })
+    const bus = flight(2, 'Sul Coach', 29, 240, 1, 'Coach search', 'Balanced fare and travel time', { mode: 'bus' })
+    const taxi = flight(3, 'RideNow', 210, 170, 0, 'Ride provider', 'Fastest', {
+      mode: 'taxi',
+      estimate: true,
+      url: 'https://example.com/rides/ridenow-lis-far',
+    })
+    open(body([train, bus, taxi]))
+    const cards = await findCards()
+    expect(within(cards[0]).getByText('Train')).toBeInTheDocument()
+    expect(within(cards[0]).getByText('Alfa Rail')).toBeInTheDocument()
+    expect(within(cards[0]).getByText(/€24\.00|EUR\s?24\.00/)).toBeInTheDocument()
+    expect(within(cards[0]).getByText('Deal: Save 15% with a railcard')).toBeInTheDocument()
+    expect(within(cards[0]).getByText('3 h 15 min')).toBeInTheDocument()
+    expect(within(cards[0]).getByText('Nonstop')).toBeInTheDocument()
+    expect(within(cards[1]).getByText('Bus')).toBeInTheDocument()
+    expect(within(cards[1]).getByText('1 stop')).toBeInTheDocument()
+    expect(within(cards[2]).getByText('Taxi')).toBeInTheDocument()
+    expect(within(cards[2]).getByText(/Estimated fare/)).toBeInTheDocument()
+    expect(within(cards[2]).getByRole('link', { name: 'Open ride provider' })).toHaveAttribute(
+      'href',
+      'https://example.com/rides/ridenow-lis-far',
+    )
+    expect(screen.getAllByText(/Estimated fare/)).toHaveLength(1)
+    expect(screen.getAllByRole('link', { name: 'Open ride provider' })).toHaveLength(1)
+  })
+
+  it('notes each mode that has no service on the route (AC10)', async () => {
+    open({ ...body(all()), no_service: ['train', 'bus'] })
+    expect(await screen.findByText('No train services run on this route.')).toBeInTheDocument()
+    expect(screen.getByText('No bus services run on this route.')).toBeInTheDocument()
+    expect(screen.queryByText(/No taxi services/)).toBeNull()
   })
 
   it('explains the ranking on demand', async () => {

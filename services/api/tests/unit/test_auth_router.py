@@ -145,6 +145,12 @@ def test_cookie_is_http_only(client, fake):
     assert "httponly" in header and "samesite=lax" in header
 
 
+def test_local_cookie_has_no_secure_attribute(client, fake):  # AC3
+    r = _signed_in(client, fake)
+    header = r.headers["set-cookie"].lower()
+    assert "secure" not in header and "httponly" in header and "samesite=lax" in header
+
+
 def test_google_sign_up_then_sign_in(client):  # AC2, AC4
     r = client.get(
         "/auth/google/callback", params={"code": "ok-new", "state": _state(client, "up")}

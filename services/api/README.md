@@ -25,6 +25,26 @@ FastAPI service. Python 3.12.
 | `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
+## Run it locally
+
+From the repository root, on a clean checkout (Node 22, pnpm, Python 3.12):
+
+    pnpm start
+
+This starts the API on port 8000 and the Web App on port 5173, already wired together. Set
+`API_PORT` or `WEB_PORT` to use other ports. On the first run it installs the web dependencies
+and creates `services/api/.venv`. Open the Web App URL it prints and sign in with the demo account
+below.
+
+The Web App dev server proxies the API's paths, so the browser only talks to the web origin: no
+address to configure, no CORS, and the sign-in cookie is kept across reloads. For the API process
+only, the command sets `LOCAL_MODE=true`, `APP_ENV=local`, `COOKIE_SECURE=false`,
+`WEB_ORIGIN=http://localhost:<WEB_PORT>` and a random `SESSION_SECRET` generated on every start
+(never stored).
+
+If either port is already in use, nothing is started: the command exits with a failure status and
+names each busy port.
+
 ## Local mode
 
 Local mode is off unless `LOCAL_MODE` is set, so an unconfigured app behaves like production.

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from app.config import session_secret
 from app.routers import (
     auth,
+    flight_shortlist,
     health,
     invites,
     places,
@@ -31,6 +32,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)
+app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
 app.include_router(invites.router)
 app.include_router(shared.router)

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon, SearchIcon } from '../auth/icons'
-import { fetchStayOptions, fetchTrip } from './api'
+import { fetchStayOptions, fetchTrip, stayQuery } from './api'
 import type { Stay, StayCriteria, StayOptions } from './api'
 import { PropertyCard } from './PropertyCard'
 import { StayFilters } from './StayFilters'
@@ -128,9 +128,17 @@ export function StayOptionsPage() {
           {options && options.properties.length > 0 && (
             <div className="stack">
               <div>
-                <p className="text-bold" id="results-count" role="status">
-                  {`Showing ${plural(options.properties.length, 'stay', 'stays')}`}
-                </p>
+                <div className="row-between">
+                  <p className="text-bold" id="results-count" role="status">
+                    {`Showing ${plural(options.properties.length, 'stay', 'stays')}`}
+                  </p>
+                  <Link
+                    className="btn btn-secondary"
+                    to={`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(applied)}`}
+                  >
+                    View shortlist
+                  </Link>
+                </div>
                 {options.price_min !== null && options.price_max !== null && (
                   <p className="text-sm text-muted">
                     {`Prices from ${formatMoney(options.price_min, currencyOf(options))} to ${formatMoney(options.price_max, currencyOf(options))} per night, as fetched.`}

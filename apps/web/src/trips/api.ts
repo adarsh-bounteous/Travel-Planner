@@ -72,6 +72,27 @@ export type StayOptions = {
   price_min: string | null
   price_max: string | null
 }
+export type ShortlistReason = 'Best overall' | 'Best price' | 'Best match' | 'Best offers' | 'Closest to budget'
+export type ShortlistStay = {
+  rank: number
+  property: StayProperty
+  total: string
+  currency: string
+  fits_budget: boolean
+  over_budget_by: string
+  fit: number
+  reason: ShortlistReason
+  why: string
+}
+export type Shortlist = {
+  place: string
+  start_date: string
+  end_date: string
+  nights: number
+  budget: string | null
+  currency: string | null
+  stays: ShortlistStay[]
+}
 export type Recommendation ={ id: string; name: string; detail: string }
 
 /** A place from Destination results kept on a trip; it has no day until it is scheduled. */
@@ -235,6 +256,11 @@ export function stayQuery(c: StayCriteria) {
 export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria) =>
   call<StayOptions>(
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/options?${stayQuery(c)}`,
+  )
+
+export const fetchStayShortlist = (tripId: string, stayId: string, c: StayCriteria) =>
+  call<Shortlist>(
+    `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(c)}`,
   )
 
 export const addPlaceToTrip = (tripId: string, input: TripPlaceInput) =>

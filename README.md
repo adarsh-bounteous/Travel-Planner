@@ -5,4 +5,5 @@
     pnpm start
 
 Starts the API (port 8000) and the Web App (port 5173) together. See
-[Run it locally](services/api/README.md#run-it-locally) for ports, settings and the demo account.
+[Local setup](docs/local-setup.md) for setup steps, the demo account, how to reset, and which
+cloud dependencies are faked.

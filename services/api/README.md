@@ -27,6 +27,8 @@ FastAPI service. Python 3.12.
 
 ## Run it locally
 
+See [Local setup](../../docs/local-setup.md) for the demo account, reset and faked services. Details:
+
 From the repository root, on a clean checkout (Node 22, pnpm, Python 3.12):
 
     pnpm start

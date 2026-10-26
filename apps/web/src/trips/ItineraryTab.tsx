@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
 import type { Activity, ChosenOption, ChosenStay, Day, Reminder, Trip } from './api'
 import { formatRange } from './stays'
@@ -76,12 +77,31 @@ function StayCost({ chosen, trip }: { chosen: ChosenStay; trip: Trip }) {
 }
 
 /** The stays that have a chosen stay, with their dates and cost; booking is on the provider's site. */
-function ChosenStays({ trip }: { trip: Trip }) {
-  const stays = (trip.stays ?? []).filter((s) => s.chosen)
-  if (stays.length === 0) return null
+function ChosenStays({ trip, editable }: { trip: Trip; editable: boolean }) {
+  const all = trip.stays ?? []
+  const stays = all.filter((s) => s.chosen)
+  const first = all[0]
+  // A trip with no Stay rows has nothing to choose for yet; its Stays tab is where one is added.
+  if (!first) return null
   return (
     <section className="stack" aria-labelledby="itinerary-stays">
       <h3 id="itinerary-stays">Stays</h3>
+      {stays.length === 0 && (
+        <div className="empty-state">
+          <h3>No stay in your itinerary</h3>
+          <p className="text-muted">
+            {`Choose a stay for ${formatRange(first.start_date, first.end_date)} and it will show up here.`}
+          </p>
+          {editable && (
+            <Link
+              className="btn btn-primary"
+              to={`/trips/${encodeURIComponent(trip.id)}/stays/${encodeURIComponent(first.id)}/shortlist`}
+            >
+              Choose a stay
+            </Link>
+          )}
+        </div>
+      )}
       {stays.map((s) => (
         <div className="card row-between" key={s.id}>
           <span>
@@ -91,7 +111,7 @@ function ChosenStays({ trip }: { trip: Trip }) {
           <StayCost chosen={s.chosen!} trip={trip} />
         </div>
       ))}
-      <p className="text-sm text-muted">Final price confirmed on provider's site.</p>
+      {stays.length > 0 && <p className="text-sm text-muted">Final price confirmed on provider's site.</p>}
     </section>
   )
 }
@@ -138,7 +158,7 @@ export function ItineraryTab({
 
   return (
     <div className="stack stack-lg">
-      <ChosenStays trip={trip} />
+      <ChosenStays trip={trip} editable={editable} />
       <div className="grid">
       {days.map((day, index) => {
         const chosen = options.filter((option) => option.date === day.date)

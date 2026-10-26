@@ -228,8 +228,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onEditReminder={(reminder) => setPanel({ id: 'reminder-edit', reminder })}
             onAddActivity={(day) => setPanel({ id: 'add-activity', day })}
             onMoveActivity={move}
-            onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
-          />
+            onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}          />
         ) : tab === 'stays' ? (
           <StaysSection
             tripId={tripId}

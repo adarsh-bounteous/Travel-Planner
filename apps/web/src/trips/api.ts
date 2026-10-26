@@ -31,7 +31,16 @@ export type ReminderInput = { text: string; date: string; option_id: string | nu
 
 export type Activity = { id: string; name: string; date: string; detail?: string | null }
 export type ActivityInput = { name: string; date: string; detail?: string | null }
-export type Stay = { id: string; place: string; start_date: string; end_date: string }
+/** The stay picked from a Stay's shortlist: the lowest offer, priced in that offer's currency. */
+export type ChosenStay = {
+  property_id: string
+  name: string
+  provider: string
+  url: string
+  total: string
+  currency: string
+}
+export type Stay = { id: string; place: string; start_date: string; end_date: string; chosen?: ChosenStay | null }
 export type StayInput = { place: string; start_date: string; end_date: string }
 export type PropertyType = 'hotel' | 'homestay' | 'other'
 export type Amenity = 'wifi' | 'breakfast' | 'parking' | 'pool' | 'ac'
@@ -258,7 +267,17 @@ export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/options?${stayQuery(c)}`,
   )
 
-export const fetchStayShortlist = (tripId: string, stayId: string, c: StayCriteria) =>
+export const chooseStay = (tripId: string, stayId: string, propertyId: string, c: StayCriteria) =>
+  call<Trip>(
+    `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/chosen?${stayQuery(c)}`,
+    'PUT',
+    { property_id: propertyId },
+  )
+
+export const clearChosenStay = (tripId: string, stayId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/chosen`, 'DELETE')
+
+export const fetchStayShortlist =(tripId: string, stayId: string, c: StayCriteria) =>
   call<Shortlist>(
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(c)}`,
   )

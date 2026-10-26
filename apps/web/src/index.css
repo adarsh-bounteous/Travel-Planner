@@ -259,6 +259,8 @@ legend { padding: 0; }
 .stay-card { display: flex; flex-direction: column; gap: var(--space-2); }
 .badges { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .stay-total { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
+.chosen-card { border: var(--border-width) solid var(--color-primary); }
+.chosen-card h3 { overflow-wrap: anywhere; }
 .fit-bar { height: var(--space-2); border-radius: var(--radius-full); background: var(--color-border); overflow: hidden; }
 .fit-bar > span { display: block; height: 100%; background: var(--color-fg-muted); }
 .fit-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--font-size-sm); }

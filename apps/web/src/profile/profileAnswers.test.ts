@@ -12,9 +12,22 @@ const FULL: Profile = {
   diet: 'Vegetarian',
   tastes: ['Food', 'Museums'],
   travel_style: 'Cultural',
+  transport_preferences: {
+    modes: ['train'],
+    cabin: null,
+    departure_window: null,
+    max_stops: 1,
+    providers: ['Example Air'],
+  },
 }
 
 describe('profileAnswers', () => {
+  it('keeps saved transport preferences when an answer changes', () => {
+    expect(withAnswer(FULL, 'diet', 'Vegan').transport_preferences).toEqual(
+      FULL.transport_preferences,
+    )
+  })
+
   it('lists the seven answers in set-up order', () => {
     expect(PROFILE_ORDER).toEqual([
       'citizenship',

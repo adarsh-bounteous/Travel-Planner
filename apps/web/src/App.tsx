@@ -10,7 +10,9 @@ import { ExplorePage } from './explore/ExplorePage'
 import { AddPlaceNoTripsPage } from './places/AddPlaceNoTripsPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { ProfilePage } from './profile/ProfilePage'
+import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
+import { TransportSearchPage } from './transport/TransportSearchPage'
 import { InvitePage } from './trips/InvitePage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
@@ -71,6 +73,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <ProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile/transport"
+            element={
+              <RequireAuth>
+                <TransportPreferencesPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/transport"
+            element={
+              <RequireAuth>
+                <TransportSearchPage />
               </RequireAuth>
             }
           />

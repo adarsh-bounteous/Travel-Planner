@@ -17,12 +17,13 @@ import { StayDrawer } from './StayDrawer'
 import { StaysSection } from './StaysSection'
 import { formatRange } from './stays'
 import { Toast } from './Toast'
+import { TransportTab } from './TransportTab'
 import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripTotalCard } from './TripTotalCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
-type Tab = 'overview' | 'itinerary' | 'stays' | 'travelers'
+type Tab = 'overview' | 'itinerary' | 'stays' | 'transport' | 'travelers'
 type Panel =
   | { id: 'none' }
   | { id: 'settings' }
@@ -44,6 +45,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'itinerary', label: 'Itinerary' },
   { id: 'stays', label: 'Stays' },
+  { id: 'transport', label: 'Transport' },
   { id: 'travelers', label: 'Travelers' },
 ]
 
@@ -238,6 +240,8 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onEdit={(stay) => setPanel({ id: 'edit-stay', stay })}
             onRemove={(stay) => setPanel({ id: 'remove-stay', stay })}
           />
+        ) : tab === 'transport' ? (
+          <TransportTab trip={trip} onChanged={setTrip} onViewItinerary={() => setTab('itinerary')} />
         ) : tab === 'travelers' ? (
           <TravelersTab
             trip={trip}

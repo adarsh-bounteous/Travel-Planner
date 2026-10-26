@@ -16,6 +16,7 @@ from app.routers import (
     shared,
     stay_options,
     transport,
+    transport_picks,
     trips,
 )
 from app.routers.deps import ApiError
@@ -34,6 +35,7 @@ app.include_router(trips.router)
 app.include_router(stay_options.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
+app.include_router(transport_picks.router)
 app.include_router(invites.router)
 app.include_router(shared.router)
 app.include_router(profile.router)

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { AlertIcon, CheckIcon, ChevronDownIcon, SearchIcon } from '../auth/icons'
-import { fetchFlightShortlist, fetchTrip } from './api'
-import type { FlightShortlist, Trip } from './api'
+import { fetchFlightShortlist, fetchTrip, pickTransport } from './api'
+import type { FlightShortlist, ShortlistFlight, TransportLeg, Trip } from './api'
 import { FlightShortlistCard } from './FlightShortlistCard'
-import { formatFare, formatLegDate, formatMode } from './flights'
+import { formatFare, formatLegDate, formatMode, legName, LEGS } from './flights'
 import { Toast } from './Toast'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; shortlist: FlightShortlist }
@@ -37,6 +37,10 @@ export function FlightShortlistPage() {
   const [explaining, setExplaining] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [toastKey, setToastKey] = useState<number | null>(null)
+  const [pickFailed, setPickFailed] = useState(false)
+  const [pickToast, setPickToast] = useState<{ id: number; message: string } | null>(null)
+  const legParam = query.get('leg')
+  const leg = LEGS.find((l) => l === legParam)
 
   const load = useCallback(() => {
     setResult({ state: 'loading' })
@@ -56,6 +60,25 @@ export function FlightShortlistPage() {
       .catch(() => setTrip(null))
     load()
   }, [tripId, load])
+
+  const legPick = trip?.transport?.find((p) => p.leg === leg)
+  const canPick = trip?.can_edit ?? trip?.is_owner ?? false
+
+  const pick = async (pickedLeg: TransportLeg, item: ShortlistFlight) => {
+    if (legPick?.option_id === item.flight.id) return
+    setPickFailed(false)
+    try {
+      const updated = await pickTransport(tripId, pickedLeg, { origin, destination, date, optionId: item.flight.id })
+      setTrip(updated)
+      const who = item.flight.provider
+      setPickToast({
+        id: Date.now(),
+        message: legPick ? `Picked ${who}. Your earlier pick is replaced.` : `Picked ${who}. Added to your trip total.`,
+      })
+    } catch {
+      setPickFailed(true)
+    }
+  }
 
   const retry = () => {
     setRetrying(true)
@@ -110,7 +133,15 @@ export function FlightShortlistPage() {
           )}
         </div>
       )}
-      {toastKey !== null && <Toast key={toastKey} message="Some flight sources did not respond. Showing the rest." />}
+      {leg && <h2>{legName(leg, trip?.destination ?? destination)}</h2>}
+      {pickFailed && (
+        <div className="alert alert-danger" role="alert">
+          <AlertIcon />
+          We couldn't save your pick. Check your connection and try again.
+        </div>
+      )}
+      {pickToast && <Toast key={pickToast.id} message={pickToast.message} />}
+      {toastKey !== null &&<Toast key={toastKey} message="Some flight sources did not respond. Showing the rest." />}
       {result.state === 'loading' && (
         <div className="stack" role="group" aria-label={LOADING_LABEL} aria-busy="true">
           {[1, 2, 3].map((n) => (
@@ -161,7 +192,13 @@ export function FlightShortlistPage() {
       {shortlist && ordered.length > 0 && (
         <div className="stack" role="list" aria-label="Travel options ranked, best first">
           {ordered.map((item) => (
-            <FlightShortlistCard key={item.flight.id} item={item} tripCurrency={shortlist.currency} />
+            <FlightShortlistCard
+              key={item.flight.id}
+              item={item}
+              tripCurrency={shortlist.currency}
+              picked={legPick?.option_id === item.flight.id}
+              onPick={leg && canPick ? () => pick(leg, item) : undefined}
+            />
           ))}
         </div>
       )}
@@ -177,6 +214,11 @@ export function FlightShortlistPage() {
             Choose another travel mode
           </button>
         </div>
+      )}
+      {leg && (
+        <button className="btn btn-ghost" type="button" style={{ alignSelf: 'flex-end' }} onClick={() => navigate(tripHref)}>
+          Done
+        </button>
       )}
       <Link to={tripHref}>Back to trip</Link>
     </div>

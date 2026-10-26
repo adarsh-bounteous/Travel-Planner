@@ -147,6 +147,7 @@ export type Trip = {
   reminders?: Reminder[]
   activities?: Activity[]
   stays?: Stay[]
+  transport?: TransportPick[]
   places?: TripPlace[]
   travellers?: Traveller[]
   editors?: Editor[]
@@ -345,6 +346,41 @@ export const fetchFlightShortlist = (tripId: string, origin: string, destination
   call<FlightShortlist>(
     `/trips/${encodeURIComponent(tripId)}/flights/shortlist?${new URLSearchParams({ origin, destination, date })}`,
   )
+
+export type TransportLeg = 'destination' | 'between_cities' | 'local_taxi'
+/** A shortlist option the traveller picked for a leg; the fare and booking link come from the provider. */
+export type TransportPick = {
+  leg: TransportLeg
+  option_id: string
+  mode: TransportMode
+  provider: string
+  origin: string
+  destination: string
+  date: string
+  estimate: boolean
+  fare: string
+  picked_fare: string
+  currency: string
+  url: string
+}
+
+export const pickTransport = (
+  tripId: string,
+  leg: TransportLeg,
+  route: { origin: string; destination: string; date: string; optionId: string },
+) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/transport/${leg}`, 'PUT', {
+    origin: route.origin,
+    destination: route.destination,
+    date: route.date,
+    option_id: route.optionId,
+  })
+
+export const clearTransport = (tripId: string, leg: TransportLeg) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/transport/${leg}`, 'DELETE')
+
+export const refreshTransport = (tripId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/transport/refresh`, 'POST')
 
 export const addPlaceToTrip =(tripId: string, input: TripPlaceInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/places`, 'POST', input)

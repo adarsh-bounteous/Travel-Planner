@@ -4,6 +4,8 @@ from typing import Annotated, Literal, Protocol
 
 from pydantic import BaseModel, Field, HttpUrl, StringConstraints, model_validator
 
+from app.trips.profile_store import Mode
+
 MAX_TRIP_DAYS = 60
 
 TrimmedName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
@@ -111,6 +113,24 @@ class Stay(StayFields):
     chosen: ChosenStay | None = None  # server-owned: changed only through the chosen-stay routes
 
 
+TransportLeg = Literal["destination", "between_cities", "local_taxi"]
+
+
+class TransportPick(BaseModel):
+    leg: TransportLeg
+    option_id: str
+    mode: Mode
+    provider: str
+    origin: str
+    destination: str
+    date: date
+    estimate: bool = False  # taxi fares are estimates
+    fare: Decimal  # the current fare, refreshed from the provider
+    picked_fare: Decimal  # the fare when it was picked
+    currency: str  # may differ from the trip currency
+    url: HttpUrl  # the provider's booking page
+
+
 class TripPlaceFields(BaseModel):
     place_id: str = Field(min_length=1, max_length=120)
     name: TrimmedName
@@ -191,6 +211,7 @@ class Trip(TripFields):
     reminders: list[Reminder] = []  # server-owned: changed only through the reminder routes
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
     stays: list[Stay] = []  # server-owned: changed only through the stay routes
+    transport: list[TransportPick] = []  # server-owned: changed only through the transport routes
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes

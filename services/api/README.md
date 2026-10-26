@@ -22,6 +22,16 @@ FastAPI service. Python 3.12.
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
+| `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
+| `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
+
+## Local mode
+
+Local mode is off unless `LOCAL_MODE` is set, so an unconfigured app behaves like production.
+To use it, set `LOCAL_MODE=true` and `APP_ENV=local`. If local mode is on in any other
+environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the local environment.
+`GET /startup-status` reports the environment, whether local mode is on, and which stand-ins
+(storage, sign-in, cloud services) are enabled.
 
 Sessions are HttpOnly cookies that are re-issued on every authenticated request, so they
 expire after 7 days without use. No email or password is logged.

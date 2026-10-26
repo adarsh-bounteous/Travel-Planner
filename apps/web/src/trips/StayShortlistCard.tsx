@@ -1,4 +1,4 @@
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon } from '../auth/icons'
 import type { ShortlistStay } from './api'
 import { amenityLabel, formatMoney, plural } from './stayOptions'
 
@@ -35,10 +35,17 @@ export const OverBudget = ({ stay }: { stay: ShortlistStay }) => (
   </span>
 )
 
-type CardProps = { stay: ShortlistStay; nights: number }
+type CardProps = {
+  stay: ShortlistStay
+  nights: number
+  chosen?: boolean
+  busy?: boolean
+  /** Omitted for travellers who cannot edit the trip: no Choose button is shown. */
+  onChoose?: () => void
+}
 
 /** One ranked stay: its rank, the reason for it, the total, the preference fit and the offers. */
-export function StayShortlistCard({ stay, nights }: CardProps) {
+export function StayShortlistCard({ stay, nights, chosen = false, busy = false, onChoose }: CardProps) {
   const perNight = formatMoney(Number(stay.total) / nights, stay.currency)
   return (
     <article className="card stay-card" aria-label={`${stay.property.name}, rank ${stay.rank}`}>
@@ -65,6 +72,32 @@ export function StayShortlistCard({ stay, nights }: CardProps) {
         <span className="text-sm">Offers</span>
         <OfferChips stay={stay} />
       </div>
+      {onChoose && (
+        <div>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            data-choose
+            aria-pressed={chosen}
+            disabled={chosen || busy}
+            onClick={onChoose}
+          >
+            {chosen ? (
+              <>
+                <CheckIcon />
+                Chosen
+              </>
+            ) : busy ? (
+              'Choosing…'
+            ) : (
+              <>
+                Choose stay
+                <span className="sr-only">{`: ${stay.property.name}`}</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </article>
   )
 }

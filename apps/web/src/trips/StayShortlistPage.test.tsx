@@ -7,6 +7,7 @@ afterEach(() => vi.unstubAllGlobals())
 const trip: Trip = {
   id: 't1',
   name: 'Iberia',
+  can_edit: true,
   stays: [{ id: 's1', place: 'Lisbon', start_date: '2027-01-01', end_date: '2027-01-05' }],
 }
 
@@ -145,6 +146,84 @@ describe('stay shortlist page', () => {
     expect(busy.querySelectorAll('.sk-card')).toHaveLength(3)
     release()
     expect(await screen.findByText('Top 5 stays, budget fits first')).toBeInTheDocument()
+  })
+
+  describe('choosing a stay', () => {
+    const CHOSEN_PATH = '/trips/t1/stays/s1/chosen'
+    const withChoice = (name: string, id: string): Trip => ({
+      ...trip,
+      stays: [
+        {
+          ...trip.stays![0],
+          chosen: {
+            property_id: id,
+            name,
+            provider: 'Booknest',
+            url: 'https://example.com/book',
+            total: '296',
+            currency: 'EUR',
+          },
+        },
+      ],
+    })
+    const openWithChoices = () =>
+      stubApi({
+        'GET /trips/t1': { status: 200, body: trip },
+        [`GET ${URL}`]: { status: 200, body: five },
+        [`PUT ${CHOSEN_PATH}?property_type=hotel&rooms=1`]: {
+          status: 200,
+          body: withChoice('Casa do Miradouro', 'casa-do-miradouro'),
+        },
+        [`DELETE ${CHOSEN_PATH}`]: { status: 200, body: trip },
+      })
+
+    it('chooses a stay, shows it as chosen, then clears it with an undo (AC1, AC3)', async () => {
+      const fetchMock = openWithChoices()
+      renderAt('/trips/t1/stays/s1/shortlist')
+      fireEvent.click(await screen.findByRole('button', { name: /Choose stay\s*:\s*Casa do Miradouro/ }))
+      const card = within(await screen.findByRole('region', { name: 'Chosen stay' }))
+      expect(await card.findByRole('heading', { name: 'Casa do Miradouro' })).toBeVisible()
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${CHOSEN_PATH}?property_type=hotel&rooms=1`,
+        expect.objectContaining({ method: 'PUT' }),
+      )
+      expect(screen.getAllByRole('button', { name: /Chosen/ }).filter((b) => (b as HTMLButtonElement).disabled)).toHaveLength(1)
+      expect(screen.getByText(/is your chosen stay for/)).toBeVisible()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Clear chosen stay' }))
+      expect(await screen.findByText('No stay chosen yet')).toBeVisible()
+      expect(screen.getByText('Stay cleared for these dates')).toBeVisible()
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+      expect(await card.findByRole('heading', { name: 'Casa do Miradouro' })).toBeVisible()
+    })
+
+    it('shows the stored choice on load and lets another replace it (AC2)', async () => {
+      const fetchMock = stubApi({
+        'GET /trips/t1': { status: 200, body: withChoice('Pensão Rossio', 'pensao-rossio') },
+        [`GET ${URL}`]: { status: 200, body: five },
+        [`PUT ${CHOSEN_PATH}?property_type=hotel&rooms=1`]: {
+          status: 200,
+          body: withChoice('Casa do Miradouro', 'casa-do-miradouro'),
+        },
+      })
+      renderAt('/trips/t1/stays/s1/shortlist')
+      const card = within(await screen.findByRole('region', { name: 'Chosen stay' }))
+      expect(await card.findByRole('heading', { name: 'Pensão Rossio' })).toBeVisible()
+      fireEvent.click(await screen.findByRole('button', { name: /Choose stay\s*:\s*Casa do Miradouro/ }))
+      expect(await card.findByRole('heading', { name: 'Casa do Miradouro' })).toBeVisible()
+      expect(card.queryByRole('heading', { name: 'Pensão Rossio' })).toBeNull()
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/chosen'), expect.anything())
+    })
+
+    it('tells the traveller when the choice could not be saved', async () => {
+      stubApi({
+        'GET /trips/t1': { status: 200, body: trip },
+        [`GET ${URL}`]: { status: 200, body: five },
+      })
+      renderAt('/trips/t1/stays/s1/shortlist')
+      fireEvent.click(await screen.findByRole('button', { name: /Choose stay\s*:\s*Casa do Miradouro/ }))
+      expect(await screen.findByText("We couldn't save your choice. Try again.")).toBeVisible()
+    })
   })
 
   it('shows a retry when the fetch fails', async () => {

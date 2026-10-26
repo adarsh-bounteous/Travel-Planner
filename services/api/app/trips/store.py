@@ -95,8 +95,20 @@ class StayFields(BaseModel):
         return self
 
 
+class ChosenStay(BaseModel):
+    """The stay picked from a Stay's shortlist: a snapshot of the lowest offer, priced for the Stay's nights."""
+
+    property_id: str
+    name: str
+    provider: str
+    url: HttpUrl  # the offer's booking page on the provider's site
+    total: Decimal
+    currency: str  # the offer's currency; may differ from the trip currency
+
+
 class Stay(StayFields):
     id: str
+    chosen: ChosenStay | None = None  # server-owned: changed only through the chosen-stay routes
 
 
 class TripPlaceFields(BaseModel):

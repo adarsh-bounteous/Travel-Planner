@@ -710,7 +710,12 @@ def change_stay(
     trip, owner = _editable_trip(trips, identity, user, trip_id)
     if stay_id not in {s.id for s in trip.stays}:
         raise NOT_FOUND
-    changed = [Stay(id=stay_id, **body.model_dump()) if s.id == stay_id else s for s in trip.stays]
+    def revised(s: Stay) -> Stay:
+        # The priced dates no longer apply once the place or dates move, so the choice goes with them.
+        same = (s.place, s.start_date, s.end_date) == (body.place, body.start_date, body.end_date)
+        return Stay(id=stay_id, **body.model_dump(), chosen=s.chosen if same else None)
+
+    changed = [revised(s) if s.id == stay_id else s for s in trip.stays]
     return _save_stays(trips, rates, user, owner, trip, changed, now)
 
 

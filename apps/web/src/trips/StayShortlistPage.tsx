@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
 import { AlertIcon, ArrowLeftIcon, EyeIcon, InfoIcon, SearchIcon } from '../auth/icons'
-import { fetchStayShortlist, fetchTrip } from './api'
-import type { Shortlist, Stay } from './api'
+import { chooseStay, clearChosenStay, fetchStayShortlist, fetchTrip } from './api'
+import type { Shortlist, Stay, Trip } from './api'
+import { ChosenStayCard } from './ChosenStayCard'
 import { StayComparison } from './StayComparison'
+import { Toast } from './Toast'
 import { StayShortlistCard } from './StayShortlistCard'
 import { criteriaFromQuery, formatFetched, formatMoney, plural } from './stayOptions'
 import { formatRange } from './stays'
@@ -38,6 +40,48 @@ export function StayShortlistPage() {
   const [missing, setMissing] = useState(false)
   const [result, setResult] = useState<Load>({ state: 'loading' })
   const [comparing, setComparing] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [saveFailed, setSaveFailed] = useState(false)
+  const [toast, setToast] = useState<{ key: number; message: string; undo?: () => void } | null>(null)
+
+  const saved = (trip: Trip, message: string, undo?: () => void) => {
+    setStay(trip.stays?.find((s) => s.id === stayId) ?? null)
+    setToast({ key: Date.now(), message, undo })
+  }
+
+  const choose = (propertyId: string, name: string) => {
+    setBusyId(propertyId)
+    setSaveFailed(false)
+    chooseStay(tripId, stayId, propertyId, criteria)
+      .then((trip) => {
+        const found = trip.stays?.find((s) => s.id === stayId)
+        const dates = found ? formatRange(found.start_date, found.end_date) : 'these dates'
+        saved(trip, `${name} is your chosen stay for ${dates}.`)
+      })
+      .catch(() => setSaveFailed(true))
+      .finally(() => setBusyId(null))
+  }
+
+  const clear = () => {
+    const previous = stay?.chosen
+    setSaveFailed(false)
+    clearChosenStay(tripId, stayId)
+      .then((trip) =>
+        saved(
+          trip,
+          'Stay cleared for these dates',
+          previous ? () => choose(previous.property_id, previous.name) : undefined,
+        ),
+      )
+      .catch(() => setSaveFailed(true))
+  }
+
+  const focusChoose = () => {
+    const first = document.querySelector<HTMLButtonElement>('button[data-choose]:not(:disabled)')
+    first?.scrollIntoView?.({ block: 'center' })
+    first?.focus()
+  }
 
   const load = useCallback(() => {
     setResult({ state: 'loading' })
@@ -53,6 +97,7 @@ export function StayShortlistPage() {
         setTripName(trip.name)
         if (!found) return setMissing(true)
         setStay(found)
+        setCanEdit(trip.can_edit ?? trip.is_owner ?? false)
         load()
       })
       .catch(() => setMissing(true))
@@ -124,6 +169,18 @@ export function StayShortlistPage() {
         </ol>
       </nav>
       <h1>Shortlist</h1>
+      <p className="text-sm text-muted">
+        {`${stay.place}, ${formatRange(stay.start_date, stay.end_date)}. `}
+        <Link to={tripHref}>View itinerary</Link>
+      </p>
+      <ChosenStayCard chosen={stay.chosen ?? null} canEdit={canEdit} onChange={focusChoose} onClear={clear} />
+      {saveFailed && (
+        <div className="alert alert-danger" role="alert">
+          <AlertIcon />
+          We couldn't save your choice. Try again.
+        </div>
+      )}
+      {toast && <Toast key={toast.key} message={toast.message} undo={toast.undo} />}
       {result.state === 'loading' && (
         <div className="stack" role="group" aria-label={LOADING_LABEL} aria-busy="true">
           <Skeletons />
@@ -187,7 +244,14 @@ export function StayShortlistPage() {
               <h3 id="shortlist-within">Within budget</h3>
               <div className="stack">
                 {within.map((s) => (
-                  <StayShortlistCard key={s.property.id} stay={s} nights={shortlist.nights} />
+                  <StayShortlistCard
+                    key={s.property.id}
+                    stay={s}
+                    nights={shortlist.nights}
+                    chosen={stay.chosen?.property_id === s.property.id}
+                    busy={busyId !== null}
+                    onChoose={canEdit ? () => choose(s.property.id, s.property.name) : undefined}
+                  />
                 ))}
               </div>
             </section>
@@ -198,7 +262,14 @@ export function StayShortlistPage() {
               <h3 id="shortlist-over">Over budget</h3>
               <div className="stack">
                 {over.map((s) => (
-                  <StayShortlistCard key={s.property.id} stay={s} nights={shortlist.nights} />
+                  <StayShortlistCard
+                    key={s.property.id}
+                    stay={s}
+                    nights={shortlist.nights}
+                    chosen={stay.chosen?.property_id === s.property.id}
+                    busy={busyId !== null}
+                    onChoose={canEdit ? () => choose(s.property.id, s.property.name) : undefined}
+                  />
                 ))}
               </div>
             </section>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
-import type { Activity, ChosenOption, Day, Reminder, Trip } from './api'
+import type { Activity, ChosenOption, ChosenStay, Day, Reminder, Trip } from './api'
+import { formatRange } from './stays'
 import { formatMoney } from './TripTotalCard'
 
 // Dates are plain calendar days, so format them in UTC: 3 March must stay 3 March everywhere.
@@ -60,6 +61,41 @@ function OptionPrice({ option, trip }: { option: ChosenOption; trip: Trip }) {
   )
 }
 
+/** A chosen stay's cost in the trip currency; a foreign cost also shows the rate it was converted at. */
+function StayCost({ chosen, trip }: { chosen: ChosenStay; trip: Trip }) {
+  const tripCurrency = trip.currency ?? 'EUR'
+  const rate = trip.cost?.rates.find((r) => r.currency === chosen.currency)?.rate
+  if (chosen.currency === tripCurrency || rate === undefined)
+    return <span className="option-cost">{formatMoney(Number(chosen.total), chosen.currency)}</span>
+  return (
+    <span className="option-cost">
+      {formatMoney(Number(chosen.total) * rate, tripCurrency)}
+      <small>{` ${formatMoney(Number(chosen.total), chosen.currency)} at ${rate}`}</small>
+    </span>
+  )
+}
+
+/** The stays that have a chosen stay, with their dates and cost; booking is on the provider's site. */
+function ChosenStays({ trip }: { trip: Trip }) {
+  const stays = (trip.stays ?? []).filter((s) => s.chosen)
+  if (stays.length === 0) return null
+  return (
+    <section className="stack" aria-labelledby="itinerary-stays">
+      <h3 id="itinerary-stays">Stays</h3>
+      {stays.map((s) => (
+        <div className="card row-between" key={s.id}>
+          <span>
+            <span className="text-bold">{s.chosen!.name}</span>
+            {`, ${formatRange(s.start_date, s.end_date)}`}
+          </span>
+          <StayCost chosen={s.chosen!} trip={trip} />
+        </div>
+      ))}
+      <p className="text-sm text-muted">Final price confirmed on provider's site.</p>
+    </section>
+  )
+}
+
 type ItineraryTabProps = {
   trip: Trip
   onRename: (day: Day, index: number) => void
@@ -101,7 +137,9 @@ export function ItineraryTab({
     )
 
   return (
-    <div className="grid">
+    <div className="stack stack-lg">
+      <ChosenStays trip={trip} />
+      <div className="grid">
       {days.map((day, index) => {
         const chosen = options.filter((option) => option.date === day.date)
         const planned = activities.filter((activity) => activity.date === day.date)
@@ -271,6 +309,7 @@ export function ItineraryTab({
           </section>
         )
       })}
+      </div>
     </div>
   )
 }

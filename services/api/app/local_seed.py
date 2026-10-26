@@ -1,4 +1,6 @@
 from collections.abc import Callable
+import logging
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol
 from uuid import uuid4
@@ -22,6 +24,15 @@ class SeedableIdentity(Protocol):
         """Create an already-confirmed account and return its user id."""
 
     def account_exists(self, email: str) -> bool: ...
+
+
+@dataclass(frozen=True)
+class LocalSeedTarget:
+    """The local stores seeding reads and writes, and the probe that says they hold nothing."""
+
+    is_empty: Callable[[], bool]
+    identity: SeedableIdentity
+    trips: TripStore
 
 
 def _sample_trips(today: date) -> list[Trip]:
@@ -65,3 +76,15 @@ def seed_demo_data(
     for trip in _sample_trips(today):
         trips.save_trip(user_id, trip)
     return True
+
+
+def run_first_start_seed(target: LocalSeedTarget | None, today: date) -> bool:
+    """Seed on a local start. Without local stores (the storage and sign-in work is pending) it does nothing."""
+    if target is None:
+        logging.getLogger(__name__).warning(
+            "Local mode is on but there are no local stores yet, so demo data was not seeded."
+        )
+        return False
+    return seed_demo_data(
+        is_empty=target.is_empty, identity=target.identity, trips=target.trips, today=today
+    )

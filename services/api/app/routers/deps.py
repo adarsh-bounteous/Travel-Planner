@@ -5,6 +5,7 @@ from fastapi import Cookie, Depends, Response
 
 from app.auth.session import read_session
 from app.config import Settings, get_settings
+from app.local_seed import LocalSeedTarget
 from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
@@ -122,6 +123,11 @@ def get_transport_providers() -> list[TransportProvider]:
 
 def get_places() -> PlaceSearch:
     return _places()
+
+
+def get_local_seed_target() -> LocalSeedTarget | None:
+    """The local stores to seed. None until the local storage and local sign-in work provides them."""
+    return None
 
 
 def get_trips() -> TripStore:

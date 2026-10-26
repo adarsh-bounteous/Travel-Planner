@@ -34,15 +34,16 @@ def test_startup_refused(monkeypatch):
             pass
 
 
-def _status_with_identity(identity):
-    from app.routers import auth
+def _status_with_identity(monkeypatch, identity):
+    from app.local_seed import LocalSeedTarget
+    from app.routers import deps
+    from app.trips.store import InMemoryTripStore
 
-    app.dependency_overrides[auth.get_identity] = lambda: identity
-    try:
-        with TestClient(app) as client:
-            return client.get("/startup-status").json()
-    finally:
-        app.dependency_overrides.clear()
+    # is_empty is False so startup does not seed: the test controls the demo user
+    target = LocalSeedTarget(is_empty=lambda: False, identity=identity, trips=InMemoryTripStore())
+    monkeypatch.setattr(deps, "get_local_seed_target", lambda: target)
+    with TestClient(app) as client:
+        return client.get("/startup-status").json()
 
 
 def test_demo_account_is_null_with_local_mode_off(monkeypatch):
@@ -52,7 +53,7 @@ def test_demo_account_is_null_with_local_mode_off(monkeypatch):
     monkeypatch.delenv("LOCAL_MODE", raising=False)
     identity = FakeIdentityProvider()
     identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
-    assert _status_with_identity(identity)["demo_account"] is None
+    assert _status_with_identity(monkeypatch, identity)["demo_account"] is None
 
 
 def test_demo_account_follows_the_demo_user(monkeypatch):
@@ -62,9 +63,16 @@ def test_demo_account_follows_the_demo_user(monkeypatch):
     monkeypatch.setenv("LOCAL_MODE", "true")
     monkeypatch.setenv("APP_ENV", "local")
     identity = FakeIdentityProvider()
-    assert _status_with_identity(identity)["demo_account"] is None
+    assert _status_with_identity(monkeypatch, identity)["demo_account"] is None
     identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
-    assert _status_with_identity(identity)["demo_account"] == {
+    assert _status_with_identity(monkeypatch, identity)["demo_account"] == {
         "email": DEMO_EMAIL,
         "password": DEMO_PASSWORD,
     }
+
+
+def test_demo_account_is_null_without_local_stores(monkeypatch):
+    monkeypatch.setenv("LOCAL_MODE", "true")
+    monkeypatch.setenv("APP_ENV", "local")
+    with TestClient(app) as client:
+        assert client.get("/startup-status").json()["demo_account"] is None

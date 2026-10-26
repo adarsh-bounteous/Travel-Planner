@@ -13,6 +13,11 @@ test('plan wires both apps together', () => {
   assert.ok(p.web.args.includes('--strictPort'))
 })
 
+test('invalid ports are refused', () => {
+  assert.throws(() => buildPlan({ API_PORT: 'abc' }), /API_PORT/)
+  assert.throws(() => buildPlan({ WEB_PORT: '70000' }), /WEB_PORT/)
+})
+
 test('defaults and per-start secret', () => {
   const p = buildPlan({})
   assert.equal(p.apiPort, 8000)

@@ -55,11 +55,19 @@ test('real start: both apps up, wired, and sign-in survives a reload', async () 
   const webPort = await freePort()
   const child = spawn('node', [script], {
     env: { ...process.env, API_PORT: String(apiPort), WEB_PORT: String(webPort) },
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'ignore'],
   })
+  let output = ''
+  child.stdout.on('data', (d) => (output += d))
   const web = `http://127.0.0.1:${webPort}`
   try {
     await waitFor(`${web}/health`)
+    const end = Date.now() + 30000
+    while (!output.includes('Web:') && Date.now() < end) {
+      await new Promise((r) => setTimeout(r, 200))
+    }
+    assert.match(output, new RegExp(`API: http://127.0.0.1:${apiPort}`))
+    assert.match(output, new RegExp(`Web: http://localhost:${webPort}`))
     const root = await fetch(web, { headers: { accept: 'text/html' } })
     assert.match(await root.text(), /<html/i)
 

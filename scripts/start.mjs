@@ -11,9 +11,17 @@ const apiDir = path.join(root, 'services/api')
 const webDir = path.join(root, 'apps/web')
 const venvPython = path.join(apiDir, '.venv/bin/python')
 
+function readPort(env, name, fallback) {
+  const port = Number(env[name] ?? fallback)
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`${name} must be a port number from 1 to 65535, got "${env[name]}".`)
+  }
+  return port
+}
+
 export function buildPlan(env) {
-  const apiPort = Number(env.API_PORT ?? 8000)
-  const webPort = Number(env.WEB_PORT ?? 5173)
+  const apiPort = readPort(env, 'API_PORT', 8000)
+  const webPort = readPort(env, 'WEB_PORT', 5173)
   return {
     apiPort,
     webPort,
@@ -60,8 +68,13 @@ function firstRunSetup() {
 function portOpen(port) {
   return new Promise((resolve) => {
     const sock = net.connect(port, '127.0.0.1')
-    sock.once('connect', () => sock.destroy() || resolve(true))
+    sock.setTimeout(2000, () => sock.destroy())
+    sock.once('connect', () => {
+      sock.destroy()
+      resolve(true)
+    })
     sock.once('error', () => resolve(false))
+    sock.once('close', () => resolve(false))
   })
 }
 
@@ -75,7 +88,13 @@ async function waitUntil(check, ms = 120000) {
 }
 
 async function main() {
-  const plan = buildPlan(process.env)
+  let plan
+  try {
+    plan = buildPlan(process.env)
+  } catch (err) {
+    console.error(err.message)
+    process.exit(1)
+  }
   const busy = await findBusyPorts([
     { name: 'API', port: plan.apiPort },
     { name: 'Web', port: plan.webPort },

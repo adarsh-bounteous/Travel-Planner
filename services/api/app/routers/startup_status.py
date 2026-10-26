@@ -12,7 +12,6 @@ router = APIRouter()
 def startup_status() -> dict[str, object]:
     settings = get_settings()
     return {
-        "environment": settings.environment,
         "local_mode": settings.local_mode,
         "stand_ins": asdict(stand_ins_for(settings.local_mode)),
     }

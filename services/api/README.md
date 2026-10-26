@@ -30,7 +30,7 @@ FastAPI service. Python 3.12.
 Local mode is off unless `LOCAL_MODE` is set, so an unconfigured app behaves like production.
 To use it, set `LOCAL_MODE=true` and `APP_ENV=local`. If local mode is on in any other
 environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the local environment.
-`GET /startup-status` reports the environment, whether local mode is on, and which stand-ins
+`GET /startup-status` reports whether local mode is on and which stand-ins
 (storage, sign-in, cloud services) are enabled.
 
 Sessions are HttpOnly cookies that are re-issued on every authenticated request, so they

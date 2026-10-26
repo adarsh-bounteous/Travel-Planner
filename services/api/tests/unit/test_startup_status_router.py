@@ -11,7 +11,7 @@ def test_status_off_matches_production(monkeypatch):
     with TestClient(app) as client:
         body = client.get("/startup-status").json()
         assert client.get("/health").json() == {"status": "ok"}
-    assert body["environment"] == "production"
+    assert "environment" not in body  # the environment name is not exposed to anonymous callers
     assert body["local_mode"] is False
     assert not any(body["stand_ins"].values())
 

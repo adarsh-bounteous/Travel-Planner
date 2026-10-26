@@ -23,11 +23,12 @@ import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
-// Every page other than the auth pages must be wrapped in <RequireAuth>, except three:
-// the local inbox only lists emails local mode would have sent; the invite page names the email to sign in with while signed out, and the server checks the
+// Every page other than the auth pages must be wrapped in <RequireAuth>, except four:
+// the invite page names the email to sign in with while signed out, and the server checks the
 // session on accept; the read-only trip page is for people with no account, and its link is the
 // credential; Destination results browses the read-only catalogue, and a signed-out visitor who
-// chooses Save is sent to sign in (see useSavedPlaces).
+// chooses Save is sent to sign in (see useSavedPlaces); the local inbox lists the emails local
+// mode would have sent, and its API route answers 404 unless local mode is on.
 export default function App() {
   return (
     <>

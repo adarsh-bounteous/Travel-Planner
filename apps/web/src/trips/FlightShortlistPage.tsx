@@ -4,12 +4,12 @@ import { AlertIcon, CheckIcon, ChevronDownIcon, SearchIcon } from '../auth/icons
 import { fetchFlightShortlist, fetchTrip } from './api'
 import type { FlightShortlist, Trip } from './api'
 import { FlightShortlistCard } from './FlightShortlistCard'
-import { formatFare, formatLegDate } from './flights'
+import { formatFare, formatLegDate, formatMode } from './flights'
 import { Toast } from './Toast'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; shortlist: FlightShortlist }
 
-const LOADING_LABEL = 'Loading flights'
+const LOADING_LABEL = 'Loading travel options'
 const SKELETON_WIDTHS = ['50%', '30%', '60%']
 
 const lowerFirst = (name: string) => name.charAt(0).toLowerCase() + name.slice(1)
@@ -69,7 +69,7 @@ export function FlightShortlistPage() {
   const ordered = [...flights.filter((f) => f.fits_budget), ...flights.filter((f) => !f.fits_budget)]
   const missing = shortlist?.sources.filter((s) => s.status !== 'ok') ?? []
   const answered = shortlist?.sources.filter((s) => s.status === 'ok') ?? []
-  const heading = `Flights, ${origin} to ${destination}, ${date ? formatLegDate(date) : ''}`
+  const heading = `Travel options, ${origin} to ${destination}, ${date ? formatLegDate(date) : ''}`
   const line = trip ? budgetLine(trip) : null
 
   return (
@@ -153,8 +153,13 @@ export function FlightShortlistPage() {
           </div>
         </div>
       )}
+      {shortlist?.no_service.map((mode) => (
+        <p className="text-sm text-muted" role="note" key={mode}>
+          {`No ${formatMode(mode).toLowerCase()} services run on this route.`}
+        </p>
+      ))}
       {shortlist && ordered.length > 0 && (
-        <div className="stack" role="list" aria-label="Flights ranked, best first">
+        <div className="stack" role="list" aria-label="Travel options ranked, best first">
           {ordered.map((item) => (
             <FlightShortlistCard key={item.flight.id} item={item} tripCurrency={shortlist.currency} />
           ))}
@@ -163,7 +168,7 @@ export function FlightShortlistPage() {
       {shortlist && ordered.length === 0 && missing.length === 0 && (
         <div className="empty-state">
           <SearchIcon />
-          <h2>No flights were found for this route and date.</h2>
+          <h2>No travel options were found for this route and date.</h2>
           <p>{`Try another date, or choose another way to travel between ${origin} and ${destination}.`}</p>
           <button className="btn btn-primary" type="button" onClick={() => navigate(tripHref)}>
             Change dates

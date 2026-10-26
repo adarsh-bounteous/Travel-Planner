@@ -1,6 +1,6 @@
 import { AlertIcon, CheckIcon, StarIcon } from '../auth/icons'
 import type { ShortlistFlight } from './api'
-import { formatFare, formatMinutes, formatRetrieved, formatStops } from './flights'
+import { formatFare, formatMinutes, formatMode, formatRetrieved, formatStops } from './flights'
 
 /** One flight on the shortlist: why it is placed here, its fare, and whether it fits the trip budget. */
 export function FlightShortlistCard({ item, tripCurrency }: { item: ShortlistFlight; tripCurrency: string }) {
@@ -9,17 +9,26 @@ export function FlightShortlistCard({ item, tripCurrency }: { item: ShortlistFli
     <article className="card flight-option" role="listitem">
       <div className="option-top">
         <span className="provider">{flight.provider}</span>
+        <span className="badge badge-neutral">{formatMode(flight.mode)}</span>
         <span className="badge badge-neutral">{item.reason}</span>
       </div>
       <div className="fare">
+        {flight.estimate && <span className="text-sm text-muted">Estimated fare</span>}
         <span className="fare-amount">{formatFare(flight.fare, flight.currency)}</span>
-        <span className="text-sm text-muted">{`indicative as of ${formatRetrieved(flight.fetched_at)}`}</span>
+        {!flight.estimate && (
+          <span className="text-sm text-muted">{`indicative as of ${formatRetrieved(flight.fetched_at)}`}</span>
+        )}
       </div>
       <div className="option-details">
         <span>{formatMinutes(flight.travel_minutes)}</span>
         <span>{formatStops(flight.stops)}</span>
         <span className="text-sm text-muted">{`via ${flight.source}`}</span>
       </div>
+      {flight.mode === 'taxi' && (
+        <a href={flight.url} rel="noopener noreferrer" target="_blank">
+          Open ride provider
+        </a>
+      )}
       {flight.deal && (
         <span className="badge badge-warning">
           <StarIcon />

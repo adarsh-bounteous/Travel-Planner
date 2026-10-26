@@ -302,9 +302,13 @@ export const fetchStayShortlist =(tripId: string, stayId: string, c: StayCriteri
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(c)}`,
   )
 
-export type SourceResult = { name: string; status: 'ok' | 'failed' | 'timed_out' }
+export type SourceResult = { name: string; status: 'ok' | 'failed' | 'timed_out'; modes?: TransportMode[] }
+/** One single-mode option on a leg: a flight, train, bus or taxi. */
 export type FlightOption = {
   id: string
+  mode: TransportMode
+  /** True when the fare is an estimate, as for a taxi. */
+  estimate?: boolean
   provider: string
   source: string
   fare: string
@@ -333,6 +337,8 @@ export type FlightShortlist = {
   currency: string
   sources: SourceResult[]
   flights: ShortlistFlight[]
+  /** Modes with no entries on this leg, whose sources all answered. */
+  no_service: TransportMode[]
 }
 
 export const fetchFlightShortlist = (tripId: string, origin: string, destination: string, date: string) =>

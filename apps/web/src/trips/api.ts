@@ -171,6 +171,25 @@ export type TripCreateInput = {
   traveller_count: number
 }
 
+export type TransportMode = 'flight' | 'train' | 'bus' | 'taxi'
+export type TransportCabin = 'economy' | 'premium_economy' | 'business'
+export type DepartureWindow = 'morning' | 'afternoon' | 'evening' | 'night'
+/** Every part is optional; a part left unset never excludes an option. */
+export type TransportPreferences = {
+  modes: TransportMode[]
+  cabin: TransportCabin | null
+  departure_window: DepartureWindow | null
+  max_stops: number | null
+  providers: string[]
+}
+export const NO_TRANSPORT_PREFERENCES: TransportPreferences = {
+  modes: [],
+  cabin: null,
+  departure_window: null,
+  max_stops: null,
+  providers: [],
+}
+
 export type Profile = {
   display_name: string
   home_city: string
@@ -182,6 +201,7 @@ export type Profile = {
   diet: string
   tastes: string[]
   travel_style: string
+  transport_preferences: TransportPreferences
 }
 
 export class NotFoundError extends Error {}
@@ -338,6 +358,10 @@ export const acceptInvite = (token: string) =>
 export const deleteTrip =(id: string) =>
   call<void>(`/trips/${encodeURIComponent(id)}`, 'DELETE')
 
-export const fetchProfile = () => call<Profile>('/profile')
+/** A profile saved before transport preferences existed comes back without the block. */
+export async function fetchProfile(): Promise<Profile> {
+  const profile = await call<Profile>('/profile')
+  return { ...profile, transport_preferences: profile.transport_preferences ?? NO_TRANSPORT_PREFERENCES }
+}
 
 export const saveProfile = (profile: Profile) => call<Profile>('/profile', 'PUT', profile)

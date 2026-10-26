@@ -9,6 +9,9 @@ from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
+from app.transport.options import TransportProvider
+from app.transport.providers import SEED_CATALOGUES as TRANSPORT_SEED_CATALOGUES
+from app.transport.providers import InMemoryTransportProvider
 from app.trips.recommendations import (
     SEED_RECOMMENDATIONS,
     InMemoryRecommendations,
@@ -58,6 +61,11 @@ def _stay_providers() -> list[StayProvider]:
 
 
 @lru_cache
+def _transport_providers() -> list[TransportProvider]:
+    return [InMemoryTransportProvider(name, catalogue) for name, catalogue in TRANSPORT_SEED_CATALOGUES.items()]
+
+
+@lru_cache
 def _recommendations() -> RecommendationSource:
     return InMemoryRecommendations(SEED_RECOMMENDATIONS)
 
@@ -87,6 +95,10 @@ def get_recommendations() -> RecommendationSource:
 
 def get_stay_providers() -> list[StayProvider]:
     return _stay_providers()
+
+
+def get_transport_providers() -> list[TransportProvider]:
+    return _transport_providers()
 
 
 def get_places() -> PlaceSearch:

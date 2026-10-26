@@ -206,9 +206,12 @@ export function AccountPage() {
   return (
     <div className="col stack">
       <h1>Account</h1>
-      <div className="card">
+      <div className="card cluster">
         <Link className="btn btn-secondary" to="/profile">
           Traveller profile
+        </Link>
+        <Link className="btn btn-secondary" to="/profile/transport">
+          Transport preferences
         </Link>
       </div>
       {method === 'email' && (

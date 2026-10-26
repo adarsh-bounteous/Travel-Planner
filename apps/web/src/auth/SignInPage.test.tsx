@@ -105,4 +105,46 @@ describe('SignInPage', () => {
     await submitSignIn('maya@example.com', 'abcdefghij12')
     expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
+
+  describe('demo account hint', () => {
+    const demo = { email: 'demo@example.com', password: 'demo-password-1' }
+    const status = (demo_account: unknown) => ({
+      '/auth/me': { status: 401 },
+      '/startup-status': { status: 200, body: { local_mode: true, demo_account } },
+    })
+
+    afterEach(() => sessionStorage.clear())
+
+    it('offers the demo details and fills them in', async () => {
+      mockApi(status(demo))
+      renderAt('/sign-in')
+      expect(await screen.findByText('Demo account is ready')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Fill in demo details' }))
+      expect(screen.getByLabelText('Email')).toHaveValue('demo@example.com')
+      expect(screen.getByLabelText('Password')).toHaveValue('demo-password-1')
+    })
+
+    it('shows no hint when there is no demo account', async () => {
+      mockApi(status(null))
+      renderAt('/sign-in')
+      await screen.findByRole('heading', { name: 'Sign in' })
+      expect(screen.queryByText('Demo account is ready')).toBeNull()
+    })
+
+    it('shows no hint and no error when the status call fails', async () => {
+      mockApi({ '/auth/me': { status: 401 } })
+      renderAt('/sign-in')
+      await screen.findByRole('heading', { name: 'Sign in' })
+      expect(screen.queryByText('Demo account is ready')).toBeNull()
+      expect(screen.queryByRole('alert')).toBeNull()
+    })
+
+    it('keeps the return-to notice next to the hint', async () => {
+      sessionStorage.setItem('returnTo', '/trips')
+      mockApi(status(demo))
+      renderAt('/sign-in')
+      expect(await screen.findByText('Demo account is ready')).toBeInTheDocument()
+      expect(screen.getByText(/You'll go to/)).toBeInTheDocument()
+    })
+  })
 })

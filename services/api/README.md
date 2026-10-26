@@ -33,6 +33,20 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 `GET /startup-status` reports whether local mode is on and which stand-ins
 (storage, sign-in, cloud services) are enabled.
 
+### Demo account and sample trips
+
+On the first local start, when local data is completely empty (no accounts and no trips), the
+API seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
+Kyoto", dated from the day of the start). Sign in with `demo@example.com` and `demo-password-1`;
+no sign-up is needed. Fresh sign-up still works. The demo password is for local use only.
+
+Seeding runs only when local data is empty, and it never updates anything, so a restart adds no
+second demo account or trips and keeps your edits. If other data exists but the demo account or
+its trips are missing, nothing is added. A crash part-way through seeding is not repaired. For a
+fresh first start, clear the local data. In local mode `GET /startup-status` also returns
+`demo_account` (email and password) once the demo account exists, so the sign-in page can offer
+it. It is `null` whenever local mode is off.
+
 Sessions are HttpOnly cookies that are re-issued on every authenticated request, so they
 expire after 7 days without use. No email or password is logged.
 

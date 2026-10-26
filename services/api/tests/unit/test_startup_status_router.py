@@ -32,3 +32,39 @@ def test_startup_refused(monkeypatch):
     with pytest.raises(LocalModeRefusedError):
         with TestClient(app):
             pass
+
+
+def _status_with_identity(identity):
+    from app.routers import auth
+
+    app.dependency_overrides[auth.get_identity] = lambda: identity
+    try:
+        with TestClient(app) as client:
+            return client.get("/startup-status").json()
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_demo_account_is_null_with_local_mode_off(monkeypatch):
+    from app.auth.fake_identity import FakeIdentityProvider
+    from app.local_seed import DEMO_EMAIL, DEMO_PASSWORD
+
+    monkeypatch.delenv("LOCAL_MODE", raising=False)
+    identity = FakeIdentityProvider()
+    identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
+    assert _status_with_identity(identity)["demo_account"] is None
+
+
+def test_demo_account_follows_the_demo_user(monkeypatch):
+    from app.auth.fake_identity import FakeIdentityProvider
+    from app.local_seed import DEMO_EMAIL, DEMO_PASSWORD
+
+    monkeypatch.setenv("LOCAL_MODE", "true")
+    monkeypatch.setenv("APP_ENV", "local")
+    identity = FakeIdentityProvider()
+    assert _status_with_identity(identity)["demo_account"] is None
+    identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
+    assert _status_with_identity(identity)["demo_account"] == {
+        "email": DEMO_EMAIL,
+        "password": DEMO_PASSWORD,
+    }

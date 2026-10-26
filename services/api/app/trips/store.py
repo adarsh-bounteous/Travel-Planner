@@ -292,6 +292,9 @@ class InMemoryTripStore:
         self._share_links: dict[str, ShareLink] = {}
         self._editors: dict[tuple[str, str], str] = {}
 
+    def is_empty(self) -> bool:
+        return not (self._trips or self._invites or self._share_links or self._editors)
+
     def list_trips(self, owner_id: str) -> list[Trip]:
         return [t for (owner, _), t in self._trips.items() if owner == owner_id]
 

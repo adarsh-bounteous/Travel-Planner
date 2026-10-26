@@ -32,6 +32,17 @@ class FakeIdentityProvider:
     def account_count(self, email: str) -> int:
         return 1 if email in self._users else 0
 
+    def account_exists(self, email: str) -> bool:
+        return email in self._users
+
+    def is_empty(self) -> bool:
+        return not self._users
+
+    def create_confirmed_user(self, email: str, password: str) -> str:
+        self.sign_up_email(email, password)
+        self.confirm(email)
+        return self._users[email].user_id
+
     def sign_up_email(self, email: str, password: str) -> None:
         if email in self._users:
             raise EmailTaken

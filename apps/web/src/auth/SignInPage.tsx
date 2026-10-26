@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router'
-import { AuthError, requestResend } from './api'
+import { AuthError, fetchDemoAccount, requestResend } from './api'
+import type { DemoAccount } from './api'
 import { AuthForm } from './AuthForm'
 import { useAuth } from './AuthProvider'
 import { GoogleNoAccountModal } from './GoogleNoAccountModal'
@@ -20,7 +21,16 @@ export function SignInPage() {
   )
   const [notLinked, setNotLinked] = useState(params.get('error') === 'google_not_linked')
 
-  const closeModal = useCallback(() => {
+  const [demo, setDemo] = useState<DemoAccount | null>(null)
+  useEffect(() => {
+    let current = true
+    void fetchDemoAccount().then((account) => current && setDemo(account))
+    return () => {
+      current = false
+    }
+  }, [])
+
+  const closeModal =useCallback(() => {
     setNotLinked(false)
     setParams({}, { replace: true })
   }, [setParams])
@@ -66,16 +76,36 @@ export function SignInPage() {
         onSubmit={submit}
         onResend={resend}
         resent={resent}
-        notice={
-          returnTo && (
-            <p className="alert alert-info cluster" role="status">
-              <InfoIcon />
-              <span>
-                You'll go to <strong>{pageLabel(returnTo)}</strong> after signing in.
-              </span>
-            </p>
-          )
-        }
+        notice={(fillPassword) => (
+          <>
+            {returnTo && (
+              <p className="alert alert-info cluster" role="status">
+                <InfoIcon />
+                <span>
+                  You'll go to <strong>{pageLabel(returnTo)}</strong> after signing in.
+                </span>
+              </p>
+            )}
+            {demo && (
+              <div className="alert alert-info stack stack-sm" role="status">
+                <p className="alert-title">Demo account is ready</p>
+                <p className="text-sm">
+                  Email <code>{demo.email}</code> and password <code>{demo.password}</code>
+                </p>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  type="button"
+                  onClick={() => {
+                    setEmail(demo.email)
+                    fillPassword(demo.password)
+                  }}
+                >
+                  Fill in demo details
+                </button>
+              </div>
+            )}
+          </>
+        )}
       />
       {notLinked && <GoogleNoAccountModal onSignUp={goToSignUp} onCancel={closeModal} />}
     </>

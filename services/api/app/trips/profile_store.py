@@ -1,6 +1,29 @@
-from typing import Annotated, Protocol
+from typing import Annotated, Literal, Protocol
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, Field, StringConstraints, model_validator
+
+Mode = Literal["flight", "train", "bus", "taxi"]
+Cabin = Literal["economy", "premium_economy", "business"]
+DepartureWindow = Literal["morning", "afternoon", "evening", "night"]
+
+
+class TransportPreferences(BaseModel):
+    """How a traveller likes to travel. Every part is optional; an unset part never excludes an option."""
+
+    modes: list[Mode] = Field(default_factory=list, max_length=4)
+    cabin: Cabin | None = None
+    departure_window: DepartureWindow | None = None
+    max_stops: int | None = Field(default=None, ge=0, le=10)
+    providers: list[Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]] = (
+        Field(default_factory=list, max_length=20)
+    )
+
+    @model_validator(mode="after")
+    def _no_duplicate_providers(self) -> "TransportPreferences":
+        names = [p.casefold() for p in self.providers]
+        if len(set(names)) != len(names):
+            raise ValueError("providers must not repeat")
+        return self
 
 
 class Profile(BaseModel):
@@ -19,6 +42,7 @@ class Profile(BaseModel):
         default_factory=list, max_length=20
     )
     travel_style: str = Field(default="", max_length=80)
+    transport_preferences: TransportPreferences = Field(default_factory=TransportPreferences)
 
 
 class ProfileStore(Protocol):

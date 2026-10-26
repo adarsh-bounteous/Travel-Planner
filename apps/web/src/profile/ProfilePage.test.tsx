@@ -14,6 +14,7 @@ const BLANK = {
   diet: '',
   tastes: [],
   travel_style: '',
+  transport_preferences: { modes: [], cabin: null, departure_window: null, max_stops: null, providers: [] },
 }
 
 const FULL = {
@@ -27,6 +28,7 @@ const FULL = {
   diet: 'Vegan',
   tastes: ['Food', 'Museums'],
   travel_style: 'Cultural',
+  transport_preferences: { modes: ['train'], cabin: null, departure_window: null, max_stops: 3, providers: [] },
 }
 
 const REQUIRED_ONLY = { ...BLANK, citizenship: 'Ireland', residence: 'France' }

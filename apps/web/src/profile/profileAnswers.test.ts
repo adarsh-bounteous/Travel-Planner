@@ -1,3 +1,4 @@
+import { NO_TRANSPORT_PREFERENCES } from '../trips/api'
 import type { Profile } from '../trips/api'
 import { PROFILE_ORDER, answerError, answerText, withAnswer } from './profileAnswers'
 
@@ -12,6 +13,7 @@ const FULL: Profile = {
   diet: 'Vegetarian',
   tastes: ['Food', 'Museums'],
   travel_style: 'Cultural',
+  transport_preferences: { ...NO_TRANSPORT_PREFERENCES, modes: ['train'] },
 }
 
 describe('profileAnswers', () => {
@@ -51,5 +53,9 @@ describe('profileAnswers', () => {
     const before = structuredClone(FULL)
     expect(withAnswer(FULL, 'diet', 'Vegan')).toEqual({ ...FULL, diet: 'Vegan' })
     expect(FULL).toEqual(before)
+  })
+
+  it('keeps the saved transport preferences when another answer changes', () => {
+    expect(withAnswer(FULL, 'diet', 'Vegan').transport_preferences).toEqual(FULL.transport_preferences)
   })
 })

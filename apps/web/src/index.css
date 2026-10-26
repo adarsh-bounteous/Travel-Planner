@@ -269,3 +269,24 @@ legend { padding: 0; }
 @media (min-width: 48rem) { .compare-grid { grid-template-columns: repeat(auto-fit, minmax(var(--size-grid-min), 1fr)); } }
 .compare-head { display: flex; flex-direction: column; gap: var(--space-1); }
 .compare-key { font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+
+/* Transport preferences and transport search */
+.page { width: 100%; max-width: var(--size-content-max); }
+.alert-success { border-color: var(--color-success); background: var(--color-success-subtle); }
+.pref-row { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pref-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; padding: 0; margin-bottom: var(--space-2); }
+.pref-head legend, .pref-title { font-weight: var(--font-weight-bold); }
+.pref-options { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.pref-options .check { min-height: var(--size-control-md); padding-right: var(--space-2); }
+.chip.is-selected { background: var(--color-primary-subtle); border-color: var(--color-primary); color: var(--color-primary-hover); }
+.chip-remove { min-height: 0; width: auto; padding: 0; }
+.add-row { display: flex; gap: var(--space-2); align-items: flex-end; }
+.add-row .input { flex: 1; min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.search-grid { align-items: end; }
+.status-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-primary-subtle); }
+.status-strip.is-plain { background: var(--color-surface); }
+.transport-option { display: grid; gap: var(--space-1) var(--space-3); grid-template-columns: 1fr auto; align-items: center; }
+.transport-option-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.transport-option-price { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); text-align: right; }
+.transport-option-foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-2); }

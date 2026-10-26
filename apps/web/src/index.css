@@ -255,3 +255,15 @@ legend { padding: 0; }
 .note .icon { flex: none; margin-top: var(--space-1); }
 .actions-end { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
 .sk-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.shortlist-group { display: flex; flex-direction: column; gap: var(--space-3); }
+.stay-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.badges { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.stay-total { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
+.fit-bar { height: var(--space-2); border-radius: var(--radius-full); background: var(--color-border); overflow: hidden; }
+.fit-bar > span { display: block; height: 100%; background: var(--color-fg-muted); }
+.fit-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--font-size-sm); }
+.metric { display: flex; flex-direction: column; gap: var(--space-1); }
+.compare-grid { display: grid; gap: var(--space-3); grid-template-columns: 1fr; }
+@media (min-width: 48rem) { .compare-grid { grid-template-columns: repeat(auto-fit, minmax(var(--size-grid-min), 1fr)); } }
+.compare-head { display: flex; flex-direction: column; gap: var(--space-1); }
+.compare-key { font-size: var(--font-size-sm); color: var(--color-fg-muted); }

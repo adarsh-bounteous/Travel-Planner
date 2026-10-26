@@ -13,6 +13,7 @@ import { ProfilePage } from './profile/ProfilePage'
 import { SavedPage } from './saved/SavedPage'
 import { InvitePage } from './trips/InvitePage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
+import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
@@ -118,6 +119,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <StayOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/stays/:stayId/shortlist"
+            element={
+              <RequireAuth>
+                <StayShortlistPage />
               </RequireAuth>
             }
           />

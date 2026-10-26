@@ -109,9 +109,13 @@ def _local_invite_sender() -> InMemoryInviteSender:
     return InMemoryInviteSender()
 
 
-def get_local_inbox() -> InMemoryInviteSender:
+def require_local_mode() -> None:
     if not get_settings().local_mode:
         raise ApiError(404, "not_found")
+
+
+def get_local_inbox() -> InMemoryInviteSender:
+    require_local_mode()
     return _local_invite_sender()
 
 

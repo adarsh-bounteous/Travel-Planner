@@ -292,6 +292,12 @@ class InMemoryTripStore:
         self._share_links: dict[str, ShareLink] = {}
         self._editors: dict[tuple[str, str], str] = {}
 
+    def reset(self) -> None:
+        self._trips.clear()
+        self._invites.clear()
+        self._share_links.clear()
+        self._editors.clear()
+
     def is_empty(self) -> bool:
         return not (self._trips or self._invites or self._share_links or self._editors)
 

@@ -151,3 +151,16 @@ def test_fake_create_confirmed_user_refuses_a_taken_email(stores):
     identity.create_confirmed_user("a@example.com", "abcdefghij12")
     with pytest.raises(EmailTaken):
         identity.create_confirmed_user("a@example.com", "abcdefghij12")
+
+
+def test_store_reset_empties_local_stores():
+    from app.auth.fake_identity import FakeIdentityProvider
+    from app.trips.store import InMemoryTripStore
+
+    identity = FakeIdentityProvider()
+    identity.create_confirmed_user("sam@example.com", "abcdefghij12")
+    identity.reset()
+    assert identity.is_empty()
+    trips = InMemoryTripStore()
+    trips.reset()
+    assert trips.is_empty()

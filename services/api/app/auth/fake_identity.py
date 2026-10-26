@@ -26,6 +26,11 @@ class FakeIdentityProvider:
         self.resent: list[str] = []
         self.pending_email: dict[str, str] = {}
 
+    def reset(self) -> None:
+        self._users.clear()
+        self.resent.clear()
+        self.pending_email.clear()
+
     def confirm(self, email: str) -> None:
         self._users[email].confirmed = True
 

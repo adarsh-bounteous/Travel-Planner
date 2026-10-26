@@ -68,7 +68,21 @@ export async function fetchDemoAccount(): Promise<DemoAccount | null> {
   }
 }
 
-export const requestSignIn = (email: string, password: string) =>
+/** Whether the API is running with local sign-in on; false when it says no, or when the call fails. */
+export async function fetchLocalMode(): Promise<boolean> {
+  try {
+    const response = await fetch('/startup-status', { credentials: 'same-origin' })
+    if (!response.ok) return false
+    const body = await response.json()
+    return body.local_mode === true
+  } catch {
+    return false
+  }
+}
+
+export const requestResetLocalData = () => post('/local/reset')
+
+export const requestSignIn =(email: string, password: string) =>
   post('/auth/sign-in', { email, password })
 
 export const requestSignUp = (email: string, password: string) =>

@@ -11,6 +11,9 @@ class InMemoryInviteSender:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str, str]] = []
 
+    def reset(self) -> None:
+        self.sent.clear()
+
     def send(self, email: str, trip_name: str, link: str) -> None:
         self.sent.append((email, trip_name, link))
 

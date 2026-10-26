@@ -27,7 +27,8 @@ type Props = {
   onSubmit: (email: string, password: string) => void
   onResend?: () => void
   resent?: boolean
-  notice?: ReactNode
+  /** Shown above the form. A function receives a setter for the password field. */
+  notice?: ReactNode | ((fillPassword: (value: string) => void) => ReactNode)
 }
 
 const EMAIL_PROBLEMS: Problem[] = ['no_account', 'could_not_create', 'email_not_confirmed']
@@ -51,7 +52,7 @@ export function AuthForm(props: Props) {
 
   return (
     <div className="auth stack">
-      {props.notice}
+      {typeof props.notice === 'function' ? props.notice(setPassword) : props.notice}
       {message && (
         <div
           id={ALERT_ID}

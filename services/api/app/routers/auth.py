@@ -8,8 +8,9 @@ from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
-from app.auth.accounts import AccountStore, DynamoAccountStore
+from app.auth.accounts import AccountStore, DynamoAccountStore, InMemoryAccountStore
 from app.auth.cognito_identity import CognitoIdentityProvider
+from app.auth.fake_identity import FakeIdentityProvider
 from app.auth.identity import (
     EmailNotConfirmed,
     EmailTaken,
@@ -54,12 +55,23 @@ def _dynamo() -> AccountStore:
     return DynamoAccountStore(get_settings().accounts_table_name)
 
 
+@lru_cache
+def _local_identity() -> FakeIdentityProvider:
+    """Local mode's sign-in stand-in: in memory, so every local start is a first start."""
+    return FakeIdentityProvider()
+
+
+@lru_cache
+def _local_accounts() -> InMemoryAccountStore:
+    return InMemoryAccountStore()
+
+
 def get_identity() -> IdentityProvider:
-    return _cognito()
+    return _local_identity() if get_settings().local_mode else _cognito()
 
 
 def get_accounts() -> AccountStore:
-    return _dynamo()
+    return _local_accounts() if get_settings().local_mode else _dynamo()
 
 
 def get_now() -> datetime:

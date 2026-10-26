@@ -1,12 +1,15 @@
 from collections.abc import AsyncIterator
+from datetime import date
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings, session_secret
+from app.local_seed import run_first_start_seed
 from app.routers import (
     auth,
+    deps,
     flight_shortlist,
     health,
     invites,
@@ -26,7 +29,9 @@ from app.routers.deps import ApiError
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     session_secret()  # fail closed: refuse to start without a signing key
-    get_settings()  # fail closed: refuse to start with local mode on outside the local environment
+    settings = get_settings()  # fail closed: refuse to start with local mode on outside the local environment
+    if settings.local_mode:
+        run_first_start_seed(deps.get_local_seed_target(), date.today())
     yield
 
 

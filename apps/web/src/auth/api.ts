@@ -54,6 +54,20 @@ export async function fetchMe(): Promise<{ email: string; method: SignInMethod }
   return response.ok ? response.json() : null
 }
 
+export type DemoAccount = { email: string; password: string }
+
+/** The demo sign-in details the API offers in local mode; null when none, or when the call fails. */
+export async function fetchDemoAccount(): Promise<DemoAccount | null> {
+  try {
+    const response = await fetch('/startup-status', { credentials: 'same-origin' })
+    if (!response.ok) return null
+    const body = await response.json()
+    return body.demo_account ?? null
+  } catch {
+    return null
+  }
+}
+
 export const requestSignIn = (email: string, password: string) =>
   post('/auth/sign-in', { email, password })
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
 import type { Activity, ChosenOption, ChosenStay, Day, Reminder, Trip } from './api'
+import { LEGS, legName, pickSummary } from './flights'
 import { formatRange } from './stays'
 import { formatMoney } from './TripTotalCard'
 
@@ -116,6 +117,37 @@ function ChosenStays({ trip, editable }: { trip: Trip; editable: boolean }) {
   )
 }
 
+/** Every transport pick with its leg, and the trip total; booking is on the provider's site. */
+function ChosenTransport({ trip }: { trip: Trip }) {
+  const picks = trip.transport ?? []
+  const destination = trip.destination ?? 'your destination'
+  return (
+    <div className="card stack" aria-labelledby="itinerary-transport">
+      <h2 className="text-lg" id="itinerary-transport">
+        Chosen options
+      </h2>
+      {picks.length === 0 ? (
+        <p className="text-muted">No transport picked yet. Pick transport on the trip.</p>
+      ) : (
+        <ul className="chosen">
+          {LEGS.map((leg) => {
+            const pick = picks.find((p) => p.leg === leg)
+            return (
+              pick && (
+                <li key={leg}>
+                  <span className="text-muted">{`${legName(leg, destination)}: `}</span>
+                  {pickSummary(pick)}
+                </li>
+              )
+            )
+          })}
+        </ul>
+      )}
+      {trip.cost && <p className="text-bold">{`Trip total ${formatMoney(trip.cost.total, trip.cost.currency)}`}</p>}
+    </div>
+  )
+}
+
 type ItineraryTabProps = {
   trip: Trip
   onRename: (day: Day, index: number) => void
@@ -158,6 +190,7 @@ export function ItineraryTab({
 
   return (
     <div className="stack stack-lg">
+      <ChosenTransport trip={trip} />
       <ChosenStays trip={trip} editable={editable} />
       <div className="grid">
       {days.map((day, index) => {

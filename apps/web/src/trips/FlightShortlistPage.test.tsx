@@ -240,6 +240,83 @@ describe('flight shortlist page', () => {
     expect(screen.queryByText(/No taxi services/)).toBeNull()
   })
 
+  describe('picking', () => {
+    const pickFor = (leg: string, optionId: string, provider: string) => ({
+      leg,
+      option_id: optionId,
+      mode: 'flight',
+      provider,
+      origin: 'Lisbon',
+      destination: 'Faro',
+      date: '2027-11-18',
+      estimate: false,
+      fare: '54',
+      picked_fare: '54',
+      currency: 'EUR',
+      url: 'https://example.com/f',
+    })
+
+    const openLeg = (leg: string, existing: unknown[] = []) => {
+      const reply = (status: number, payload: unknown) => new Response(JSON.stringify(payload), { status })
+      const fetchMock = vi.fn(async (path: string, init?: RequestInit) => {
+        if (path === '/auth/me') return reply(200, { email: 'maya@example.com', method: 'email' })
+        if (path === '/trips/t1') return reply(200, { ...trip, can_edit: true, transport: existing })
+        if (path.startsWith('/trips/t1/flights/shortlist')) return reply(200, body(all()))
+        if (init?.method === 'PUT' && path === `/trips/t1/transport/${leg}`) {
+          const { option_id } = JSON.parse(String(init.body))
+          const provider = all().find((f) => f.flight.id === option_id)!.flight.provider
+          return reply(200, { ...trip, can_edit: true, transport: [...existing, pickFor(leg, option_id, provider)] })
+        }
+        return reply(404, {})
+      })
+      vi.stubGlobal('fetch', fetchMock)
+      renderAt(`${PAGE}&leg=${leg}`)
+      return fetchMock
+    }
+
+    it('shows Picked on the chosen option and sends it to the trip (AC1)', async () => {
+      const fetchMock = openLeg('destination')
+      const buttons = await screen.findAllByRole('button', { name: 'Pick' })
+      fireEvent.click(buttons[0])
+      const picked = await screen.findByRole('button', { name: 'Picked' })
+      expect(picked).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByText('Picked Algarve Air. Added to your trip total.')).toBeInTheDocument()
+      const put = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT')!
+      expect(JSON.parse(String(put[1]!.body))).toEqual({
+        origin: 'Lisbon',
+        destination: 'Faro',
+        date: '2027-11-18',
+        option_id: 'algarve-air',
+      })
+    })
+
+    it('moves the pick when another option is picked (AC2)', async () => {
+      openLeg('destination', [])
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Pick' }))[0])
+      await screen.findByRole('button', { name: 'Picked' })
+      fireEvent.click(screen.getAllByRole('button', { name: 'Pick' })[0])
+      await screen.findByText('Picked Lusitania Jet. Your earlier pick is replaced.')
+      expect(screen.getAllByRole('button', { name: 'Picked' })).toHaveLength(1)
+    })
+
+    it('keeps the pick of another leg on the trip (AC4)', async () => {
+      openLeg('local_taxi', [pickFor('destination', 'atlantic-air', 'Atlantic Air')])
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Pick' }))[0])
+      await screen.findByRole('button', { name: 'Picked' })
+      expect(screen.getAllByRole('button', { name: 'Picked' })).toHaveLength(1)
+    })
+
+    it('says what happened when picking fails', async () => {
+      const fetchMock = openLeg('destination')
+      const original = fetchMock.getMockImplementation()!
+      fetchMock.mockImplementation(async (path, init) =>
+        init?.method === 'PUT' ? new Response(null, { status: 500 }) : original(path, init),
+      )
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Pick' }))[0])
+      expect(await screen.findByRole('alert')).toHaveTextContent(/couldn't save your pick/i)
+    })
+  })
+
   it('explains the ranking on demand', async () => {
     open(body(all()))
     const toggle = await screen.findByRole('button', { name: /How we rank/ })

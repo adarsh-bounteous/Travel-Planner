@@ -244,6 +244,11 @@ legend { padding: 0; }
 .badge-danger { background: var(--color-danger-subtle); color: var(--color-danger); border-color: var(--color-danger); }
 .flight-option { display: grid; gap: var(--space-2); justify-items: start; }
 .flight-option > * { max-width: 100%; }
+.flight-option.is-picked { border: 2px solid var(--color-primary); }
+.leg-pick { display: grid; gap: var(--space-2); background: var(--color-surface); }
+.pick-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.link-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); }
+.chosen { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
 .option-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; }
 .provider { font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); overflow-wrap: anywhere; }
 .fare { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }

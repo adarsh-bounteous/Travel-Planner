@@ -52,6 +52,15 @@ def summarise_cost(trip: Trip, rates: RateSource) -> CostSummary:
         if currency != trip.currency:
             used[currency] = rate
         total += stay.chosen.total * rate
+    for pick in trip.transport:
+        currency = pick.currency.upper()
+        rate = rates.rate(currency, trip.currency)
+        if rate is None:
+            unconvertible += 1
+            continue
+        if currency != trip.currency:
+            used[currency] = rate
+        total += pick.fare * rate
     total = total.quantize(CENT, rounding=ROUND_HALF_UP)
     budget = None if trip.budget is None else Decimal(str(trip.budget))
     over = total - budget if budget is not None and total > budget else Decimal(0)

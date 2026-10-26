@@ -38,6 +38,7 @@ from app.trips.store import (
     ReminderFields,
     ShareLink,
     Stay,
+    TransportPick,
     StayFields,
     Traveller,
     TravellerFields,
@@ -74,6 +75,7 @@ INVALID_DATES = ApiError(422, "invalid_dates")
 INVALID_REMINDER = ApiError(422, "invalid_reminder")
 INVALID_ACTIVITY = ApiError(422, "invalid_activity")
 INVALID_STAY = ApiError(422, "invalid_stay")
+INVALID_TRANSPORT = ApiError(422, "invalid_transport")
 ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
 INVALID_PLACE = ApiError(422, "invalid_place")
 INVALID_TRAVELLER = ApiError(422, "invalid_traveller")
@@ -674,6 +676,21 @@ def _save_stays(
     now: datetime,
 ) -> TripView:
     trip.stays = stays
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, user, owner)
+
+
+def _save_transport(
+    trips: TripStore,
+    rates: RateSource,
+    user: str,
+    owner: str,
+    trip: Trip,
+    transport: list[TransportPick],
+    now: datetime,
+) -> TripView:
+    trip.transport = transport
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, user, owner)

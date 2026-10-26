@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.config import session_secret
+from app.config import get_settings, session_secret
 from app.routers import (
     auth,
     flight_shortlist,
@@ -14,6 +14,7 @@ from app.routers import (
     profile,
     saved_places,
     shared,
+    startup_status,
     stay_options,
     transport,
     transport_picks,
@@ -25,11 +26,13 @@ from app.routers.deps import ApiError
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     session_secret()  # fail closed: refuse to start without a signing key
+    get_settings()  # fail closed: refuse to start with local mode on outside the local environment
     yield
 
 
 app = FastAPI(title="Trip Planner API", lifespan=lifespan)
 app.include_router(health.router)
+app.include_router(startup_status.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)

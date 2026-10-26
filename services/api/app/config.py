@@ -1,6 +1,8 @@
 import os
 from dataclasses import dataclass
 
+from app.local_mode import resolve_local_mode
+
 
 class MissingSettingError(RuntimeError):
     pass
@@ -18,6 +20,8 @@ class Settings:
     trips_table_name: str
     cookie_secure: bool
     invite_from_address: str = ""
+    environment: str = "production"
+    local_mode: bool = False
 
 
 def session_secret() -> bytes:
@@ -30,7 +34,10 @@ def session_secret() -> bytes:
 
 def get_settings() -> Settings:
     env = os.environ
+    environment, local_mode = resolve_local_mode(env)
     return Settings(
+        environment=environment,
+        local_mode=local_mode,
         session_secret=env.get("SESSION_SECRET", ""),
         identity_user_pool_id=env.get("IDENTITY_USER_POOL_ID", ""),
         identity_client_id=env.get("IDENTITY_CLIENT_ID", ""),

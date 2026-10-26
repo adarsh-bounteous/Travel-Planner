@@ -50,8 +50,12 @@ test('every faked dependency is listed with how it is faked, naming real classes
   }
 })
 
-test('the doc does not claim a local inbox page that does not exist', () => {
-  const web = pythonSources('services/api/app').join('\n')
-  assert.doesNotMatch(web, /inbox/i)
-  assert.doesNotMatch(section('Email delivery and the local inbox'), /http:\/\/localhost/)
+test('the email delivery entry shows the full address of an inbox page that exists', () => {
+  const email = section('Email delivery and the local inbox')
+  const address = email.match(/http:\/\/localhost:5173\/\S+/)[0]
+  const path = new URL(address).pathname
+  assert.equal(path, '/local/inbox')
+  assert.match(readFileSync('apps/web/src/App.tsx', 'utf8'), /path="\/local\/inbox"/)
+  assert.match(readFileSync('apps/web/src/devProxy.ts', 'utf8'), /'\/local'/)
+  assert.match(pythonSources('services/api/app').join('\n'), /prefix="\/local"[\s\S]*@router\.get\("\/inbox"\)/)
 })

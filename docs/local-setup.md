@@ -39,7 +39,7 @@ The new start has no data except the demo account and the two sample trips, whic
 | --- | --- | --- |
 | Identity Provider | Cognito | `FakeIdentityProvider` keeps sign-in and accounts in memory; the account links sit in `InMemoryAccountStore`. |
 | Trip Database | DynamoDB trips | `InMemoryTripStore` holds Trips in memory. |
-| Email Delivery | SES | `NoInviteSender` sends nothing; the owner copies the invite link from the Travelers tab. |
+| Email Delivery | SES | `InMemoryInviteSender` keeps each email in memory and shows it on the local inbox page (see below). |
 | Maps and Places | Places search | `InMemoryPlaceSearch` searches a seed catalogue. |
 | Flight and Hotel Search | Flight and stay providers | `InMemoryFlightProvider` and `InMemoryStayProvider` answer from seed catalogues. |
 | Transport options | Train, bus and taxi providers | `InMemoryTransportProvider` answers from seed catalogues. |
@@ -51,5 +51,10 @@ Not faked yet: the traveller profile and saved places still use `DynamoProfileSt
 
 ## Email delivery and the local inbox
 
-Local mode sends no email, and there is no local inbox page yet, so there is no inbox address to
-open. Editor invite links are shown in the Travelers tab instead.
+Every email the app would send, such as an editor invite, is saved to a local inbox instead of
+being sent. No email leaves your machine. With `pnpm start` running, the local inbox is at:
+
+    http://localhost:5173/local/inbox
+
+If you set `WEB_PORT`, use that port instead of 5173. The inbox is empty after every start, and it
+returns "not found" when local mode is off.

@@ -12,6 +12,7 @@ describe('devProxy', () => {
       '/shared',
       '/invites',
       '/transport',
+      '/local',
       '/startup-status',
     ]) {
       expect(proxy[p].target).toBe('http://127.0.0.1:9100')

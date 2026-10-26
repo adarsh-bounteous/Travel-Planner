@@ -124,3 +124,19 @@ def test_real_existing_data_means_no_seed(real_local):
 def test_local_mode_off_keeps_the_cloud_stores(monkeypatch):
     monkeypatch.delenv("LOCAL_MODE", raising=False)
     assert deps.get_local_seed_target() is None
+
+
+def test_fresh_start_clears_local_data_and_reseeds_the_demo_account(real_local):
+    """What the documented reset (stop and run pnpm start again) relies on."""
+    with TestClient(app) as first:
+        sign_in_demo(first)
+        first.post("/auth/sign-up", json={"email": "sam@example.com", "password": "abcdefghij12"})
+        trip = first.get("/trips").json()[0]
+        first.delete(f"/trips/{trip['id']}")
+    for cache in (auth._local_identity, auth._local_accounts, deps._local_trips):
+        cache.cache_clear()
+    with TestClient(app) as second:
+        assert sign_in_demo(second).status_code == 200
+        names = sorted(t["name"] for t in second.get("/trips").json())
+        assert names == ["Summer in Kyoto", "Weekend in Lisbon"]
+        assert second.post("/auth/sign-in", json={"email": "sam@example.com", "password": "abcdefghij12"}).status_code == 404

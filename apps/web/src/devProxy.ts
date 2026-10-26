@@ -9,6 +9,7 @@ export const API_PREFIXES = [
   '/shared',
   '/invites',
   '/transport',
+  '/local',
   '/startup-status',
   '/health',
 ]

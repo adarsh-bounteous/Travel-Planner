@@ -24,7 +24,7 @@ from app.trips.recommendations import (
 )
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
-from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
+from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
 from app.trips.store import DynamoTripStore, InMemoryTripStore, TripStore
 
@@ -103,8 +103,20 @@ def _invite_sender() -> InviteSender:
     return SesInviteSender(address) if address else NoInviteSender()
 
 
+@lru_cache
+def _local_invite_sender() -> InMemoryInviteSender:
+    """Local mode's email stand-in: every invite is kept in memory and shown on the local inbox page."""
+    return InMemoryInviteSender()
+
+
+def get_local_inbox() -> InMemoryInviteSender:
+    if not get_settings().local_mode:
+        raise ApiError(404, "not_found")
+    return _local_invite_sender()
+
+
 def get_invite_sender() -> InviteSender:
-    return _invite_sender()
+    return _local_invite_sender() if get_settings().local_mode else _invite_sender()
 
 
 def get_rates() -> RateSource:

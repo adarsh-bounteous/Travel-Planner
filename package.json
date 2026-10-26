@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "start": "node scripts/start.mjs",
-    "test": "node --test scripts/ports.test.mjs scripts/start.test.mjs",
+    "test": "node --test scripts/ports.test.mjs scripts/start.test.mjs scripts/local-setup-docs.test.mjs",
     "test:start": "node --test scripts/start.integration.test.mjs"
   }
 }

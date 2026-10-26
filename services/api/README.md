@@ -35,7 +35,8 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 
 ### Demo account and sample trips
 
-On the first local start, when local data is completely empty (no accounts and no trips), the
+In local mode sign-in, accounts and trips are kept in memory, so every local start begins with
+empty data. On the first local start, when local data is completely empty (no accounts and no trips), the
 API seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
 Kyoto", dated from the day of the start). Sign in with `demo@example.com` and `demo-password-1`;
 no sign-up is needed. Fresh sign-up still works. The demo password is for local use only.

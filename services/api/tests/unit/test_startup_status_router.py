@@ -69,10 +69,3 @@ def test_demo_account_follows_the_demo_user(monkeypatch):
         "email": DEMO_EMAIL,
         "password": DEMO_PASSWORD,
     }
-
-
-def test_demo_account_is_null_without_local_stores(monkeypatch):
-    monkeypatch.setenv("LOCAL_MODE", "true")
-    monkeypatch.setenv("APP_ENV", "local")
-    with TestClient(app) as client:
-        assert client.get("/startup-status").json()["demo_account"] is None

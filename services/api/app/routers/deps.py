@@ -6,7 +6,7 @@ from fastapi import Cookie, Depends, Response
 from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
-from app.routers.auth import _set_session, get_now
+from app.routers.auth import _local_identity, _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
@@ -26,7 +26,7 @@ from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
-from app.trips.store import DynamoTripStore, TripStore
+from app.trips.store import DynamoTripStore, InMemoryTripStore, TripStore
 
 
 class ApiError(Exception):
@@ -40,6 +40,12 @@ class ApiError(Exception):
 @lru_cache
 def _trips() -> TripStore:
     return DynamoTripStore(get_settings().trips_table_name)
+
+
+@lru_cache
+def _local_trips() -> InMemoryTripStore:
+    """Local mode's trip storage stand-in: in memory, so every local start is a first start."""
+    return InMemoryTripStore()
 
 
 @lru_cache
@@ -126,12 +132,17 @@ def get_places() -> PlaceSearch:
 
 
 def get_local_seed_target() -> LocalSeedTarget | None:
-    """The local stores to seed. None until the local storage and local sign-in work provides them."""
-    return None
+    """The local stores to seed: the very ones sign-in and trips serve from. None with local mode off."""
+    if not get_settings().local_mode:
+        return None
+    identity, trips = _local_identity(), _local_trips()
+    return LocalSeedTarget(
+        is_empty=lambda: identity.is_empty() and trips.is_empty(), identity=identity, trips=trips
+    )
 
 
 def get_trips() -> TripStore:
-    return _trips()
+    return _local_trips() if get_settings().local_mode else _trips()
 
 
 def get_profiles() -> ProfileStore:

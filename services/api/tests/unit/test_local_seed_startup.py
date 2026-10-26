@@ -1,12 +1,13 @@
 import logging
+from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.auth.fake_identity import FakeIdentityProvider
-from app.local_seed import DEMO_EMAIL, DEMO_PASSWORD, LocalSeedTarget
+from app.local_seed import DEMO_EMAIL, DEMO_PASSWORD, LocalSeedTarget, run_first_start_seed
 from app.main import app
-from app.routers import deps
+from app.routers import auth, deps
 from app.trips.store import InMemoryTripStore
 
 
@@ -68,8 +69,58 @@ def test_local_mode_off_resolves_no_target(monkeypatch):
     assert calls == []
 
 
-def test_local_mode_without_local_stores_skips_seeding_and_says_so(monkeypatch, caplog):
-    local(monkeypatch)
+def test_missing_target_skips_seeding_and_says_so(caplog):
     with caplog.at_level(logging.WARNING):
-        start()
+        assert run_first_start_seed(None, date(2026, 1, 1)) is False
     assert "demo data was not seeded" in caplog.text
+
+
+@pytest.fixture
+def real_local(monkeypatch):
+    """Local mode with the app's own wiring: no override of get_local_seed_target."""
+    local(monkeypatch)
+    monkeypatch.setenv("COOKIE_SECURE", "false")
+    caches = (auth._local_identity, auth._local_accounts, deps._local_trips)
+    for cache in caches:
+        cache.cache_clear()
+    yield
+    for cache in caches:
+        cache.cache_clear()
+
+
+def sign_in_demo(client):
+    return client.post("/auth/sign-in", json={"email": DEMO_EMAIL, "password": DEMO_PASSWORD})
+
+
+def test_real_first_start_lets_the_demo_user_sign_in_and_see_two_trips(real_local):
+    with TestClient(app) as client:
+        assert sign_in_demo(client).status_code == 200
+        assert client.get("/auth/me").status_code == 200
+        names = [t["name"] for t in client.get("/trips").json()]
+        assert sorted(names) == ["Summer in Kyoto", "Weekend in Lisbon"]
+        status = client.get("/startup-status").json()
+        assert status["demo_account"] == {"email": DEMO_EMAIL, "password": DEMO_PASSWORD}
+
+
+def test_real_second_seed_adds_nothing_and_keeps_edits(real_local):
+    with TestClient(app) as client:
+        sign_in_demo(client)
+        lisbon = next(t for t in client.get("/trips").json() if t["name"] == "Weekend in Lisbon")
+        body = {k: lisbon[k] for k in ("destination", "start_date", "end_date", "budget")}
+        client.put(f"/trips/{lisbon['id']}", json={**body, "name": "Lisbon, extended"})
+        assert run_first_start_seed(deps.get_local_seed_target(), date(2026, 1, 1)) is False
+        names = [t["name"] for t in client.get("/trips").json()]
+    assert sorted(names) == ["Lisbon, extended", "Summer in Kyoto"]
+    assert auth._local_identity().account_count(DEMO_EMAIL) == 1
+
+
+def test_real_existing_data_means_no_seed(real_local):
+    auth._local_identity().sign_up_email("sam@example.com", "abcdefghij12")
+    with TestClient(app) as client:
+        assert sign_in_demo(client).status_code == 404
+        assert client.get("/startup-status").json()["demo_account"] is None
+
+
+def test_local_mode_off_keeps_the_cloud_stores(monkeypatch):
+    monkeypatch.delenv("LOCAL_MODE", raising=False)
+    assert deps.get_local_seed_target() is None

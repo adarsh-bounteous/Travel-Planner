@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { LocalMenu } from '../local/LocalMenu'
 import { DestinationSearch } from '../places/DestinationSearch'
 import { MyTripsPage } from '../trips/MyTripsPage'
 import { useAuth } from './AuthProvider'
@@ -6,6 +8,7 @@ import { useAuth } from './AuthProvider'
 export function HomePage() {
   const { signOut } = useAuth()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -14,6 +17,12 @@ export function HomePage() {
 
   return (
     <div className="stack">
+      <div className="overlay-actions end">
+        <button className="btn btn-ghost" type="button" onClick={() => setMenuOpen(true)}>
+          Menu
+        </button>
+      </div>
+      {menuOpen && <LocalMenu onClose={() => setMenuOpen(false)} />}
       <section className="stack">
         <h1>Where to next?</h1>
         <DestinationSearch />

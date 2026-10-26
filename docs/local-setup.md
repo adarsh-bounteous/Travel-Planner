@@ -33,6 +33,8 @@ with Ctrl+C and run it again:
 
 The new start has no data except the demo account and the two sample trips, which are seeded again.
 
+To reset without a restart, open Menu in the web app and choose Reset local data. It is shown only while local sign-in is on.
+
 ## What is faked
 
 | Cloud dependency | What it replaces | How it is faked locally |

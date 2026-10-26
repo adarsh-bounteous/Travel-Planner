@@ -13,6 +13,9 @@ class InMemoryAccountStore:
     def __init__(self) -> None:
         self._google: set[str] = set()
 
+    def reset(self) -> None:
+        self._google.clear()
+
     def link_google(self, user_id: str) -> None:
         self._google.add(user_id)
 

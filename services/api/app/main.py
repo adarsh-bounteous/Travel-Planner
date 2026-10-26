@@ -14,6 +14,7 @@ from app.routers import (
     health,
     invites,
     local_inbox,
+    local_reset,
     places,
     profile,
     saved_places,
@@ -48,6 +49,7 @@ app.include_router(transport_picks.router)
 app.include_router(invites.router)
 app.include_router(shared.router)
 app.include_router(local_inbox.router)
+app.include_router(local_reset.router)
 app.include_router(profile.router)
 app.include_router(places.router)
 app.include_router(saved_places.router)

@@ -28,11 +28,15 @@ const KNOWN_CODES: AuthErrorCode[] = [
   'email_unavailable',
 ]
 
-async function post(path: string, body?: unknown): Promise<Response> {
+async function post(
+  path: string,
+  body?: unknown,
+  headers: Record<string, string> = {},
+): Promise<Response> {
   const response = await fetch(path, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   if (response.ok) return response
@@ -67,6 +71,20 @@ export async function fetchDemoAccount(): Promise<DemoAccount | null> {
     return null
   }
 }
+
+/** Whether the API is running with local sign-in on; false when it says no, or when the call fails. */
+export async function fetchLocalMode(): Promise<boolean> {
+  try {
+    const response = await fetch('/startup-status', { credentials: 'same-origin' })
+    if (!response.ok) return false
+    const body = await response.json()
+    return body.local_mode === true
+  } catch {
+    return false
+  }
+}
+
+export const requestResetLocalData = () => post('/local/reset', undefined, { 'X-Local-Reset': '1' })
 
 export const requestSignIn = (email: string, password: string) =>
   post('/auth/sign-in', { email, password })

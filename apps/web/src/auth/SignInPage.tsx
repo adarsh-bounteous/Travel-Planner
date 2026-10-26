@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Toast } from '../trips/Toast'
 import { AuthError, fetchDemoAccount, requestResend } from './api'
 import type { DemoAccount } from './api'
 import { AuthForm } from './AuthForm'
@@ -10,9 +11,10 @@ import { pageLabel, peekReturnTo } from './returnTo'
 import type { Problem } from './messages'
 
 export function SignInPage() {
-  const { status, signIn } = useAuth()
+  const { status, signIn, signOut } = useAuth()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
+  const localReset = (useLocation().state as { localReset?: boolean } | null)?.localReset === true
   const [email, setEmail] = useState('')
   const [pending, setPending] = useState(false)
   const [resent, setResent] = useState(false)
@@ -20,6 +22,11 @@ export function SignInPage() {
     params.get('error') === 'google_cancelled' ? 'google_cancelled' : null,
   )
   const [notLinked, setNotLinked] = useState(params.get('error') === 'google_not_linked')
+
+  // After "Reset local data" the old session is gone on the server; drop it here too.
+  useEffect(() => {
+    if (localReset && status === 'signedIn') void signOut().catch(() => undefined)
+  }, [localReset, status, signOut])
 
   const [demo, setDemo] = useState<DemoAccount | null>(null)
   useEffect(() => {
@@ -38,7 +45,7 @@ export function SignInPage() {
 
   // The destination's RequireAuth clears the remembered path once it has been reached.
   const returnTo = peekReturnTo()
-  if (status === 'signedIn') return <Navigate to={returnTo ?? '/'} replace />
+  if (status === 'signedIn' && !localReset) return <Navigate to={returnTo ?? '/'} replace />
 
   const submit = async (address: string, password: string) => {
     setPending(true)
@@ -61,6 +68,7 @@ export function SignInPage() {
 
   return (
     <>
+      {localReset && <Toast message="Local data reset. Sign in with the demo user." />}
       <AuthForm
         mode="in"
         title="Sign in"

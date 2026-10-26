@@ -302,7 +302,45 @@ export const fetchStayShortlist =(tripId: string, stayId: string, c: StayCriteri
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(c)}`,
   )
 
-export const addPlaceToTrip = (tripId: string, input: TripPlaceInput) =>
+export type SourceResult = { name: string; status: 'ok' | 'failed' | 'timed_out' }
+export type FlightOption = {
+  id: string
+  provider: string
+  source: string
+  fare: string
+  currency: string
+  travel_minutes: number
+  stops: number
+  departs?: string | null
+  cabin?: string | null
+  deal?: string | null
+  fetched_at: string
+  url: string
+}
+export type ShortlistFlight = {
+  rank: number
+  flight: FlightOption
+  fit: number
+  fits_budget: boolean
+  over_budget_by: string
+  reason: string
+}
+export type FlightShortlist = {
+  origin: string
+  destination: string
+  date: string
+  budget: number | null
+  currency: string
+  sources: SourceResult[]
+  flights: ShortlistFlight[]
+}
+
+export const fetchFlightShortlist = (tripId: string, origin: string, destination: string, date: string) =>
+  call<FlightShortlist>(
+    `/trips/${encodeURIComponent(tripId)}/flights/shortlist?${new URLSearchParams({ origin, destination, date })}`,
+  )
+
+export const addPlaceToTrip =(tripId: string, input: TripPlaceInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/places`, 'POST', input)
 
 export const moveActivity = (tripId: string, id: string, date: string) =>

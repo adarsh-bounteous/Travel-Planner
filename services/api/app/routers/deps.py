@@ -7,6 +7,9 @@ from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.routers.auth import _set_session, get_now
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
+from app.flights.options import FlightProvider
+from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
+from app.flights.providers import InMemoryFlightProvider
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.transport.options import TransportProvider
@@ -61,6 +64,14 @@ def _stay_providers() -> list[StayProvider]:
 
 
 @lru_cache
+def _flight_providers() -> list[FlightProvider]:
+    def clock() -> datetime:
+        return datetime.now(UTC)
+
+    return [InMemoryFlightProvider(name, catalogue, clock) for name, catalogue in FLIGHT_SEED_CATALOGUES.items()]
+
+
+@lru_cache
 def _transport_providers() -> list[TransportProvider]:
     return [InMemoryTransportProvider(name, catalogue) for name, catalogue in TRANSPORT_SEED_CATALOGUES.items()]
 
@@ -95,6 +106,10 @@ def get_recommendations() -> RecommendationSource:
 
 def get_stay_providers() -> list[StayProvider]:
     return _stay_providers()
+
+
+def get_flight_providers() -> list[FlightProvider]:
+    return _flight_providers()
 
 
 def get_transport_providers() -> list[TransportProvider]:

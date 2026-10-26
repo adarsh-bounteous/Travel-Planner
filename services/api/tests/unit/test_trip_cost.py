@@ -69,3 +69,14 @@ def test_unknown_currency_is_excluded_and_counted():
 def test_rounds_half_up_once_at_the_end():
     cost = summarise_cost(trip([opt("o1", "0.01", "USD"), opt("o2", "0.01", "USD")]), RATES)
     assert cost.total == 0.02  # 0.0184 rounded once, not 0.01 + 0.01
+
+
+def test_fare_over_budget_by_uses_the_trip_total_and_equal_is_not_over():
+    from app.trips.cost import fare_over_budget_by
+
+    t = trip([opt("o1", 90)], budget=100)
+    assert fare_over_budget_by(t, RATES, Decimal(10), "EUR") == 0
+    assert fare_over_budget_by(t, RATES, Decimal("20.50"), "EUR") == Decimal("10.50")
+    assert fare_over_budget_by(t, RATES, Decimal(20), "usd") == Decimal("8.40")  # 18.40 EUR
+    assert fare_over_budget_by(t, RATES, Decimal(20), "JPY") == 0  # cannot be converted
+    assert fare_over_budget_by(trip([opt("o1", 90)]), RATES, Decimal(500), "EUR") == 0  # no budget

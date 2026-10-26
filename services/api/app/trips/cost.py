@@ -66,3 +66,14 @@ def summarise_cost(trip: Trip, rates: RateSource) -> CostSummary:
         unconvertible_count=unconvertible,
         rates=[FxRate(currency=c, rate=float(r)) for c, r in used.items()],
     )
+
+
+def fare_over_budget_by(trip: Trip, rates: RateSource, fare: Decimal, currency: str) -> Decimal:
+    """How far the trip total goes over budget with `fare` added; 0 when it fits, there is no budget, or the currency cannot be converted."""
+    rate = rates.rate(currency.upper(), trip.currency)
+    if rate is None or trip.budget is None:
+        return Decimal(0)
+    total = Decimal(str(summarise_cost(trip, rates).total))
+    with_fare = total + (fare * rate).quantize(CENT, rounding=ROUND_HALF_UP)
+    budget = Decimal(str(trip.budget))
+    return with_fare - budget if with_fare > budget else Decimal(0)

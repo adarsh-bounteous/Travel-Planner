@@ -108,6 +108,18 @@ def test_unavailable_forecast_still_returns_dated_typical_weather(sign_in_as, ov
     assert body["typical"]["as_of"] == "2026-10-01"
 
 
+def test_outside_local_mode_the_forecast_is_unavailable_not_invented(monkeypatch):
+    from dataclasses import replace
+
+    from app.config import get_settings
+
+    monkeypatch.setattr(deps, "get_settings", lambda: replace(get_settings(), local_mode=False))
+    with pytest.raises(ForecastUnavailable):
+        deps.get_forecast().for_dates("Tokyo, Japan", date(2026, 11, 3), date(2026, 11, 4))
+    monkeypatch.setattr(deps, "get_settings", lambda: replace(get_settings(), local_mode=True))
+    assert deps.get_forecast().for_dates("Tokyo, Japan", date(2026, 11, 3), date(2026, 11, 4))
+
+
 def test_a_stranger_gets_not_found(sign_in_as, overrides):
     owner = sign_in_as("a@example.com")
     tid = _tokyo(owner)

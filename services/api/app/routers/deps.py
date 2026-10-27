@@ -28,7 +28,7 @@ from app.trips.recommendations import (
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
-from app.trips.forecast import ForecastSource, LocalForecast
+from app.trips.forecast import DayForecast, ForecastSource, ForecastUnavailable, LocalForecast
 from app.trips.rates import SEED_RATES, InMemoryRates, LastKnownRates, LocalRates, RateSource
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
 from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
@@ -140,14 +140,21 @@ def get_last_known_rates() -> LastKnownRates:
     return LastKnownRates()
 
 
-def get_forecast() -> ForecastSource:
-    return _local_forecast()
+class _NoForecastProvider:
+    """Until a forecast provider is chosen, say so rather than invent numbers."""
+
+    def for_dates(self, destination: str, start: date, end: date) -> list[DayForecast]:
+        raise ForecastUnavailable
 
 
 @lru_cache
 def _local_forecast() -> LocalForecast:
-    """The forecast stand-in: deterministic days, until a forecast provider is chosen."""
+    """Local mode's forecast stand-in: deterministic days, no outside request."""
     return LocalForecast()
+
+
+def get_forecast() -> ForecastSource:
+    return _local_forecast() if get_settings().local_mode else _NoForecastProvider()
 
 
 def get_today() -> date:

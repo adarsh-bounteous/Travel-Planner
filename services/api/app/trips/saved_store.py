@@ -28,6 +28,9 @@ class InMemorySavedPlaceStore:
     def unsave(self, owner_id: str, place_id: str) -> None:
         self._saved.get(owner_id, {}).pop(place_id, None)
 
+    def reset(self) -> None:
+        self._saved.clear()
+
 
 class DynamoSavedPlaceStore:
     """Keeps a `saved_places` map (place id to a snapshot of the place) on the account item.

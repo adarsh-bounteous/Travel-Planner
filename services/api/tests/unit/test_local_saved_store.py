@@ -133,12 +133,10 @@ def test_resave_when_list_is_full_is_not_rejected(client):
 
 
 def test_reset_empties_saved_places_for_good(client):
+    me = auth._local_identity().user_id_for("demo@example.com")
     client.put("/saved-places/p1", json=PLACE.model_dump())
+    assert [p.id for p in deps._local_saved_places().list_saved(me)] == ["p1"]
     assert client.post("/local/reset", headers=RESET).status_code == 204
-    assert deps._local_saved_places().list_saved("anyone") == []
+    assert deps._local_saved_places().list_saved(me) == []
     deps._local_saved_places.cache_clear()
-    assert make_from_settings().list_saved("anyone") == []
-
-
-def make_from_settings():
-    return deps._local_saved_places()
+    assert deps._local_saved_places().list_saved(me) == []

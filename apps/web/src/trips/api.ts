@@ -102,7 +102,15 @@ export type Shortlist = {
   currency: string | null
   stays: ShortlistStay[]
 }
-export type Recommendation ={ id: string; name: string; detail: string }
+import type { Place } from '../places/api'
+
+export type Recommendation = {
+  id: string
+  name: string
+  detail: string
+  interest?: string | null
+  place?: Place | null
+}
 
 /** A place from Destination results kept on a trip; it has no day until it is scheduled. */
 export type TripPlace = { id: string; place_id: string; name: string; image_url?: string | null }
@@ -140,6 +148,7 @@ export type Trip = {
   budget?: number | null
   currency?: string
   traveller_count?: number | null
+  interests?: string[]
   days?: Day[]
   options?: ChosenOption[]
   needed_categories?: string[]
@@ -262,6 +271,9 @@ export const deleteReminder = (tripId: string, id: string) =>
 
 export const fetchRecommendations = (tripId: string, date: string) =>
   call<Recommendation[]>(`/trips/${encodeURIComponent(tripId)}/days/${date}/recommendations`)
+
+export const fetchTripRecommendations = (tripId: string) =>
+  call<Recommendation[]>(`/trips/${encodeURIComponent(tripId)}/recommendations`)
 
 export const addActivity = (tripId: string, input: ActivityInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities`, 'POST', input)

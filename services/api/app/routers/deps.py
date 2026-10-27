@@ -19,6 +19,7 @@ from app.transport.providers import SEED_CATALOGUES as TRANSPORT_SEED_CATALOGUES
 from app.transport.providers import InMemoryTransportProvider
 from app.travel.local import LocalFlightProvider, LocalStayProvider, LocalTransportProvider
 from app.trips.recommendations import (
+    SEED_LOCAL_RECOMMENDATIONS,
     SEED_RECOMMENDATIONS,
     InMemoryRecommendations,
     RecommendationSource,
@@ -110,6 +111,12 @@ def _recommendations() -> RecommendationSource:
 
 
 @lru_cache
+def _local_recommendations() -> RecommendationSource:
+    """Local mode's recommendation stand-in: a catalogue tagged by interest."""
+    return InMemoryRecommendations(SEED_LOCAL_RECOMMENDATIONS)
+
+
+@lru_cache
 def _rates() -> RateSource:
     return InMemoryRates(SEED_RATES)
 
@@ -151,7 +158,7 @@ def get_rates() -> RateSource:
 
 
 def get_recommendations() -> RecommendationSource:
-    return _recommendations()
+    return _local_recommendations() if get_settings().local_mode else _recommendations()
 
 
 @lru_cache

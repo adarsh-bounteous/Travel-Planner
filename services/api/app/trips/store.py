@@ -38,6 +38,9 @@ class TripFields(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     budget: float | None = Field(default=None, ge=0, le=1_000_000_000)
+    interests: list[Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]] = Field(
+        default_factory=list, max_length=10
+    )
 
 
 class TripCreate(TripFields):

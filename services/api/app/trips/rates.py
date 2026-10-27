@@ -21,3 +21,24 @@ class InMemoryRates:
 
 # Seeded default until an exchange-rate provider is chosen.
 SEED_RATES = {("USD", "EUR"): Decimal("0.92")}
+
+
+# Local mode's fixed rate table: how many of each currency 1 EUR buys. A stand-in for the outside
+# rates service, so local mode never calls it. Order is the display order everywhere.
+LOCAL_RATES_PER_EUR = {
+    "EUR": Decimal(1),
+    "USD": Decimal("1.08"),
+    "GBP": Decimal("0.85"),
+    "JPY": Decimal(160),
+    "AUD": Decimal("1.65"),
+}
+OFFERED_CURRENCIES = tuple(LOCAL_RATES_PER_EUR)
+
+
+class LocalRates:
+    def rate(self, from_currency: str, to_currency: str) -> Decimal | None:
+        source = LOCAL_RATES_PER_EUR.get(from_currency.upper())
+        target = LOCAL_RATES_PER_EUR.get(to_currency.upper())
+        if source is None or target is None:
+            return None
+        return target / source

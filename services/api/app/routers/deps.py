@@ -25,7 +25,7 @@ from app.trips.recommendations import (
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
-from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
+from app.trips.rates import SEED_RATES, InMemoryRates, LocalRates, RateSource
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
 from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
 from app.trips.local_saved_store import SAVED_PLACES_FILE_NAME, PersistentSavedPlaceStore
@@ -114,6 +114,12 @@ def _rates() -> RateSource:
 
 
 @lru_cache
+def _local_rates() -> LocalRates:
+    """Local mode's exchange rates: a fixed table, so the outside rates service is never used."""
+    return LocalRates()
+
+
+@lru_cache
 def _invite_sender() -> InviteSender:
     address = get_settings().invite_from_address
     return SesInviteSender(address) if address else NoInviteSender()
@@ -140,7 +146,7 @@ def get_invite_sender() -> InviteSender:
 
 
 def get_rates() -> RateSource:
-    return _rates()
+    return _local_rates() if get_settings().local_mode else _rates()
 
 
 def get_recommendations() -> RecommendationSource:

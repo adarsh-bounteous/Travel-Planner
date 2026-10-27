@@ -295,3 +295,56 @@ describe('Saving places', () => {
     expect(sessionStorage.getItem('pendingSave')).toBeNull()
   })
 })
+
+describe('Destination results in local mode', () => {
+  const kyotoPlace = { ...alfama, id: 'kyoto-bamboo', name: 'Bamboo Path Walk' }
+  const local = {
+    'GET /startup-status': { status: 200, body: { local_mode: true } },
+    'GET /places?destination=Lisbon': { status: 200, body: [alfama, belem] },
+    'GET /places?destination=Kyoto': { status: 200, body: [kyotoPlace] },
+    'GET /places?destination=Zzyzx': { status: 200, body: [] },
+    'GET /trips': { status: 200, body: [] },
+    'GET /saved-places': { status: 200, body: [] },
+    'PUT /saved-places/p1': { status: 200, body: alfama },
+  }
+
+  it('shows the local notice and a generated-locally note (AC1, AC5)', async () => {
+    stubApi(local)
+    renderAt('/destinations?q=Lisbon')
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+    expect(screen.getByText(/Local mode is on\. Places are generated here/)).toBeInTheDocument()
+    expect(screen.getByText('2 places generated locally for Lisbon.')).toBeInTheDocument()
+  })
+
+  it('lists different places for a different destination (AC2)', async () => {
+    stubApi(local)
+    renderAt('/destinations?q=Kyoto')
+    expect(await screen.findByText('Bamboo Path Walk')).toBeInTheDocument()
+    expect(screen.queryByText('Alfama')).not.toBeInTheDocument()
+  })
+
+  it('shows an empty-results message and no places for an unmatched query (AC3, AC4)', async () => {
+    stubApi(local)
+    renderAt('/destinations?q=Zzyzx')
+    expect(await screen.findByText('No places match your search')).toBeInTheDocument()
+    expect(screen.queryAllByRole('button', { name: /^Save / })).toHaveLength(0)
+    expect(document.querySelector('ul.grid')).toBeNull()
+  })
+
+  it('saves a generated place through the Saved flow (AC6)', async () => {
+    const fetchMock = stubApi(local)
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    await waitFor(() => expect(putCalls(fetchMock)).toEqual(['/saved-places/p1']))
+  })
+
+  it('says local mode is off when the switch is off (AC7)', async () => {
+    stubApi(lisbon)
+    renderAt('/destinations?q=Lisbon')
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+    expect(
+      screen.getByText('Local mode is off. Places come from the outside places service.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/generated locally/)).not.toBeInTheDocument()
+  })
+})

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from functools import lru_cache
 
 from fastapi import Cookie, Depends, Response
@@ -28,7 +28,8 @@ from app.trips.recommendations import (
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
-from app.trips.rates import SEED_RATES, InMemoryRates, LocalRates, RateSource
+from app.trips.forecast import DayForecast, ForecastSource, ForecastUnavailable, LocalForecast
+from app.trips.rates import SEED_RATES, InMemoryRates, LastKnownRates, LocalRates, RateSource
 from app.trips.visa import SEED_PUBLISHED_ON, SEED_VISA_RULES, InMemoryVisaRules, VisaRuleSource
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
 from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
@@ -139,6 +140,32 @@ def get_visa_rules() -> VisaRuleSource:
 def _local_rates() -> LocalRates:
     """Local mode's exchange rates: a fixed table, so the outside rates service is never used."""
     return LocalRates()
+
+
+@lru_cache
+def get_last_known_rates() -> LastKnownRates:
+    return LastKnownRates()
+
+
+class _NoForecastProvider:
+    """Until a forecast provider is chosen, say so rather than invent numbers."""
+
+    def for_dates(self, destination: str, start: date, end: date) -> list[DayForecast]:
+        raise ForecastUnavailable
+
+
+@lru_cache
+def _local_forecast() -> LocalForecast:
+    """Local mode's forecast stand-in: deterministic days, no outside request."""
+    return LocalForecast()
+
+
+def get_forecast() -> ForecastSource:
+    return _local_forecast() if get_settings().local_mode else _NoForecastProvider()
+
+
+def get_today() -> date:
+    return date.today()
 
 
 @lru_cache

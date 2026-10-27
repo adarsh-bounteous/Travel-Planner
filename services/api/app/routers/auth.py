@@ -379,7 +379,11 @@ def google_callback(
         return back("/sign-in")  # a failed exchange is not a cancellation
     if mode == "up":
         accounts.link_google(user_id)
-    elif not accounts.is_google_linked(user_id):
+    elif not (
+        accounts.is_google_linked(user_id)
+        # Local accounts may use Google without being linked in the store, so they stay "email" accounts.
+        or (isinstance(identity, LocalIdentityProvider) and identity.user_exists(user_id))
+    ):
         return back("/sign-in?error=google_not_linked")
     response = back("/")
     _set_session(response, user_id, now, settings)

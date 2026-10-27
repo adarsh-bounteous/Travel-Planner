@@ -233,9 +233,21 @@ class LocalIdentityProvider:
             raise WrongPassword
 
     def google_authorize_url(self, state: str) -> str:
-        return "https://google.example/authorize?" + urlencode({"state": state})
+        return f"{self._link_base()}/local/google-consent?" + urlencode({"state": state})
 
     def complete_google(self, code: str) -> str:
+        """`code` is the email chosen on the local consent page: its account, else an unlinked identity."""
         if code == "cancelled":
             raise GoogleCancelled
-        return f"google-{code}"
+        # An unconfirmed account stays an unlinked identity, so Google cannot skip email confirmation.
+        rows = self._run("SELECT user_id FROM users WHERE email = ? AND confirmed = 1", code.lower())
+        return rows[0]["user_id"] if rows else f"google-{code}"
+
+    def user_exists(self, user_id: str) -> bool:
+        return bool(self._run("SELECT 1 FROM users WHERE user_id = ? AND confirmed = 1", user_id))
+
+    def known_emails(self) -> list[str]:
+        """Confirmed accounts' emails: the ones Google sign-in can use."""
+        return [
+            row["email"] for row in self._run("SELECT email FROM users WHERE confirmed = 1 ORDER BY email")
+        ]

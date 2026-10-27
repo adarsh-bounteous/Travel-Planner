@@ -134,6 +134,24 @@ export type TravellerRequirement = {
   health_status: string
   medical: string | null
 }
+export type VaccinationGuidance = {
+  name: string
+  status: 'required' | 'recommended' | 'already_had' | 'unsuitable_in_pregnancy'
+}
+export type TravellerGuidance = {
+  traveller_id: string | null
+  name: string
+  citizenship: string
+  residence: string
+  result: 'guidance' | 'no_data' | 'none_required'
+  tests: string[]
+  vaccinations: VaccinationGuidance[]
+  advisories: string[]
+  health_details_given: boolean
+  official_site_url: string | null
+  confirm_note: string
+}
+
 
 export type VisaStatus = 'required' | 'not_needed' | 'no_data'
 export type VisaResult = {
@@ -450,6 +468,9 @@ export const setVisaSelfCheck = (tripId: string, key: string, checked: boolean) 
     'PUT',
     { checked },
   )
+
+export const fetchMedicalGuidance = (tripId: string) =>
+  call<TravellerGuidance[]>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
 
 export const addTraveller = (tripId: string, name: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })

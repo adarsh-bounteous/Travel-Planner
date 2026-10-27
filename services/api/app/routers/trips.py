@@ -22,7 +22,8 @@ from app.routers.deps import (
 )
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
-from app.trips.profile_store import ProfileStore
+from app.trips.medical import TravellerGuidance, guidance_for
+from app.trips.profile_store import Profile, ProfileStore
 from app.trips.rates import RateSource
 from app.trips.recommendations import Recommendation, RecommendationSource
 from app.trips.requirements import TravellerRequirement, medical_for
@@ -497,6 +498,34 @@ def set_visa_self_check(
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _visa_view(trip, profile, visa_rules)
+
+
+@router.get("/{trip_id}/medical-guidance")
+def trip_medical_guidance(
+    trip_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    profiles: ProfileStore = Depends(get_profiles),
+    identity: IdentityProvider = Depends(get_identity),
+) -> list[TravellerGuidance]:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    profile = profiles.get_profile(owner) or Profile()  # read only: the owner's own answers
+    people = [
+        (None, profile.display_name or "You", profile),
+        *((t.id, t.name, t) for t in trip.travellers),
+    ]
+    return [
+        guidance_for(
+            trip.destination,
+            who.citizenship,
+            who.residence,
+            who.vaccinations_had,
+            who.pregnant,
+            name=name,
+            traveller_id=tid,
+        )
+        for tid, name, who in people
+    ]
 
 
 @router.post("/{trip_id}/editors", status_code=201)

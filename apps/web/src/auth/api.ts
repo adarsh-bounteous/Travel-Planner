@@ -112,3 +112,25 @@ export type GoogleMode = 'in' | 'up'
 export function startGoogle(mode: GoogleMode) {
   window.location.assign(`/auth/google/start?mode=${mode}`)
 }
+
+export type GoogleIdentity = { email: string; has_account: boolean }
+
+/** The identities the local consent page offers; empty when local mode is off or the call fails. */
+export async function fetchGoogleIdentities(): Promise<GoogleIdentity[]> {
+  try {
+    const response = await fetch('/local/google-identities', { credentials: 'same-origin' })
+    if (!response.ok) return []
+    return (await response.json()).identities ?? []
+  } catch {
+    return []
+  }
+}
+
+/** Finish the local Google flow through the real callback, so the API still checks state and sets the session. */
+export function finishGoogle(state: string, outcome: { email: string } | 'cancel') {
+  const params =
+    outcome === 'cancel'
+      ? new URLSearchParams({ state, error: 'access_denied' })
+      : new URLSearchParams({ state, code: outcome.email })
+  window.location.assign(`/auth/google/callback?${params}`)
+}

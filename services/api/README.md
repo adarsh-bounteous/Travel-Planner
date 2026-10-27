@@ -58,6 +58,15 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 `GET /startup-status` reports whether local mode is on and which stand-ins
 (storage, sign-in, cloud services) are enabled.
 
+### Local Google sign-in
+
+With local mode on, "Continue with Google" opens a mock consent page at `/local/google-consent`
+instead of Google. It lists every local account (the demo account included) as "Has account", plus
+the sample `new.user@example.com` as "No account yet", and takes a typed email. Allow finishes
+through `/auth/google/callback` with the chosen email: an email with an account signs in as that
+account, any other shows the "No account yet" prompt. Cancel returns to the sign-in page, signed
+out. `GET /local/google-identities` supplies the list and answers 404 with local mode off.
+
 ### Local exchange rates
 
 With local mode on, costs and budgets convert with a fixed local rate table instead of the

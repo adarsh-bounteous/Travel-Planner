@@ -177,6 +177,10 @@ class Traveller(TravellerFields):
     citizenship: str = ""
     residence: str = ""
     health_status: str = ""
+    vaccinations_had: list[Annotated[str, StringConstraints(max_length=60)]] = Field(
+        default_factory=list, max_length=30
+    )
+    pregnant: bool | None = None  # None = not provided
 
 
 class Editor(BaseModel):

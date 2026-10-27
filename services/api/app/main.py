@@ -13,6 +13,7 @@ from app.routers import (
     flight_shortlist,
     health,
     invites,
+    local_google,
     local_inbox,
     local_mode,
     local_reset,
@@ -26,6 +27,7 @@ from app.routers import (
     transport,
     transport_picks,
     travel_search,
+    trip_helpers,
     trips,
 )
 from app.routers.deps import ApiError
@@ -55,12 +57,14 @@ app.include_router(invites.router)
 app.include_router(shared.router)
 app.include_router(local_inbox.router)
 app.include_router(local_reset.router)
+app.include_router(local_google.router)
 app.include_router(local_mode.router)
 app.include_router(travel_search.router)
 app.include_router(profile.router)
 app.include_router(places.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
+app.include_router(trip_helpers.router)
 
 
 @app.exception_handler(ApiError)

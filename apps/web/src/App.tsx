@@ -25,6 +25,7 @@ import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
 import { ActivityOptionsPage } from './trips/ActivityOptionsPage'
 import { RestaurantOptionsPage } from './trips/RestaurantOptionsPage'
+import { RestaurantShortlistPage } from './trips/RestaurantShortlistPage'
 import { InsuranceComparePage } from './trips/InsuranceComparePage'
 import { InsuranceOptionsPage } from './trips/InsuranceOptionsPage'
 import { SimOptionsPage } from './trips/SimOptionsPage'
@@ -236,6 +237,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <RestaurantOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/restaurant-options/:view"
+            element={
+              <RequireAuth>
+                <RestaurantShortlistPage />
               </RequireAuth>
             }
           />

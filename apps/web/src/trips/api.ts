@@ -189,6 +189,19 @@ export type RestaurantOptions = {
   /** Chips for the filters applied: the owner's profile, and needs added for this trip only. */
   filters_applied: { profile: string[]; trip: string[] }
 }
+export type ShortlistEntry = {
+  rank: number
+  restaurant: RestaurantOption
+  fits_budget: boolean
+  preferences_met: string[]
+  preferences_total: number
+}
+export type RestaurantShortlist = {
+  place: string
+  budget_per_person: string | null
+  currency: string | null
+  entries: ShortlistEntry[]
+}
 export type StayOptions = {
   place: string
   start_date: string
@@ -466,6 +479,9 @@ export const fetchActivityOptions = (tripId: string) =>
 
 export const fetchRestaurantOptions = (tripId: string) =>
   call<RestaurantOptions>(`/trips/${encodeURIComponent(tripId)}/restaurant-options`)
+
+export const fetchRestaurantShortlist = (tripId: string) =>
+  call<RestaurantShortlist>(`/trips/${encodeURIComponent(tripId)}/restaurant-shortlist`)
 
 export const saveDiningNeeds = (tripId: string, needs: string[]) =>
   call<{ needs: string[] }>(`/trips/${encodeURIComponent(tripId)}/dining-needs`, 'PUT', { needs })

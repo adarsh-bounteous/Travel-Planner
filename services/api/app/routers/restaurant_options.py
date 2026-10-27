@@ -11,14 +11,16 @@ from app.dining.options import (
     RELIGION_TAGS,
     DiningFilters,
     RestaurantOption,
+    RestaurantOptions,
     RestaurantProvider,
     gather_restaurants,
 )
+from app.dining.shortlist import RestaurantShortlist, build_shortlist
 from app.routers.auth import get_identity, get_now
 from app.routers.deps import get_current_user, get_profiles, get_restaurant_providers, get_trips
 from app.routers.trips import _load, _owned_trip
 from app.trips.profile_store import Profile, ProfileStore
-from app.trips.store import TripStore
+from app.trips.store import Trip, TripStore
 
 router = APIRouter(prefix="/trips")
 
@@ -65,6 +67,34 @@ def _profile_chips(profile: Profile) -> list[str]:
     return chips
 
 
+def _matches(
+    trips: TripStore,
+    identity: IdentityProvider,
+    profiles: ProfileStore,
+    providers: list[RestaurantProvider],
+    user: str,
+    trip_id: str,
+) -> tuple[Trip, Profile, DiningFilters, RestaurantOptions]:
+    trip, owner_id, _ = _load(trips, identity, user, trip_id)
+    # The owner's profile drives the filters, even when an editor is the one looking.
+    profile = profiles.get_profile(owner_id) or Profile()
+    filters = _profile_filters(profile).model_copy(update={"extra_needs": trip.dining_needs})
+    return trip, profile, filters, gather_restaurants(providers, trip, filters)
+
+
+@router.get("/{trip_id}/restaurant-shortlist")
+def restaurant_shortlist(
+    trip_id: str,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    identity: IdentityProvider = Depends(get_identity),
+    profiles: ProfileStore = Depends(get_profiles),
+    providers: list[RestaurantProvider] = Depends(get_restaurant_providers),
+) -> RestaurantShortlist:
+    trip, profile, filters, found = _matches(trips, identity, profiles, providers, user, trip_id)
+    return build_shortlist(found, trip, filters, profile.tastes)
+
+
 @router.get("/{trip_id}/restaurant-options")
 def restaurant_options(
     trip_id: str,
@@ -74,11 +104,7 @@ def restaurant_options(
     profiles: ProfileStore = Depends(get_profiles),
     providers: list[RestaurantProvider] = Depends(get_restaurant_providers),
 ) -> RestaurantOptionsResponse:
-    trip, owner_id, _ = _load(trips, identity, user, trip_id)
-    # The owner's profile drives the filters, even when an editor is the one looking.
-    profile = profiles.get_profile(owner_id) or Profile()
-    filters = _profile_filters(profile).model_copy(update={"extra_needs": trip.dining_needs})
-    found = gather_restaurants(providers, trip, filters)
+    trip, profile, filters, found = _matches(trips, identity, profiles, providers, user, trip_id)
     return RestaurantOptionsResponse(
         place=found.place,
         home_cuisine=filters.home_cuisine,

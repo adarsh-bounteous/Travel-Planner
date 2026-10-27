@@ -82,6 +82,17 @@ export function RestaurantOptionsPage() {
       </nav>
       <h1>{ready ? `Restaurants in ${ready.place}` : 'Restaurants'}</h1>
 
+      {ready && !empty && (
+        <div className="row-between">
+          <Link className="btn btn-secondary" to={`/trips/${encodeURIComponent(tripId)}/restaurant-options/compare`}>
+            Compare matches
+          </Link>
+          <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(tripId)}/restaurant-options/shortlist`}>
+            View shortlist
+          </Link>
+        </div>
+      )}
+
       {ready && (
         <div className="stack stack-sm">
           <div className="filter-row">

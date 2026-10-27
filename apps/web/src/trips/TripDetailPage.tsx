@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -117,6 +117,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
   const options = trip.options ?? []
+  const hasBookable = options.length > 0 || Boolean(trip.sim)
   const close = () => setPanel({ id: 'none' })
   const saved = (updated: Trip, message: string) => {
     setTrip(updated)
@@ -161,18 +162,22 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             <button
               className="btn btn-primary"
               type="button"
-              disabled={options.length === 0}
-              aria-describedby={options.length === 0 ? 'book-hint' : undefined}
+              disabled={!hasBookable}
+              aria-describedby={hasBookable ? undefined : 'book-hint'}
               onClick={() => setPanel({ id: 'book' })}
             >
               Book trip
             </button>
-            {options.length === 0 && (
+            {!hasBookable && (
               <span className="text-sm text-muted" id="book-hint">
                 Choose an option to enable booking.
               </span>
             )}
           </div>
+          <Link className="btn btn-secondary" to={`/trips/${encodeURIComponent(trip.id)}/sim-options`}>
+            SIM options
+            <ArrowRightIcon />
+          </Link>
           {canEdit && (
             <button
               className="btn btn-secondary"
@@ -351,7 +356,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           }
         />
       )}
-      {panel.id === 'book' && <BookTripDrawer options={options} onClose={close} />}
+      {panel.id === 'book' && <BookTripDrawer options={options} sim={trip.sim} onClose={close} />}
       {accessRemoved && <AccessRemovedModal onOk={() => navigate('/')} />}
       <Toast key={toast?.id} message={toast?.message ?? null} undo={toast?.undo} />
     </div>

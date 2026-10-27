@@ -39,6 +39,7 @@ from app.trips.store import (
     Activity,
     ActivityFields,
     ActivityMove,
+    ChosenSim,
     CompanionDetails,
     Day,
     DayName,
@@ -86,6 +87,7 @@ INVALID_REMINDER = ApiError(422, "invalid_reminder")
 INVALID_ACTIVITY = ApiError(422, "invalid_activity")
 INVALID_STAY = ApiError(422, "invalid_stay")
 INVALID_TRANSPORT = ApiError(422, "invalid_transport")
+INVALID_SIM = ApiError(422, "invalid_sim")
 ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
 VISA_HAS_DATA = ApiError(409, "visa_has_data")
 INVALID_PLACE = ApiError(422, "invalid_place")
@@ -829,6 +831,21 @@ def _save_transport(
     now: datetime,
 ) -> TripView:
     trip.transport = transport
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, user, owner)
+
+
+def _save_sim(
+    trips: TripStore,
+    rates: RateSource,
+    user: str,
+    owner: str,
+    trip: Trip,
+    sim: ChosenSim | None,
+    now: datetime,
+) -> TripView:
+    trip.sim = sim
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, user, owner)

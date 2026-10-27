@@ -24,5 +24,9 @@ def save_profile(
         stored = profiles.get_profile(owner)
         if stored:
             body = body.model_copy(update={"transport_preferences": stored.transport_preferences})
+    if "sim_preference" not in body.model_fields_set:
+        stored = profiles.get_profile(owner)
+        if stored:
+            body = body.model_copy(update={"sim_preference": stored.sim_preference})
     profiles.save_profile(owner, body)
     return body

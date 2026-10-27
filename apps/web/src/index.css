@@ -376,3 +376,14 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .data-table th, .data-table td { padding: var(--space-2); text-align: left; border-bottom: var(--border-width) solid var(--color-border); white-space: nowrap; }
 .data-table th { font-size: var(--font-size-sm); color: var(--color-fg-muted); font-weight: var(--font-weight-medium); }
+.option { display: grid; gap: var(--space-3); }
+.option.is-picked { border: var(--border-width-strong) solid var(--color-primary); background: var(--color-primary-subtle); }
+.option h3 { margin: 0; overflow-wrap: anywhere; }
+.option-body { display: grid; gap: var(--space-3); }
+.option-facts { display: grid; gap: var(--space-2); min-width: 0; }
+.option-price { display: grid; gap: var(--space-1); align-content: start; margin: 0; }
+.option-price div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.option-price dt, .option-price dd { margin: 0; }
+.option-price .total { border-top: var(--border-width) solid var(--color-border); padding-top: var(--space-1); font-weight: var(--font-weight-bold); }
+.option-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+@media (min-width: 48rem) { .option-body { grid-template-columns: 1fr 16rem; } }

@@ -90,6 +90,13 @@ export const ArrowLeftIcon = () => (
   </Icon>
 )
 
+export const ArrowRightIcon = () => (
+  <Icon>
+    <path d="m12 5 7 7-7 7" />
+    <path d="M5 12h14" />
+  </Icon>
+)
+
 export const PlusIcon = () => (
   <Icon>
     <path d="M5 12h14" />

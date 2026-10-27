@@ -34,6 +34,19 @@ def test_invited_editor_opens_the_trip_with_editor_access(sign_in_as):
     assert tid in [t["id"] for t in ana.get("/trips").json()]
 
 
+def test_accepting_an_accepted_or_revoked_invite_errors_and_editors_are_unchanged(sign_in_as):
+    owner, ana = sign_in_as("o@example.com"), sign_in_as("ana@example.com")
+    tid = _trip_with_day(owner)
+    token = _invite(owner, tid, "ana@example.com")
+    assert ana.post(f"/invites/{token}/accept").status_code == 200
+    before = owner.get(f"/trips/{tid}").json()["editors"]
+    r = ana.post(f"/invites/{token}/accept")
+    assert (r.status_code, r.json()["code"]) == (409, "invite_used")
+    assert owner.get(f"/trips/{tid}").json()["editors"] == before
+    owner.delete(f"/trips/{tid}/editors/ana@example.com")
+    assert ana.post(f"/invites/{token}/accept").status_code == 404
+
+
 def test_invite_is_sent_to_the_invitee(sign_in_as):
     owner = sign_in_as("o@example.com")
     tid = _trip_with_day(owner)

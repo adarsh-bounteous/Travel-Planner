@@ -44,6 +44,19 @@ describe('invite page', () => {
     expect(fetchMock).toHaveBeenCalledWith('/invites/tok1/accept', expect.anything())
   })
 
+  it('shows an error when the invite was already used (AC18)', async () => {
+    stubApi(
+      {
+        'GET /invites/tok1': invite,
+        'POST /invites/tok1/accept': { status: 409, body: { code: 'invite_used' } },
+      },
+      { email: 'ana@example.com' },
+    )
+    renderAt('/invite/tok1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Open trip' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('This invite has already been used.')
+  })
+
   it('refuses a different account without sign-up (AC12, AC15)', async () => {
     stubApi({ 'GET /invites/tok1': invite }, { email: 'ben@example.com' })
     renderAt('/invite/tok1')

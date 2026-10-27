@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { rememberReturnTo, takeReturnTo } from '../auth/returnTo'
-import { acceptInvite, fetchInvite } from './api'
+import { acceptInvite, fetchInvite, InviteUsedError } from './api'
 import type { Invite } from './api'
 
 type Load = { state: 'loading' } | { state: 'invalid' } | { state: 'ready'; invite: Invite }
@@ -14,7 +14,7 @@ export function InvitePage() {
   const navigate = useNavigate()
   const [load, setLoad] = useState<Load>({ state: 'loading' })
   const [pending, setPending] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<'used' | 'failed' | null>(null)
 
   useEffect(() => {
     fetchInvite(token).then(
@@ -38,12 +38,12 @@ export function InvitePage() {
   }
   const open = async () => {
     setPending(true)
-    setFailed(false)
+    setFailed(null)
     try {
       const { trip_id } = await acceptInvite(token)
       navigate(`/trips/${encodeURIComponent(trip_id)}`)
-    } catch {
-      setFailed(true)
+    } catch (error) {
+      setFailed(error instanceof InviteUsedError ? 'used' : 'failed')
       setPending(false)
     }
   }
@@ -90,7 +90,9 @@ export function InvitePage() {
           </p>
           {failed && (
             <p className="field-error" role="alert">
-              We couldn't open the trip. Try again.
+              {failed === 'used'
+                ? 'This invite has already been used.'
+                : "We couldn't open the trip. Try again."}
             </p>
           )}
           <div className="overlay-actions">

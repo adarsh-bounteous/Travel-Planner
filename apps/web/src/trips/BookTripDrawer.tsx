@@ -1,7 +1,8 @@
 import { InfoIcon } from '../auth/icons'
-import type { ChosenOption, ChosenSim, InsurancePick } from './api'
+import type { ChosenOption, ChosenSim, InsurancePick, RestaurantPick } from './api'
 import { formatDay } from './ItineraryTab'
 import { Overlay } from './Overlay'
+import { RestaurantLink } from './RestaurantLink'
 import { safeHref } from './safeHref'
 
 function BookLink({ href }: { href: string | null }) {
@@ -21,15 +22,17 @@ export function BookTripDrawer({
   options,
   sim,
   insurance,
+  restaurants = [],
   onClose,
 }: {
   options: ChosenOption[]
   sim?: ChosenSim | null
   insurance?: InsurancePick | null
+  restaurants?: RestaurantPick[]
   onClose: () => void
 }) {
   const sorted = [...options].sort((a, b) => a.date.localeCompare(b.date))
-  const count = options.length + (sim ? 1 : 0) + (insurance ? 1 : 0)
+  const count = options.length + restaurants.length + (sim ? 1 : 0) + (insurance ? 1 : 0)
 
   return (
     <Overlay kind="drawer" labelledBy="book-title" onClose={onClose}>
@@ -51,6 +54,17 @@ export function BookTripDrawer({
                 </div>
               </div>
               <BookLink href={safeHref(option.booking_url)} />
+            </li>
+          ))}
+          {restaurants.map((pick) => (
+            <li key={pick.id} className="card stack stack-sm">
+              <div>
+                <div className="option-title">{pick.name}</div>
+                <div className="text-sm text-muted">
+                  {pick.cuisine}, {pick.city}
+                </div>
+              </div>
+              <RestaurantLink name={pick.name} url={pick.url} />
             </li>
           ))}
           {sim && (

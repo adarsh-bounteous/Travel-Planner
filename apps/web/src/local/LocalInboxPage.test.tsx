@@ -29,6 +29,28 @@ describe('local inbox page', () => {
     )
   })
 
+  it('lists a confirmation email as Confirm your email', async () => {
+    stubApi(
+      {
+        'GET /local/inbox': {
+          status: 200,
+          body: [
+            {
+              to: 'ana@example.com',
+              trip_name: '',
+              link: 'http://localhost:5173/confirm-email/tok2',
+              kind: 'confirmation',
+            },
+          ],
+        },
+      },
+      { signedOut: true },
+    )
+    renderAt('/local/inbox')
+    expect(await screen.findByRole('heading', { name: 'Confirm your email' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'http://localhost:5173/confirm-email/tok2' })).toBeInTheDocument()
+  })
+
   it('says so when nothing has been sent', async () => {
     stubApi({ 'GET /local/inbox': { status: 200, body: [] } }, { signedOut: true })
     renderAt('/local/inbox')

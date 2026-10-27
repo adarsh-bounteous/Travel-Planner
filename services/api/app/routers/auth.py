@@ -4,19 +4,22 @@ from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from typing import Literal
 
-from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.auth.accounts import AccountStore, DynamoAccountStore, InMemoryAccountStore
 from app.auth.cognito_identity import CognitoIdentityProvider
-from app.auth.fake_identity import FakeIdentityProvider
+from app.auth.local_identity import LocalIdentityProvider
 from app.auth.identity import (
     EmailNotConfirmed,
     EmailTaken,
     GoogleCancelled,
     IdentityError,
     IdentityProvider,
+    LinkAlreadyUsed,
+    LinkExpired,
+    LinkInvalid,
     NoAccount,
     WrongPassword,
 )
@@ -56,9 +59,16 @@ def _dynamo() -> AccountStore:
 
 
 @lru_cache
-def _local_identity() -> FakeIdentityProvider:
-    """Local mode's sign-in stand-in: in memory, so every local start is a first start."""
-    return FakeIdentityProvider()
+def _local_identity() -> LocalIdentityProvider:
+    """Local mode's Identity Provider: accounts in a file under LOCAL_DATA_DIR, links to the local inbox."""
+    from app.routers.deps import _local_invite_sender  # deps imports this module, so resolve it lazily
+
+    return LocalIdentityProvider(
+        get_settings().local_data_dir / "accounts.sqlite3",
+        clock=get_now,
+        send_confirmation=_local_invite_sender().send_confirmation,
+        link_base=lambda: get_settings().web_origin,
+    )
 
 
 @lru_cache
@@ -68,6 +78,12 @@ def _local_accounts() -> InMemoryAccountStore:
 
 def get_identity() -> IdentityProvider:
     return _local_identity() if get_settings().local_mode else _cognito()
+
+
+def get_local_identity() -> LocalIdentityProvider:
+    if not get_settings().local_mode:
+        raise HTTPException(404)
+    return _local_identity()
 
 
 def get_accounts() -> AccountStore:
@@ -135,6 +151,30 @@ def sign_in(
     response = JSONResponse({"status": "signed_in"})
     _set_session(response, user_id, now, settings)
     return response
+
+
+class ConfirmLink(BaseModel):
+    token: str
+
+
+_LINK_ERRORS = {
+    LinkInvalid: (404, "link_invalid"),
+    LinkExpired: (410, "link_expired"),
+    LinkAlreadyUsed: (409, "link_already_used"),
+}
+
+
+@router.post("/confirm")
+def confirm(
+    body: ConfirmLink, identity: LocalIdentityProvider = Depends(get_local_identity)
+) -> Response:
+    """Open a confirmation link from the local inbox. 404 with local mode off: Cognito confirms in the cloud."""
+    try:
+        identity.confirm_email(body.token)
+    except (LinkInvalid, LinkExpired, LinkAlreadyUsed) as error:
+        status, code = _LINK_ERRORS[type(error)]
+        return _error(status, code)
+    return JSONResponse({"status": "confirmed"})
 
 
 @router.post("/sign-out", status_code=204)

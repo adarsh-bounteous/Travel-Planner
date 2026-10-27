@@ -1,7 +1,11 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from app.local_mode import resolve_local_mode
+
+
+DEFAULT_LOCAL_DATA_DIR = Path(__file__).resolve().parent.parent / ".local-data"
 
 
 class MissingSettingError(RuntimeError):
@@ -22,6 +26,7 @@ class Settings:
     invite_from_address: str = ""
     environment: str = "production"
     local_mode: bool = False
+    local_data_dir: Path = DEFAULT_LOCAL_DATA_DIR
 
 
 def session_secret() -> bytes:
@@ -48,4 +53,5 @@ def get_settings() -> Settings:
         trips_table_name=env.get("TRIPS_TABLE_NAME", "trip-planner-trips"),
         cookie_secure=env.get("COOKIE_SECURE", "true").lower() != "false",
         invite_from_address=env.get("INVITE_FROM_ADDRESS", ""),
+        local_data_dir=Path(env.get("LOCAL_DATA_DIR") or DEFAULT_LOCAL_DATA_DIR),
     )

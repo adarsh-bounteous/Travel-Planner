@@ -25,6 +25,8 @@ class SeedableIdentity(Protocol):
 
     def account_exists(self, email: str) -> bool: ...
 
+    def user_id_for(self, email: str) -> str: ...
+
 
 @dataclass(frozen=True)
 class LocalSeedTarget:
@@ -65,14 +67,18 @@ def seed_demo_data(
     trips: TripStore,
     today: date,
 ) -> bool:
-    """Seed the demo user and sample trips only when local data is completely empty.
+    """Ensure the demo user exists and seed sample trips only when the trips are empty.
 
-    Returns True when it seeded, False when it did nothing. Nothing is ever updated once
-    seeded, so a restart keeps edits and never duplicates.
+    Accounts can outlive an API restart while trips do not, so the user is created only when
+    missing. Returns True when it seeded trips, False when it did nothing to them. Nothing is
+    ever updated once seeded, so a restart keeps edits and never duplicates.
     """
     if not is_empty():
         return False
-    user_id = identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
+    if identity.account_exists(DEMO_EMAIL):
+        user_id = identity.user_id_for(DEMO_EMAIL)
+    else:
+        user_id = identity.create_confirmed_user(DEMO_EMAIL, DEMO_PASSWORD)
     for trip in _sample_trips(today):
         trips.save_trip(user_id, trip)
     return True

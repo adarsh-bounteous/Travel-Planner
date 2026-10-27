@@ -19,14 +19,11 @@ def save_profile(
     owner: str = Depends(get_current_user),
     profiles: ProfileStore = Depends(get_profiles),
 ) -> Profile:
-    if "transport_preferences" not in body.model_fields_set:
-        # PUT replaces the profile; a client that never sends the block must not wipe it.
-        stored = profiles.get_profile(owner)
-        if stored:
-            body = body.model_copy(update={"transport_preferences": stored.transport_preferences})
-    if "sim_preference" not in body.model_fields_set:
-        stored = profiles.get_profile(owner)
-        if stored:
-            body = body.model_copy(update={"sim_preference": stored.sim_preference})
+    # PUT replaces the profile; a client that never sends these fields must not wipe them.
+    kept = ("transport_preferences", "dining_style", "price_level", "sim_preference")
+    missing = [f for f in kept if f not in body.model_fields_set]
+    stored = profiles.get_profile(owner) if missing else None
+    if stored:
+        body = body.model_copy(update={f: getattr(stored, f) for f in missing})
     profiles.save_profile(owner, body)
     return body

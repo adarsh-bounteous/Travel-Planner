@@ -25,6 +25,10 @@ BLANK = {
     "diet": "",
     "tastes": [],
     "travel_style": "",
+    "dining_style": "",
+    "price_level": None,
+    "vaccinations_had": [],
+    "pregnant": None,
     "transport_preferences": NO_PREFERENCES,
     "sim_preference": None,
 }

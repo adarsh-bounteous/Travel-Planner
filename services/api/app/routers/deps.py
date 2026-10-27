@@ -17,6 +17,9 @@ from app.flights.providers import InMemoryFlightProvider
 from app.attractions.options import ActivityProvider
 from app.attractions.providers import SEED_CATALOGUES as ACTIVITY_SEED_CATALOGUES
 from app.attractions.providers import InMemoryActivityProvider
+from app.dining.options import RestaurantProvider
+from app.dining.providers import SEED_CATALOGUES as RESTAURANT_SEED_CATALOGUES
+from app.dining.providers import InMemoryRestaurantProvider
 from app.sims.options import SimProvider
 from app.sims.providers import SEED_CATALOGUES as SIM_SEED_CATALOGUES
 from app.sims.providers import InMemorySimProvider
@@ -124,6 +127,11 @@ def _activity_providers() -> list[ActivityProvider]:
         InMemoryActivityProvider(name, source, catalogue, clock)
         for name, (source, catalogue) in ACTIVITY_SEED_CATALOGUES.items()
     ]
+
+
+@lru_cache
+def _restaurant_providers() -> list[RestaurantProvider]:
+    return [InMemoryRestaurantProvider(name, catalogue) for name, catalogue in RESTAURANT_SEED_CATALOGUES.items()]
 
 
 @lru_cache
@@ -275,6 +283,10 @@ def get_sim_providers() -> list[SimProvider]:
 
 def get_activity_providers() -> list[ActivityProvider]:
     return _activity_providers()
+
+
+def get_restaurant_providers() -> list[RestaurantProvider]:
+    return _restaurant_providers()  # seeded in local mode too: it makes no outside call
 
 
 def get_insurance_providers() -> list[InsuranceProvider]:

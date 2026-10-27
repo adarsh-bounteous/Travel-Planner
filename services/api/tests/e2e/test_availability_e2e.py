@@ -22,6 +22,7 @@ def test_availability_includes_open_outage():
     store.record(ProbeResult(datetime(2026, 10, 5, 12, 0, tzinfo=UTC), ok=False))
     app.dependency_overrides[availability.get_probe_store] = lambda: store
     app.dependency_overrides[availability.get_availability_now] = lambda: NOW
+    app.dependency_overrides[availability.get_current_user] = lambda: "user-1"
     try:
         resp = anyio.run(_get, "/availability")
     finally:
@@ -32,3 +33,9 @@ def test_availability_includes_open_outage():
     assert body["downtime_seconds"] == 1800
     assert body["final"] is False
     assert body["status"] == "ok"
+
+
+def test_availability_requires_sign_in():
+    resp = anyio.run(_get, "/availability")
+    assert resp.status_code == 401
+    assert resp.json() == {"code": "not_signed_in"}

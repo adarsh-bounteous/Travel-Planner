@@ -75,7 +75,7 @@ returns "not found" when local mode is off.
 
 Monthly availability must be at least 99.9%, taken as at most 43 minutes of downtime. A month with
 more downtime is reported as breached with its downtime budget exhausted, and both raise an alert to
-on-call. `GET /availability` shows the current month's figure, including downtime up to now. Local
+on-call. `GET /availability` (signed-in travellers only) shows the current month's figure, including downtime up to now. Local
 mode has an empty in-memory probe history, so no table is needed.
 
 The scheduled handler is `app.availability.runner.handler`. These resources are provisioned outside

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.availability.gate import evaluate_month
 from app.availability.store import ProbeStore, month_of
-from app.routers.deps import get_probe_store
+from app.routers.deps import get_current_user, get_probe_store
 
 router = APIRouter()
 
@@ -15,6 +15,7 @@ def get_availability_now() -> datetime:
 
 @router.get("/availability")
 def availability(
+    _user: str = Depends(get_current_user),
     store: ProbeStore = Depends(get_probe_store),
     now: datetime = Depends(get_availability_now),
 ) -> dict[str, object]:

@@ -239,6 +239,9 @@ legend { padding: 0; }
 /* Stay options */
 .select { width: 100%; min-height: var(--size-control-md); padding: var(--space-1) var(--space-2); font: inherit; color: var(--color-fg); background: var(--color-bg); border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-md); }
 .check { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+fieldset.radio-group { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0; margin-bottom: var(--space-2); }
+.radio-group .check { min-height: var(--size-control-md); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .text-bold { font-weight: var(--font-weight-bold); }
 .alert-title { font-weight: var(--font-weight-bold); }
@@ -324,3 +327,13 @@ legend { padding: 0; }
 .mail-meta dd { margin: 0; overflow-wrap: anywhere; }
 .mail-body { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); max-width: 65ch; overflow-wrap: anywhere; }
 .mail-link { overflow-wrap: anywhere; font-family: var(--font-family-mono); font-size: var(--font-size-sm); }
+.form-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
+.form-grid .field-wide { grid-column: 1 / -1; }
+.back { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-control-md); }
+.back .icon { width: 1em; height: 1em; }
+.travel-option { display: flex; flex-direction: column; gap: var(--space-3); }
+.travel-option-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.travel-option-main h3 { overflow-wrap: anywhere; }
+.travel-option-price { font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }
+@media (min-width: 30rem) { .travel-option { flex-direction: row; align-items: center; justify-content: space-between; } }
+.radio { width: var(--size-check); height: var(--size-check); accent-color: var(--color-primary); }

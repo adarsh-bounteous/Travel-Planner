@@ -1,5 +1,8 @@
 import { Route, Routes } from 'react-router'
 import { AccountPage } from './account/AccountPage'
+import { LocalModePage } from './account/LocalModePage'
+import { LocalBookingPage } from './travel/LocalBookingPage'
+import { TravelSearchPage } from './travel/TravelSearchPage'
 import { AppHeader } from './AppHeader'
 import { ConfirmEmailPage } from './auth/ConfirmEmailPage'
 import { ConfirmLinkPage } from './auth/ConfirmLinkPage'
@@ -54,6 +57,30 @@ export default function App() {
             element={
               <RequireAuth>
                 <ExplorePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/explore/travel"
+            element={
+              <RequireAuth>
+                <TravelSearchPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/explore/travel/booking"
+            element={
+              <RequireAuth>
+                <LocalBookingPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account/local-mode"
+            element={
+              <RequireAuth>
+                <LocalModePage />
               </RequireAuth>
             }
           />

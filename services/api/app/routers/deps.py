@@ -7,6 +7,7 @@ from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
 from app.routers.auth import _local_identity, _set_session, get_now
+from app.places.local_search import LocalPlaceSearch
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
@@ -17,7 +18,9 @@ from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.transport.options import TransportProvider
 from app.transport.providers import SEED_CATALOGUES as TRANSPORT_SEED_CATALOGUES
 from app.transport.providers import InMemoryTransportProvider
+from app.travel.local import LocalFlightProvider, LocalStayProvider, LocalTransportProvider
 from app.trips.recommendations import (
+    SEED_LOCAL_RECOMMENDATIONS,
     SEED_RECOMMENDATIONS,
     InMemoryRecommendations,
     RecommendationSource,
@@ -80,6 +83,12 @@ def _places() -> PlaceSearch:
 
 
 @lru_cache
+def _local_places() -> PlaceSearch:
+    """Local mode's places stand-in: generated from the destination, no outside request."""
+    return LocalPlaceSearch()
+
+
+@lru_cache
 def _stay_providers() -> list[StayProvider]:
     def clock() -> datetime:
         return datetime.now(UTC)
@@ -106,6 +115,12 @@ def _transport_providers() -> list[TransportProvider]:
 @lru_cache
 def _recommendations() -> RecommendationSource:
     return InMemoryRecommendations(SEED_RECOMMENDATIONS)
+
+
+@lru_cache
+def _local_recommendations() -> RecommendationSource:
+    """Local mode's recommendation stand-in: a catalogue tagged by interest."""
+    return InMemoryRecommendations(SEED_LOCAL_RECOMMENDATIONS)
 
 
 @lru_cache
@@ -150,23 +165,38 @@ def get_rates() -> RateSource:
 
 
 def get_recommendations() -> RecommendationSource:
-    return _recommendations()
+    return _local_recommendations() if get_settings().local_mode else _recommendations()
+
+
+@lru_cache
+def _local_stay_providers() -> list[StayProvider]:
+    return [LocalStayProvider()]
+
+
+@lru_cache
+def _local_flight_providers() -> list[FlightProvider]:
+    return [LocalFlightProvider()]
+
+
+@lru_cache
+def _local_transport_providers() -> list[TransportProvider]:
+    return [LocalTransportProvider()]
 
 
 def get_stay_providers() -> list[StayProvider]:
-    return _stay_providers()
+    return _local_stay_providers() if get_settings().local_mode else _stay_providers()
 
 
 def get_flight_providers() -> list[FlightProvider]:
-    return _flight_providers()
+    return _local_flight_providers() if get_settings().local_mode else _flight_providers()
 
 
 def get_transport_providers() -> list[TransportProvider]:
-    return _transport_providers()
+    return _local_transport_providers() if get_settings().local_mode else _transport_providers()
 
 
 def get_places() -> PlaceSearch:
-    return _places()
+    return _local_places() if get_settings().local_mode else _places()
 
 
 def get_local_seed_target() -> LocalSeedTarget | None:

@@ -281,7 +281,10 @@ def update_trip(
     existing = _owned_trip(trips, identity, owner, trip_id)
     # The body cannot carry days, options or currency: keep the stored ones.
     days = _days(existing, body.start_date, body.end_date)
-    trip = existing.model_copy(update={**body.model_dump(), "days": days, "updated_at": now})
+    fields = body.model_dump()
+    if "interests" not in body.model_fields_set:
+        del fields["interests"]  # settings edits do not send interests: keep the stored ones
+    trip = existing.model_copy(update={**fields, "days": days, "updated_at": now})
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 
@@ -586,6 +589,24 @@ def day_recommendations(
         return []
     on_day = {a.name for a in trip.activities if a.date == day_date}
     return [r for r in source.for_destination(trip.destination) if r.name not in on_day]
+
+
+@router.get("/{trip_id}/recommendations")
+def trip_recommendations(
+    trip_id: str,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    identity: IdentityProvider = Depends(get_identity),
+    source: RecommendationSource = Depends(get_recommendations),
+) -> list[Recommendation]:
+    trip, _ = _editable_trip(trips, identity, user, trip_id)
+    if not trip.destination:
+        return []
+    recommendations = source.for_destination(trip.destination)
+    if not trip.interests:
+        return recommendations
+    wanted = {i.casefold() for i in trip.interests}
+    return [r for r in recommendations if r.interest and r.interest.casefold() in wanted]
 
 
 @router.post("/{trip_id}/activities", status_code=201)

@@ -1,4 +1,5 @@
 import { AlertIcon, CheckIcon, StarIcon } from '../auth/icons'
+import { BookingLink } from '../travel/BookingLink'
 import type { ShortlistFlight } from './api'
 import { formatFare, formatMinutes, formatMode, formatRetrieved, formatStops } from './flights'
 
@@ -37,9 +38,7 @@ export function FlightShortlistCard({
         <span className="text-sm text-muted">{`via ${flight.source}`}</span>
       </div>
       {flight.mode === 'taxi' && (
-        <a href={flight.url} rel="noopener noreferrer" target="_blank">
-          Open ride provider
-        </a>
+        <BookingLink url={flight.url}>Open ride provider</BookingLink>
       )}
       {flight.deal && (
         <span className="badge badge-warning">

@@ -124,6 +124,11 @@ describe('TripDetailPage itinerary', () => {
     }
   })
 
+  it('has a Recommendations tab in the trip sections', async () => {
+    open()
+    expect(await screen.findByRole('tab', { name: 'Recommendations' })).toBeVisible()
+  })
+
   it('hides every owner control from a non-owner (AC8, AC12)', async () => {
     open(trip({ is_owner: false }))
     await screen.findByRole('tab', { name: 'Itinerary' })

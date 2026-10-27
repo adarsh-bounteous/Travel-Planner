@@ -12,10 +12,10 @@ DEMO_PASSWORD = "demo-password-1"  # local use only; must satisfy app.auth.passw
 
 DAYS_UNTIL_FIRST_TRIP = 30
 
-# (name, destination, nights, days after the previous trip ends, budget, currency, traveller count)
+# (name, destination, nights, days after the previous trip ends, budget, currency, traveller count, interests)
 _SAMPLE_TRIPS = (
-    ("Weekend in Lisbon", "Lisbon", 3, 0, 900, "EUR", 2),
-    ("Summer in Kyoto", "Kyoto", 10, 30, 3200, "USD", 1),
+    ("Weekend in Lisbon", "Lisbon", 3, 0, 900, "EUR", 2, ("Food", "Culture", "Outdoors")),
+    ("Summer in Kyoto", "Kyoto", 10, 30, 3200, "USD", 1, ("Culture", "Nature")),
 )
 
 
@@ -40,7 +40,7 @@ class LocalSeedTarget:
 def _sample_trips(today: date) -> list[Trip]:
     trips = []
     start = today + timedelta(days=DAYS_UNTIL_FIRST_TRIP)
-    for name, destination, nights, gap, budget, currency, travellers in _SAMPLE_TRIPS:
+    for name, destination, nights, gap, budget, currency, travellers, interests in _SAMPLE_TRIPS:
         start += timedelta(days=gap)
         end = start + timedelta(days=nights)
         trips.append(
@@ -53,6 +53,7 @@ def _sample_trips(today: date) -> list[Trip]:
                 budget=budget,
                 currency=currency,
                 traveller_count=travellers,
+                interests=list(interests),
                 days=reconcile_days(start, end, []),
             )
         )

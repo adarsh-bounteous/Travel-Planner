@@ -1,4 +1,5 @@
 import { InfoIcon } from '../auth/icons'
+import { BookingLink } from '../travel/BookingLink'
 import type { StayProperty } from './api'
 import { amenityLabel, formatFetched, formatMoney, plural, starsLabel, typeLabel } from './stayOptions'
 
@@ -33,10 +34,10 @@ export function PropertyCard({ property: p, nights }: PropertyCardProps) {
               {`${formatMoney(o.total, o.currency)} for ${plural(nights, 'night', 'nights')}`}
             </div>
             <div className="text-sm text-muted">{`Fetched ${formatFetched(o.fetched_at)}`}</div>
-            <a href={o.url} target="_blank" rel="noopener noreferrer">
+            <BookingLink url={o.url}>
               {`View on ${o.provider}`}
               <span className="sr-only">{` for ${p.name}`}</span>
-            </a>
+            </BookingLink>
           </div>
         ))}
       </div>

@@ -102,7 +102,7 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
               </div>
             </div>
           ))}
-          <div>
+          <div className="traveller-actions">
             <Link
               className="btn btn-primary"
               to={`/trips/${encodeURIComponent(trip.id)}/requirements`}
@@ -114,6 +114,12 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
               to={`/trips/${encodeURIComponent(trip.id)}/medical-guidance`}
             >
               Medical guidance
+            </Link>
+            <Link
+              className="btn btn-secondary"
+              to={`/trips/${encodeURIComponent(trip.id)}/visa-requirements`}
+            >
+              Visa requirements
             </Link>
           </div>
         </div>

@@ -72,6 +72,32 @@ export type StayProperty = {
   nearby: boolean
   offers: StayOffer[]
 }
+export type ActivityPrice = {
+  provider: string
+  source: 'web_search' | 'partner'
+  adult_price: string
+  child_price: string | null
+  group_estimate: string
+  currency: string
+  fetched_at: string
+  url: string
+  offer: string | null
+}
+export type ActivityOption = {
+  id: string
+  title: string
+  kind: 'ticket' | 'tour' | 'day_trip' | 'experience'
+  interests: string[]
+  provider: string
+  adult_price: string
+  child_price: string | null
+  group_estimate: string
+  group_estimate_indicative: boolean
+  currency: string
+  offer: string | null
+  prices: ActivityPrice[]
+}
+export type ActivityOptions = { place: string; travellers: number; options: ActivityOption[] }
 export type StayOptions = {
   place: string
   start_date: string
@@ -336,7 +362,10 @@ export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/options?${stayQuery(c)}`,
   )
 
-export const chooseStay = (tripId: string, stayId: string, propertyId: string, c: StayCriteria) =>
+export const fetchActivityOptions = (tripId: string) =>
+  call<ActivityOptions>(`/trips/${encodeURIComponent(tripId)}/activity-options`)
+
+export const chooseStay =(tripId: string, stayId: string, propertyId: string, c: StayCriteria) =>
   call<Trip>(
     `/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/chosen?${stayQuery(c)}`,
     'PUT',

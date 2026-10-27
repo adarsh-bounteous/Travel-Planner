@@ -13,6 +13,9 @@ from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
 from app.flights.providers import SEED_MODES as FLIGHT_SEED_MODES
 from app.flights.providers import InMemoryFlightProvider
+from app.attractions.options import ActivityProvider
+from app.attractions.providers import SEED_CATALOGUES as ACTIVITY_SEED_CATALOGUES
+from app.attractions.providers import InMemoryActivityProvider
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.transport.options import TransportProvider
@@ -88,6 +91,17 @@ def _places() -> PlaceSearch:
 def _local_places() -> PlaceSearch:
     """Local mode's places stand-in: generated from the destination, no outside request."""
     return LocalPlaceSearch()
+
+
+@lru_cache
+def _activity_providers() -> list[ActivityProvider]:
+    def clock() -> datetime:
+        return datetime.now(UTC)
+
+    return [
+        InMemoryActivityProvider(name, source, catalogue, clock)
+        for name, (source, catalogue) in ACTIVITY_SEED_CATALOGUES.items()
+    ]
 
 
 @lru_cache
@@ -215,6 +229,10 @@ def _local_flight_providers() -> list[FlightProvider]:
 @lru_cache
 def _local_transport_providers() -> list[TransportProvider]:
     return [LocalTransportProvider()]
+
+
+def get_activity_providers() -> list[ActivityProvider]:
+    return _activity_providers()
 
 
 def get_stay_providers() -> list[StayProvider]:

@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.trips.requirements import _country
+from app.trips.visa import destination_country as _country
 
 
 class TypicalWeather(BaseModel):

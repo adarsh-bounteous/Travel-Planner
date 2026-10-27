@@ -25,6 +25,7 @@ import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
+import { MedicalGuidancePage } from './trips/MedicalGuidancePage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
@@ -129,6 +130,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/medical-guidance"
+            element={
+              <RequireAuth>
+                <MedicalGuidancePage />
               </RequireAuth>
             }
           />

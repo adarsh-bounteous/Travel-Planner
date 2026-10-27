@@ -1,5 +1,8 @@
 import { Route, Routes } from 'react-router'
 import { AccountPage } from './account/AccountPage'
+import { LocalModePage } from './account/LocalModePage'
+import { LocalBookingPage } from './travel/LocalBookingPage'
+import { TravelSearchPage } from './travel/TravelSearchPage'
 import { AppHeader } from './AppHeader'
 import { ConfirmEmailPage } from './auth/ConfirmEmailPage'
 import { ConfirmLinkPage } from './auth/ConfirmLinkPage'
@@ -21,7 +24,6 @@ import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
-import { SettingsPage } from './local/SettingsPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
@@ -59,6 +61,30 @@ export default function App() {
             }
           />
           <Route
+            path="/explore/travel"
+            element={
+              <RequireAuth>
+                <TravelSearchPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/explore/travel/booking"
+            element={
+              <RequireAuth>
+                <LocalBookingPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account/local-mode"
+            element={
+              <RequireAuth>
+                <LocalModePage />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/saved"
             element={
               <RequireAuth>
@@ -71,14 +97,6 @@ export default function App() {
             element={
               <RequireAuth>
                 <AccountPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/account/settings"
-            element={
-              <RequireAuth>
-                <SettingsPage />
               </RequireAuth>
             }
           />

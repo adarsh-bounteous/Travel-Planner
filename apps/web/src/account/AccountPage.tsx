@@ -213,8 +213,8 @@ export function AccountPage() {
         <Link className="btn btn-secondary" to="/profile/transport">
           Transport preferences
         </Link>
-        <Link className="btn btn-secondary" to="/account/settings">
-          Settings
+        <Link className="btn btn-secondary" to="/account/local-mode">
+          Local mode
         </Link>
       </div>
       {method === 'email' && (

@@ -9,6 +9,8 @@ describe('mainSectionFor', () => {
   it('maps Explore screens to explore (AC9)', () => {
     expect(mainSectionFor('/explore')).toBe('explore')
     expect(mainSectionFor('/destinations')).toBe('explore')
+    expect(mainSectionFor('/explore/travel')).toBe('explore')
+    expect(mainSectionFor('/explore/travel/booking')).toBe('explore')
   })
 
   it('maps screens under no main section to null (AC8)', () => {

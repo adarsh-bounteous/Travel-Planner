@@ -17,12 +17,42 @@ class LocalStandIns:
     storage: bool
     sign_in: bool
     cloud_services: bool
-    places: bool
+    travel_search: bool
 
 
-def resolve_local_mode(env: Mapping[str, str]) -> tuple[str, bool]:
-    """Return (environment, local_mode); refuse anything that could leak local mode into a deploy."""
+_override: bool | None = None
+
+
+def set_local_mode_override(on: bool) -> None:
+    """Turn the switch on or off for this process only. Memory only, never stored."""
+    global _override
+    _override = on
+
+
+def clear_local_mode_override() -> None:
+    global _override
+    _override = None
+
+
+def local_mode_override() -> bool | None:
+    return _override
+
+
+def resolve_local_mode(env: Mapping[str, str], override: bool | None = None) -> tuple[str, bool]:
+    """Return (environment, local_mode); refuse anything that could leak local mode into a deploy.
+
+    `override` is a runtime choice of the switch: False wins over LOCAL_MODE, True is
+    refused outside the local environment, None leaves the environment's value alone.
+    """
     environment = env.get("APP_ENV", "") or "production"
+    if override is False:
+        return environment, False
+    if override is True:
+        if environment != LOCAL_ENVIRONMENT:
+            raise LocalModeRefusedError(
+                "Local mode is not allowed in live deployments. The switch stays off."
+            )
+        return environment, True
     value = env.get("LOCAL_MODE", "").strip().lower()
     if value in _OFF:
         return environment, False
@@ -43,5 +73,5 @@ def stand_ins_for(local_mode: bool) -> LocalStandIns:
         storage=local_mode,
         sign_in=local_mode,
         cloud_services=local_mode,
-        places=local_mode,
+        travel_search=local_mode,
     )

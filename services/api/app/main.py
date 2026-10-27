@@ -14,7 +14,7 @@ from app.routers import (
     health,
     invites,
     local_inbox,
-    local_mode as local_mode_router,
+    local_mode,
     local_reset,
     places,
     profile,
@@ -25,6 +25,7 @@ from app.routers import (
     stay_options,
     transport,
     transport_picks,
+    travel_search,
     trips,
 )
 from app.routers.deps import ApiError
@@ -54,7 +55,8 @@ app.include_router(invites.router)
 app.include_router(shared.router)
 app.include_router(local_inbox.router)
 app.include_router(local_reset.router)
-app.include_router(local_mode_router.router)
+app.include_router(local_mode.router)
+app.include_router(travel_search.router)
 app.include_router(profile.router)
 app.include_router(places.router)
 app.include_router(saved_places.router)

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { AlertIcon } from '../auth/icons'
+import { BookingLink } from '../travel/BookingLink'
 import { clearTransport, refreshTransport } from './api'
 import type { TransportLeg, TransportPick, Trip } from './api'
 import { formatFare, legName, LEGS, pickSummary } from './flights'
@@ -96,10 +97,10 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
                     )}
                   </div>
                   <div className="link-row">
-                    <a href={pick.url} target="_blank" rel="noopener noreferrer">
+                    <BookingLink url={pick.url}>
                       Book with provider
                       <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    </BookingLink>
                     <span className="text-sm text-muted">Fare may differ on the provider's booking page.</span>
                   </div>
                   {editable && (

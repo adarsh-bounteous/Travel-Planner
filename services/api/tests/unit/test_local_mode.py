@@ -6,7 +6,9 @@ from app.config import get_settings
 from app.local_mode import (
     LocalModeRefusedError,
     LocalStandIns,
+    clear_local_mode_override,
     resolve_local_mode,
+    set_local_mode_override,
     stand_ins_for,
 )
 
@@ -38,7 +40,7 @@ def test_unrecognised_value_is_refused():
 
 def test_off_means_no_stand_in():
     assert stand_ins_for(False) == LocalStandIns(
-        storage=False, sign_in=False, cloud_services=False, places=False
+        storage=False, sign_in=False, cloud_services=False, travel_search=False
     )
 
 
@@ -55,7 +57,7 @@ def test_on_with_unset_environment_is_refused():
 
 def test_on_enables_every_stand_in():
     assert stand_ins_for(True) == LocalStandIns(
-        storage=True, sign_in=True, cloud_services=True, places=True
+        storage=True, sign_in=True, cloud_services=True, travel_search=True
     )
 
 
@@ -63,3 +65,29 @@ def test_stand_ins_flip_together():
     on, off = stand_ins_for(True), stand_ins_for(False)
     assert all(getattr(on, f.name) for f in fields(on))
     assert not any(getattr(off, f.name) for f in fields(off))
+
+
+def test_override_on_in_live_is_refused():
+    with pytest.raises(LocalModeRefusedError, match="live deployments"):
+        resolve_local_mode({"APP_ENV": "production"}, override=True)
+
+
+def test_override_on_in_local_turns_it_on():
+    assert resolve_local_mode({"APP_ENV": "local"}, override=True) == ("local", True)
+
+
+def test_override_off_wins_over_env_on():
+    env = {"APP_ENV": "local", "LOCAL_MODE": "on"}
+    assert resolve_local_mode(env, override=False) == ("local", False)
+    assert resolve_local_mode(env, override=None) == ("local", True)
+
+
+def test_runtime_override_reaches_settings(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "local")
+    monkeypatch.delenv("LOCAL_MODE", raising=False)
+    set_local_mode_override(True)
+    try:
+        assert get_settings().local_mode is True
+    finally:
+        clear_local_mode_override()
+    assert get_settings().local_mode is False

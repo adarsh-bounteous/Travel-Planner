@@ -134,3 +134,44 @@ def test_google_and_account_changes_are_carried_over(env):
     with pytest.raises(WrongPassword):
         provider.change_password(EMAIL, "bad", "newpassword123")
     assert provider.complete_google("abc") == "google-abc"
+
+
+def test_created_account_is_found_by_email(env):
+    provider = env["make"]()
+    provider.create_confirmed_user(EMAIL, PASSWORD)
+    assert provider.account_exists(EMAIL)
+    assert provider.user_id_for(EMAIL).startswith("user-")
+
+
+def test_account_is_found_after_restart(env):
+    env["make"]().create_confirmed_user(EMAIL, PASSWORD)
+    restarted = env["make"]()
+    assert restarted.account_exists(EMAIL)
+    assert restarted.user_id_for(EMAIL)
+
+
+def test_differently_cased_email_is_a_duplicate(env):
+    provider = env["make"]()
+    provider.create_confirmed_user("anna@example.com", PASSWORD)
+    with pytest.raises(EmailTaken):
+        provider.create_confirmed_user("Anna@Example.com", PASSWORD)
+    with pytest.raises(EmailTaken):
+        provider.sign_up_email("Anna@Example.com", PASSWORD)
+
+
+def test_same_email_is_refused(env):
+    provider = env["make"]()
+    provider.create_confirmed_user("anna@example.com", PASSWORD)
+    with pytest.raises(EmailTaken):
+        provider.create_confirmed_user("anna@example.com", PASSWORD)
+    assert provider.account_exists("anna@example.com")
+
+
+def test_lookup_ignores_email_case_and_refused_duplicate_changes_nothing(env):
+    provider = env["make"]()
+    user_id = provider.create_confirmed_user("anna@example.com", PASSWORD)
+    assert provider.account_exists("Anna@Example.com")
+    assert provider.user_id_for("Anna@Example.com") == user_id
+    with pytest.raises(EmailTaken):
+        provider.create_confirmed_user("anna@example.com", "differentpass99")
+    assert provider.sign_in_email("anna@example.com", PASSWORD) == user_id

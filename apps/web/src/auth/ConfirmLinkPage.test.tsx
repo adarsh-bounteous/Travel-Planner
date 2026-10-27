@@ -13,6 +13,19 @@ describe('confirmation link page', () => {
     }
   })
 
+  it('says the email was changed for an email-change link', async () => {
+    stubApi(
+      { 'POST /auth/confirm': { status: 200, body: { status: 'confirmed', kind: 'email_change' } } },
+      { signedOut: true },
+    )
+    renderAt('/confirm-email/tok1')
+    expect(await screen.findByText('Email changed')).toBeVisible()
+    expect(screen.getByText('Your email address has been changed.')).toBeVisible()
+    for (const link of screen.getAllByRole('link', { name: 'Sign in' })) {
+      expect(link).toHaveAttribute('href', '/sign-in')
+    }
+  })
+
   it.each([
     [410, 'link_expired', /has expired/i],
     [409, 'link_already_used', /already been used/i],

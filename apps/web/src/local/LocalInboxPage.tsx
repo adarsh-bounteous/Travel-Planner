@@ -6,7 +6,7 @@ type Message = {
   to: string
   trip_name: string
   link: string
-  kind: 'confirmation' | 'invite'
+  kind: 'confirmation' | 'email_change' | 'invite'
   subject: string
   sent_at: string
 }
@@ -20,6 +20,12 @@ const KINDS = {
     badgeText: 'Sign-in',
     intro: 'Follow this link to confirm your sign-in.',
     action: 'Complete sign-in',
+  },
+  email_change: {
+    badge: 'badge-neutral',
+    badgeText: 'Email change',
+    intro: 'Follow this link to confirm your new email address.',
+    action: 'Confirm new email',
   },
   invite: {
     badge: 'badge-success',

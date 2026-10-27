@@ -51,7 +51,7 @@ class IdentityProvider(Protocol):
     def email_for(self, user_id: str) -> str: ...
 
     def request_email_change(self, email: str, current_password: str, new_email: str) -> None:
-        """Verify current_password, then start a verified change to new_email. The old
+        """Verify current_password, then send a confirmation link to new_email. The old
         email stays active until the link is opened. Raises WrongPassword, EmailTaken."""
 
     def change_password(self, email: str, current_password: str, new_password: str) -> None:

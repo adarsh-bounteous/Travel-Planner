@@ -32,11 +32,12 @@ const convertReply = (amount: number, from: string, to: string): Conversion =>
 const convertKey = (amount: number, from: string, to: string) =>
   `GET /rates/convert?${new URLSearchParams({ amount: String(amount), from, to })}`
 
-function show(url = '/trips/t1/costs') {
+function show(url = '/trips/t1/costs', shown: Trip = trip) {
   const replies: Record<string, { status: number; body?: unknown }> = {
-    'GET /trips/t1': { status: 200, body: trip },
+    'GET /trips/t1': { status: 200, body: shown },
   }
   for (const to of Object.keys(RATES)) {
+    replies[convertKey(29, 'EUR', to)] = { status: 200, body: convertReply(29, 'EUR', to) }
     replies[convertKey(100, 'EUR', to)] = { status: 200, body: convertReply(100, 'EUR', to) }
     replies[convertKey(50, 'XYZ', to)] = { status: 200, body: convertReply(50, 'XYZ', to) }
   }
@@ -45,6 +46,24 @@ function show(url = '/trips/t1/costs') {
 }
 
 describe('CostsPage', () => {
+  it('lists the picked SIM at its price for every traveller (AC11)', async () => {
+    const sim = {
+      option_id: 'roamly-europe-10',
+      name: 'Roamly Europe 10 GB',
+      provider: 'Web search',
+      sim_type: 'esim' as const,
+      valid_from: '2027-03-01',
+      valid_to: '2027-03-31',
+      data_gb: '10',
+      price: '14.50',
+      currency: 'EUR',
+      url: 'https://roamly.example/europe-10',
+    }
+    show('/trips/t1/costs', { id: 't1', name: 'Lisbon trip', currency: 'EUR', traveller_count: 2, sim })
+    expect(await screen.findByText('SIM: Roamly Europe 10 GB')).toBeInTheDocument()
+    expect(screen.getByText('29.00 EUR')).toBeInTheDocument()
+  })
+
   it('shows the original and the converted amount with its code (AC1, AC2)', async () => {
     show()
     expect(await screen.findByText('108.00 USD')).toBeInTheDocument()

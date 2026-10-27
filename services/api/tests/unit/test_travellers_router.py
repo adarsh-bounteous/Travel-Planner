@@ -46,7 +46,7 @@ def test_a_new_traveller_has_blank_details_and_no_tastes_diet_or_religion(sign_i
     a = sign_in_as("a@example.com")
     tid, _ = _with_ana(a)
     t = a.get(f"/trips/{tid}").json()["travellers"][0]
-    assert set(t) == {"id", "name", "citizenship", "residence", "health_status"}
+    assert set(t) == {"id", "name", "age", "citizenship", "residence", "health_status", "vaccinations_had", "pregnant"}
     assert t["citizenship"] == ""
 
 

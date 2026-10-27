@@ -1,10 +1,10 @@
 import { InfoIcon } from '../auth/icons'
-import type { ChosenOption } from './api'
+import type { ChosenOption, InsurancePick } from './api'
 import { formatDay } from './ItineraryTab'
 import { Overlay } from './Overlay'
 
 /** Only http(s) pages are opened, so a stored `javascript:` URL can never become a link. */
-function bookingHref(option: ChosenOption) {
+function bookingHref(option: { booking_url?: string | null }) {
   if (!option.booking_url) return null
   try {
     const { protocol } = new URL(option.booking_url)
@@ -17,12 +17,15 @@ function bookingHref(option: ChosenOption) {
 /** Booking links for the chosen options. Booking itself happens on the provider's site. */
 export function BookTripDrawer({
   options,
+  insurance,
   onClose,
 }: {
   options: ChosenOption[]
+  insurance?: InsurancePick | null
   onClose: () => void
 }) {
   const sorted = [...options].sort((a, b) => a.date.localeCompare(b.date))
+  const insuranceHref = insurance ? bookingHref({ booking_url: insurance.url }) : null
 
   return (
     <Overlay kind="drawer" labelledBy="book-title" onClose={onClose}>
@@ -62,6 +65,28 @@ export function BookTripDrawer({
               </li>
             )
           })}
+          {insurance && (
+            <li className="card stack stack-sm">
+              <div>
+                <div className="option-title">{`Insurance provider site: ${insurance.name}`}</div>
+                <div className="text-sm text-muted">{insurance.provider}</div>
+              </div>
+              {insuranceHref ? (
+                <a
+                  className="btn btn-secondary"
+                  href={insuranceHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open booking page<span className="text-sm"> (opens in a new tab)</span>
+                </a>
+              ) : (
+                <p className="text-sm">
+                  <InfoIcon /> No booking link is available for this option.
+                </p>
+              )}
+            </li>
+          )}
         </ul>
         <p className="text-sm text-muted">
           You book and pay on the provider's site. Travel planner doesn't take payment or confirm

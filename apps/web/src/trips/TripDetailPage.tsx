@@ -402,6 +402,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           options={options}
           sim={trip.sim}
           insurance={trip.insurance}
+          restaurants={trip.restaurants ?? []}
           onClose={close}
         />
       )}

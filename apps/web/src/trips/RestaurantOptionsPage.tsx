@@ -4,6 +4,7 @@ import { AlertIcon, EditIcon, ImageIcon, PlusIcon, SearchIcon, UserIcon } from '
 import { fetchRestaurantOptions, fetchTrip } from './api'
 import type { RestaurantOption, RestaurantOptions, Trip } from './api'
 import { DiningNeedsDrawer } from './DiningNeedsDrawer'
+import { RestaurantLink } from './RestaurantLink'
 import { formatMoney, plural } from './stayOptions'
 import { Toast } from './Toast'
 
@@ -21,11 +22,7 @@ function RestaurantCard({ option, home }: { option: RestaurantOption; home: bool
       </p>
       <div className="restaurant-foot">
         <span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>
-        {option.url && (
-          <a href={option.url} target="_blank" rel="noopener noreferrer" aria-label={`View listing for ${option.name}`}>
-            View listing
-          </a>
-        )}
+        <RestaurantLink name={option.name} url={option.url} />
       </div>
     </article>
   )

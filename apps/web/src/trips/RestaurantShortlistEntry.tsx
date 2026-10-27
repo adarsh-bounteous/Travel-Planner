@@ -1,5 +1,6 @@
 import { AlertIcon, CheckIcon } from '../auth/icons'
 import type { ShortlistEntry } from './api'
+import { RestaurantLink } from './RestaurantLink'
 import { shortlistReason } from './restaurantShortlist'
 
 type Props = {
@@ -31,6 +32,7 @@ export function RestaurantShortlistEntry({ entry, budget, currency, added, onRem
         )}
       </div>
       <p>{shortlistReason(entry, budget, currency)}</p>
+      <RestaurantLink name={name} url={entry.restaurant.url} />
       <div className="row-end">
         <button className="btn btn-ghost" type="button" aria-label={`Remove ${name} from shortlist`} onClick={onRemove}>
           Remove

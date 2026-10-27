@@ -15,6 +15,7 @@ import { ProfilePage } from './profile/ProfilePage'
 import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
 import { TransportSearchPage } from './transport/TransportSearchPage'
+import { CostsPage } from './trips/CostsPage'
 import { InvitePage } from './trips/InvitePage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
@@ -126,6 +127,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ShortlistsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/costs"
+            element={
+              <RequireAuth>
+                <CostsPage />
               </RequireAuth>
             }
           />

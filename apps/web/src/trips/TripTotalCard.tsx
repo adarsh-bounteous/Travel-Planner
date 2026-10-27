@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { AlertIcon, InfoIcon } from '../auth/icons'
 import type { CostSummary } from './api'
 
@@ -16,7 +17,7 @@ const noPriceNote = (count: number) =>
     : `${count} chosen options have no price and are not in the total.`
 
 /** The trip total in the trip currency against the budget, as worked out by the server. */
-export function TripTotalCard({ cost }: { cost: CostSummary }) {
+export function TripTotalCard({ cost, costsHref }: { cost: CostSummary; costsHref?: string }) {
   const { currency } = cost
   const missing = cost.missing_categories.map((c) => c.toLowerCase())
   return (
@@ -34,6 +35,11 @@ export function TripTotalCard({ cost }: { cost: CostSummary }) {
       <p className="budget-line">
         {cost.budget == null ? 'No budget set' : `Budget ${formatMoney(cost.budget, currency)}`}
       </p>
+      {costsHref && (
+        <Link className="btn btn-ghost" to={costsHref}>
+          View costs in another currency
+        </Link>
+      )}
       {cost.over_budget_by > 0 && (
         <span className="badge badge-danger" role="alert">
           <AlertIcon />

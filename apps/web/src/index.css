@@ -307,6 +307,18 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .transport-option-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .transport-option-price { font-weight: var(--font-weight-bold); }
 .inbox-col { max-width: 40rem; margin: 0 auto; }
+.tabs a.tab { text-decoration: none; display: inline-flex; align-items: center; }
+.cost-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.cost-name { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); min-width: 0; flex: 1; }
+.cost-amount { display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: var(--space-1); min-width: 0; max-width: 60%; overflow-wrap: anywhere; }
+.cost-original { color: var(--color-fg-muted); font-size: var(--font-size-sm); }
+.cost-converted { font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); font-variant-numeric: tabular-nums; }
+.cost-unsupported-message { display: inline-flex; align-items: flex-start; gap: var(--space-1); color: var(--color-danger); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-align: right; }
+.is-unsupported { border-color: var(--color-danger); }
+.rate-line { font-size: var(--font-size-sm); }
+.budget-stat { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface); border: var(--border-width) solid var(--color-border); }
+.budget-stat .stat-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
+.select-wrap { max-width: 14rem; }
 .mail-row { display: flex; flex-direction: column; gap: var(--space-2); }
 .mail-row h3 { overflow-wrap: anywhere; }
 .mail-sheet { border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-lg); background: var(--color-bg); overflow: hidden; }

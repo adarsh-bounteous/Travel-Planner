@@ -100,7 +100,10 @@ export const requestSignUp = (email: string, password: string) =>
 
 export const requestSignOut = () => post('/auth/sign-out')
 
-export const requestConfirmLink = (token: string) => post('/auth/confirm', { token })
+export type ConfirmedLink = { status: 'confirmed'; kind: 'sign_up' | 'email_change' }
+
+export const requestConfirmLink = async (token: string): Promise<ConfirmedLink> =>
+  (await post('/auth/confirm', { token })).json()
 
 export const requestResend = (email: string) => post('/auth/resend-confirmation', { email })
 

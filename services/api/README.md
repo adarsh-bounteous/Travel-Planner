@@ -58,6 +58,15 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 `GET /startup-status` reports whether local mode is on and which stand-ins
 (storage, sign-in, cloud services) are enabled.
 
+### Local exchange rates
+
+With local mode on, costs and budgets convert with a fixed local rate table instead of the
+outside rates service, which is never called. 1 EUR buys: USD 1.08, GBP 0.85, JPY 160, AUD 1.65
+(EUR 1). Any pair converts through EUR, so 100 EUR is 108.00 USD. A currency outside the table is
+answered as "not supported" with no converted amount (`GET /rates/convert?amount=100&from=EUR&to=USD`).
+To change a rate, edit `LOCAL_RATES_PER_EUR` in `app/trips/rates.py`; the web app's "Show in"
+list (`OFFERED_CURRENCIES` in `apps/web/src/trips/convertApi.ts`) must match its keys.
+
 ### Demo account and sample trips
 
 In local mode accounts are kept in a file under `LOCAL_DATA_DIR` and survive a restart, and trips

@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.config import get_settings, session_secret
 from app.local_seed import run_first_start_seed
 from app.routers import (
+    activity_options,
     auth,
     availability,
     deps,
@@ -52,6 +53,7 @@ app.include_router(startup_status.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)
+app.include_router(activity_options.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
 app.include_router(transport_picks.router)

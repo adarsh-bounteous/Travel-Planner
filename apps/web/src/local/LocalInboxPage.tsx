@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-type Message = { to: string; trip_name: string; link: string; kind?: 'confirmation' | 'invite' }
+type Message = { to: string; trip_name: string; link: string; kind?: 'confirmation' | 'email_change' | 'invite' }
 type Load = { state: 'loading' } | { state: 'unavailable' } | { state: 'ready'; messages: Message[] }
 
 /** Local mode's stand-in for email delivery: shows what would have been sent. Public, like the API route. */
@@ -27,9 +27,11 @@ export function LocalInboxPage() {
         load.messages.map((message) => (
           <article key={message.link} className="card stack stack-sm">
             <h2>
-              {message.kind === 'confirmation'
-                ? 'Confirm your email'
-                : `You're invited to plan ${message.trip_name}`}
+              {message.kind === 'email_change' && 'Confirm your new email address'}
+              {message.kind === 'confirmation' && 'Confirm your email'}
+              {message.kind !== 'email_change' &&
+                message.kind !== 'confirmation' &&
+                `You're invited to plan ${message.trip_name}`}
             </h2>
             <p>
               To <strong>{message.to}</strong>

@@ -51,6 +51,30 @@ describe('local inbox page', () => {
     expect(screen.getByRole('link', { name: 'http://localhost:5173/confirm-email/tok2' })).toBeInTheDocument()
   })
 
+  it('lists an email change as Confirm your new email address', async () => {
+    stubApi(
+      {
+        'GET /local/inbox': {
+          status: 200,
+          body: [
+            {
+              to: 'new@example.com',
+              trip_name: '',
+              link: 'http://localhost:5173/confirm-email/tok3',
+              kind: 'email_change',
+            },
+          ],
+        },
+      },
+      { signedOut: true },
+    )
+    renderAt('/local/inbox')
+    expect(
+      await screen.findByRole('heading', { name: 'Confirm your new email address' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('new@example.com')).toBeInTheDocument()
+  })
+
   it('says so when nothing has been sent', async () => {
     stubApi({ 'GET /local/inbox': { status: 200, body: [] } }, { signedOut: true })
     renderAt('/local/inbox')

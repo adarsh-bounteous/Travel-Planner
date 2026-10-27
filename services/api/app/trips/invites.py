@@ -10,16 +10,19 @@ class InviteSender(Protocol):
 class InMemoryInviteSender:
     def __init__(self) -> None:
         self.sent: list[tuple[str, str, str]] = []
+        self.kinds: dict[str, str] = {}
 
     def reset(self) -> None:
         self.sent.clear()
+        self.kinds.clear()
 
     def send(self, email: str, trip_name: str, link: str) -> None:
         self.sent.append((email, trip_name, link))
 
-    def send_confirmation(self, email: str, link: str) -> None:
-        """An empty trip name marks a sign-up confirmation rather than an invite."""
+    def send_confirmation(self, email: str, link: str, kind: str = "confirmation") -> None:
+        """An empty trip name marks a confirmation rather than an invite; `kind` says which."""
         self.sent.append((email, "", link))
+        self.kinds[link] = kind
 
 
 class NoInviteSender:

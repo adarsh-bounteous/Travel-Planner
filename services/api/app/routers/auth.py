@@ -67,6 +67,9 @@ def _local_identity() -> LocalIdentityProvider:
         get_settings().local_data_dir / "accounts.sqlite3",
         clock=get_now,
         send_confirmation=_local_invite_sender().send_confirmation,
+        send_email_change=lambda email, link: _local_invite_sender().send_confirmation(
+            email, link, kind="email_change"
+        ),
         link_base=lambda: get_settings().web_origin,
     )
 
@@ -161,6 +164,7 @@ _LINK_ERRORS = {
     LinkInvalid: (404, "link_invalid"),
     LinkExpired: (410, "link_expired"),
     LinkAlreadyUsed: (409, "link_already_used"),
+    EmailTaken: (409, "email_unavailable"),
 }
 
 
@@ -170,11 +174,11 @@ def confirm(
 ) -> Response:
     """Open a confirmation link from the local inbox. 404 with local mode off: Cognito confirms in the cloud."""
     try:
-        identity.confirm_email(body.token)
-    except (LinkInvalid, LinkExpired, LinkAlreadyUsed) as error:
+        kind = identity.confirm_email(body.token)
+    except (LinkInvalid, LinkExpired, LinkAlreadyUsed, EmailTaken) as error:
         status, code = _LINK_ERRORS[type(error)]
         return _error(status, code)
-    return JSONResponse({"status": "confirmed"})
+    return JSONResponse({"status": "confirmed", "kind": kind})
 
 
 @router.post("/sign-out", status_code=204)

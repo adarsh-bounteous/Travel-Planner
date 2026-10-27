@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from typing import Protocol
 
@@ -42,3 +43,20 @@ class LocalRates:
         if source is None or target is None:
             return None
         return target / source
+
+
+class RateUnavailable(Exception):
+    """A rate provider could not be reached, as opposed to the pair being unknown (None)."""
+
+
+class LastKnownRates:
+    """Remembers the latest successful rate per currency pair, with the date it was seen."""
+
+    def __init__(self) -> None:
+        self._seen: dict[tuple[str, str], tuple[Decimal, date]] = {}
+
+    def remember(self, from_currency: str, to_currency: str, rate: Decimal, on: date) -> None:
+        self._seen[(from_currency, to_currency)] = (rate, on)
+
+    def get(self, from_currency: str, to_currency: str) -> tuple[Decimal, date] | None:
+        return self._seen.get((from_currency, to_currency))

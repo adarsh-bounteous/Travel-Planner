@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { fetchProfile } from '../trips/api'
 import type { TransportPreferences } from '../trips/api'
 import { formatMoney } from '../trips/stayOptions'
+import { BookingLink } from '../travel/BookingLink'
 import { fetchTransportOptions } from './api'
 import type { TransportOptions } from './api'
 
@@ -118,9 +119,9 @@ export function TransportSearchPage() {
               <p className="text-muted">{o.detail}</p>
               <p className="transport-option-price">{formatMoney(o.price, o.currency)}</p>
               <p className="text-sm">Why: {o.why}</p>
-              <a className="btn btn-secondary" href={o.url} target="_blank" rel="noreferrer">
+              <BookingLink className="btn btn-secondary" url={o.url}>
                 View booking<span className="sr-only"> for {o.title} (opens in a new tab)</span>
-              </a>
+              </BookingLink>
             </li>
           ))}
         </ul>

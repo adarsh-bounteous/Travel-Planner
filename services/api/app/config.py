@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.local_mode import resolve_local_mode
+from app.local_mode import local_mode_override, resolve_local_mode
 
 
 DEFAULT_LOCAL_DATA_DIR = Path(__file__).resolve().parent.parent / ".local-data"
@@ -39,7 +39,7 @@ def session_secret() -> bytes:
 
 def get_settings() -> Settings:
     env = os.environ
-    environment, local_mode = resolve_local_mode(env)
+    environment, local_mode = resolve_local_mode(env, local_mode_override())
     return Settings(
         environment=environment,
         local_mode=local_mode,

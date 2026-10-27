@@ -1,4 +1,5 @@
 import { CheckIcon } from '../auth/icons'
+import { BookingLink, isLocalBooking } from '../travel/BookingLink'
 import type { ChosenStay } from './api'
 import { formatMoney } from './stayOptions'
 
@@ -27,11 +28,11 @@ export function ChosenStayCard({ chosen, canEdit, onChange, onClear }: Props) {
             {`Final price confirmed on provider's site. You book with ${chosen.provider}; nothing is paid in the app.`}
           </p>
           <div className="cluster">
-            {/^https?:\/\//i.test(chosen.url) && (
-              <a className="btn btn-primary" href={chosen.url} target="_blank" rel="noopener noreferrer">
+            {(/^https?:\/\//i.test(chosen.url) || isLocalBooking(chosen.url)) && (
+              <BookingLink className="btn btn-primary" url={chosen.url}>
                 Book on provider site
                 <span className="sr-only"> (opens in a new tab)</span>
-              </a>
+              </BookingLink>
             )}
             {canEdit && (
               <>

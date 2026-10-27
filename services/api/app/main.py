@@ -26,6 +26,7 @@ from app.routers import (
     transport,
     transport_picks,
     travel_search,
+    trip_helpers,
     trips,
 )
 from app.routers.deps import ApiError
@@ -61,6 +62,7 @@ app.include_router(profile.router)
 app.include_router(places.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
+app.include_router(trip_helpers.router)
 
 
 @app.exception_handler(ApiError)

@@ -19,6 +19,8 @@ import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
 import { TransportSearchPage } from './transport/TransportSearchPage'
 import { CostsPage } from './trips/CostsPage'
+import { CurrencyHelperPage } from './trips/CurrencyHelperPage'
+import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
@@ -130,6 +132,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/currency"
+            element={
+              <RequireAuth>
+                <CurrencyHelperPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/weather"
+            element={
+              <RequireAuth>
+                <WeatherHelperPage />
               </RequireAuth>
             }
           />

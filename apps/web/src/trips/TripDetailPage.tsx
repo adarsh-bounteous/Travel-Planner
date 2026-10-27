@@ -19,6 +19,7 @@ import { formatRange } from './stays'
 import { Toast } from './Toast'
 import { TransportTab } from './TransportTab'
 import { TravelersTab } from './TravelersTab'
+import { TravelHelpersCard } from './TravelHelpersCard'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripRecommendationsTab } from './TripRecommendationsTab'
 import { TripTotalCard } from './TripTotalCard'
@@ -260,7 +261,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             }}
           />
         ) : (
-          <p className="text-muted">Trip overview is shown on its own page.</p>
+          <TravelHelpersCard trip={trip} />
         )}
       </div>
       {trip.is_owner && (panel.id === 'settings' || panel.id === 'delete') && (

@@ -347,3 +347,18 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .travel-option-price { font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }
 @media (min-width: 30rem) { .travel-option { flex-direction: row; align-items: center; justify-content: space-between; } }
 .radio { width: var(--size-check); height: var(--size-check); accent-color: var(--color-primary); }
+/* Currency and weather helpers */
+.rate-card .rate-line { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); overflow-wrap: anywhere; }
+.rate-card .rate-line.is-stale { color: var(--color-fg); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); margin: 0; }
+.kv dt { color: var(--color-fg-muted); }
+.kv dd { margin: 0; font-weight: var(--font-weight-medium); }
+.amount { position: relative; }
+.amount-code { position: absolute; left: var(--space-2); top: 50%; transform: translateY(-50%); font-weight: var(--font-weight-medium); color: var(--color-fg-muted); pointer-events: none; }
+.amount .input { padding-left: var(--space-6); font-variant-numeric: tabular-nums; }
+.converter-fields { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(var(--size-menu-min), 100%), 1fr)); }
+.result { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.data-table th, .data-table td { padding: var(--space-2); text-align: left; border-bottom: var(--border-width) solid var(--color-border); white-space: nowrap; }
+.data-table th { font-size: var(--font-size-sm); color: var(--color-fg-muted); font-weight: var(--font-weight-medium); }

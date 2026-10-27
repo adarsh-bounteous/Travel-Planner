@@ -30,10 +30,10 @@ export const MESSAGES: Record<Problem, Message> = {
     tone: 'danger',
     text: "This email address can't be used. Enter a different email address.",
   },
-  link_expired: { tone: 'danger', text: 'This confirmation link has expired. Request a new one.' },
+  link_expired: { tone: 'danger', text: 'This link has already been used or has expired.' },
   link_already_used: {
     tone: 'danger',
-    text: 'This confirmation link has already been used. Sign in instead.',
+    text: 'This link has already been used or has expired.',
   },
   link_invalid: { tone: 'danger', text: 'This confirmation link is not valid.' },
   unknown: { tone: 'danger', text: 'Something went wrong. Try again.' },

@@ -187,6 +187,8 @@ def test_accepting_an_accepted_or_revoked_invite_errors_and_editors_are_unchange
     r = ana.post(f"/invites/{token}/accept")
     assert (r.status_code, r.json()["code"]) == (409, "invite_used")
     assert owner.get(f"/trips/{tid}").json()["editors"] == before
+    r = ana.get(f"/invites/{token}")
+    assert (r.status_code, r.json()["code"]) == (409, "invite_used")
     owner.delete(f"/trips/{tid}/editors/{INVITEE['email']}")
     assert ana.post(f"/invites/{token}/accept").status_code == 404
     assert owner.get(f"/trips/{tid}").json()["editors"] == []

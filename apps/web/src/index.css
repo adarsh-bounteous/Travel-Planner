@@ -303,3 +303,12 @@ legend { padding: 0; }
 .transport-option { list-style: none; display: grid; gap: var(--space-2); padding: var(--space-3); background: var(--color-surface); border-left: var(--border-width-strong) solid var(--color-border-strong); border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm); }
 .transport-option-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .transport-option-price { font-weight: var(--font-weight-bold); }
+.inbox-col { max-width: 40rem; margin: 0 auto; }
+.mail-row { display: flex; flex-direction: column; gap: var(--space-2); }
+.mail-row h3 { overflow-wrap: anywhere; }
+.mail-sheet { border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-lg); background: var(--color-bg); overflow: hidden; }
+.mail-meta { padding: var(--space-3); background: var(--color-surface); border-bottom: var(--border-width) solid var(--color-border); display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
+.mail-meta dt { color: var(--color-fg-muted); }
+.mail-meta dd { margin: 0; overflow-wrap: anywhere; }
+.mail-body { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); max-width: 65ch; overflow-wrap: anywhere; }
+.mail-link { overflow-wrap: anywhere; font-family: var(--font-family-mono); font-size: var(--font-size-sm); }

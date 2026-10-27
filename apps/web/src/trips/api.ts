@@ -232,7 +232,7 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
     throw new NotFoundError()
   }
   if (response.status === 409 && path.endsWith('/places')) throw new AlreadyOnTripError()
-  if (response.status === 409 && path.endsWith('/accept')) throw new InviteUsedError()
+  if (response.status === 409 && (path.endsWith('/accept') || path.startsWith('/invites/'))) throw new InviteUsedError()
   if (response.status === 422) throw new ValidationError()
   if (!response.ok) throw new Error(`request failed: ${response.status}`)
   if (response.status === 204) return undefined as T

@@ -20,12 +20,15 @@ import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
 import { TransportSearchPage } from './transport/TransportSearchPage'
 import { CostsPage } from './trips/CostsPage'
+import { CurrencyHelperPage } from './trips/CurrencyHelperPage'
+import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
+import { MedicalGuidancePage } from './trips/MedicalGuidancePage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
@@ -131,6 +134,30 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/currency"
+            element={
+              <RequireAuth>
+                <CurrencyHelperPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/weather"
+            element={
+              <RequireAuth>
+                <WeatherHelperPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/medical-guidance"
+            element={
+              <RequireAuth>
+                <MedicalGuidancePage />
               </RequireAuth>
             }
           />

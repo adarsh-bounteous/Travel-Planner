@@ -40,6 +40,38 @@ export type ChosenStay = {
   total: string
   currency: string
 }
+/** The insurance plan picked from the shortlist: its group total at the time, in the plan's currency. */
+export type InsurancePick = {
+  plan_id: string
+  name: string
+  provider: string
+  url: string
+  total: string
+  currency: string
+}
+export type InsurancePlan = {
+  rank: number
+  plan_id: string
+  name: string
+  provider: string
+  source: 'web_search' | 'partner'
+  fit: number
+  reason: string
+  offer: string | null
+  traveller_prices: { label: string; age: number; price: string }[]
+  group_total: string
+  currency: string
+  url: string
+}
+export type InsuranceOptions = {
+  place: string
+  days: number | null
+  risky_activities: boolean | null
+  travellers: { label: string; age: number | null }[]
+  /** What the trip still lacks before plans can be matched; empty when it has everything. */
+  missing: string[]
+  plans: InsurancePlan[]
+}
 export type Stay = { id: string; place: string; start_date: string; end_date: string; chosen?: ChosenStay | null }
 export type StayInput = { place: string; start_date: string; end_date: string }
 export type PropertyType = 'hotel' | 'homestay' | 'other'
@@ -216,6 +248,7 @@ export type Trip = {
   activities?: Activity[]
   stays?: Stay[]
   transport?: TransportPick[]
+  insurance?: InsurancePick | null
   places?: TripPlace[]
   travellers?: Traveller[]
   editors?: Editor[]
@@ -364,6 +397,15 @@ export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria
 
 export const fetchActivityOptions = (tripId: string) =>
   call<ActivityOptions>(`/trips/${encodeURIComponent(tripId)}/activity-options`)
+
+export const fetchInsuranceOptions = (tripId: string) =>
+  call<InsuranceOptions>(`/trips/${encodeURIComponent(tripId)}/insurance-options`)
+
+export const chooseInsurance = (tripId: string, planId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/insurance`, 'PUT', { plan_id: planId })
+
+export const clearInsurance = (tripId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/insurance`, 'DELETE')
 
 export const chooseStay =(tripId: string, stayId: string, propertyId: string, c: StayCriteria) =>
   call<Trip>(

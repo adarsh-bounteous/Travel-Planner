@@ -43,6 +43,7 @@ from app.trips.store import (
     Day,
     DayName,
     Editor,
+    InsurancePick,
     Invite,
     Reminder,
     ReminderFields,
@@ -85,6 +86,7 @@ INVALID_DATES = ApiError(422, "invalid_dates")
 INVALID_REMINDER = ApiError(422, "invalid_reminder")
 INVALID_ACTIVITY = ApiError(422, "invalid_activity")
 INVALID_STAY = ApiError(422, "invalid_stay")
+INVALID_INSURANCE = ApiError(422, "invalid_insurance")
 INVALID_TRANSPORT = ApiError(422, "invalid_transport")
 ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
 VISA_HAS_DATA = ApiError(409, "visa_has_data")
@@ -303,7 +305,15 @@ def update_trip(
     fields = body.model_dump()
     if "interests" not in body.model_fields_set:
         del fields["interests"]  # settings edits do not send interests: keep the stored ones
-    trip = existing.model_copy(update={**fields, "days": days, "updated_at": now})
+    for kept in ("owner_age", "risky_activities"):
+        if kept not in body.model_fields_set:
+            del fields[kept]  # settings edits do not send these either
+    # A price quoted for other places, dates or ages must not stay in the total.
+    priced = ("destination", "start_date", "end_date", "owner_age")
+    cleared = any(k in fields and fields[k] != getattr(existing, k) for k in priced)
+    trip = existing.model_copy(
+        update={**fields, "days": days, "updated_at": now, **({"insurance": None} if cleared else {})}
+    )
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 
@@ -344,7 +354,8 @@ def add_traveller(
     trip = _owned_trip(trips, identity, owner, trip_id)
     if len(trip.travellers) >= MAX_TRAVELLERS:
         raise INVALID_TRAVELLER
-    trip.travellers = [*trip.travellers, Traveller(id=uuid.uuid4().hex, name=body.name)]
+    trip.travellers = [*trip.travellers, Traveller(id=uuid.uuid4().hex, name=body.name, age=body.age)]
+    trip.insurance = None  # quoted for the old travellers
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
@@ -392,6 +403,7 @@ def remove_traveller(
     traveller = _traveller(trip, traveller_id)
     trip.travellers = [t for t in trip.travellers if t is not traveller]
     trip.visa_self_checks = [k for k in trip.visa_self_checks if k != traveller.id]
+    trip.insurance = None  # quoted for the old travellers
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
@@ -814,6 +826,21 @@ def _save_stays(
     now: datetime,
 ) -> TripView:
     trip.stays = stays
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _view(trip, rates, user, owner)
+
+
+def _save_insurance(
+    trips: TripStore,
+    rates: RateSource,
+    user: str,
+    owner: str,
+    trip: Trip,
+    pick: InsurancePick | None,
+    now: datetime,
+) -> TripView:
+    trip.insurance = pick
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, user, owner)

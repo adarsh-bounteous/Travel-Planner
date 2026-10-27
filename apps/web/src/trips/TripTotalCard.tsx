@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { AlertIcon, InfoIcon } from '../auth/icons'
-import type { CostSummary } from './api'
+import type { CostSummary, InsurancePick } from './api'
 
 const amountFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 })
 
@@ -17,7 +17,15 @@ const noPriceNote = (count: number) =>
     : `${count} chosen options have no price and are not in the total.`
 
 /** The trip total in the trip currency against the budget, as worked out by the server. */
-export function TripTotalCard({ cost, costsHref }: { cost: CostSummary; costsHref?: string }) {
+export function TripTotalCard({
+  cost,
+  costsHref,
+  insurance,
+}: {
+  cost: CostSummary
+  costsHref?: string
+  insurance?: InsurancePick | null
+}) {
   const { currency } = cost
   const missing = cost.missing_categories.map((c) => c.toLowerCase())
   return (
@@ -35,6 +43,12 @@ export function TripTotalCard({ cost, costsHref }: { cost: CostSummary; costsHre
       <p className="budget-line">
         {cost.budget == null ? 'No budget set' : `Budget ${formatMoney(cost.budget, currency)}`}
       </p>
+      {insurance && (
+        <p className="budget-line">
+          <span>{`Insurance: ${insurance.name}`}</span>{' '}
+          <span>{formatMoney(Number(insurance.total), insurance.currency)}</span>
+        </p>
+      )}
       {costsHref && (
         <Link className="btn btn-ghost" to={costsHref}>
           View costs in another currency

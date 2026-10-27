@@ -14,6 +14,7 @@ from app.routers import (
     deps,
     flight_shortlist,
     health,
+    insurance,
     invites,
     local_google,
     local_inbox,
@@ -54,6 +55,7 @@ app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)
 app.include_router(activity_options.router)
+app.include_router(insurance.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
 app.include_router(transport_picks.router)

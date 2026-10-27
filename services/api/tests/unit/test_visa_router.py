@@ -123,3 +123,13 @@ def test_old_stored_trips_without_self_checks_still_load(sign_in_as):
     sign_in_as.trips._trips[key] = Trip.model_validate(record)
     assert a.get(f"/trips/{tid}").json()["unresolved_visas"] == []
     assert a.get(f"/trips/{tid}/visa").status_code == 200
+
+
+def test_editors_do_not_see_the_owners_visa_marks(sign_in_as):
+    a, ed = sign_in_as("a@example.com"), sign_in_as("ed@example.com")
+    tid, ids = _trip(a, [("Ben", _d("India", "Canada"))], destination="Lisbon, Portugal")
+    a.put(f"/trips/{tid}/visa/{ids['Ben']}/self-check", json={"checked": True})
+    invite = a.post(f"/trips/{tid}/editors", json={"email": "ed@example.com"}).json()["editors"][0]
+    ed.post(f"/invites/{invite['invite_url'].rsplit('/', 1)[1]}/accept")
+    body = ed.get(f"/trips/{tid}").json()
+    assert body["visa_self_checks"] == [] and body["unresolved_visas"] == []

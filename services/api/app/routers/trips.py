@@ -138,6 +138,7 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
         "reminders": visible_reminders(trip),
         "editors": editors,
         "share_token": None,
+        "visa_self_checks": trip.visa_self_checks if is_owner else [],  # the owner's alone
     }
     return TripView(
         **data,

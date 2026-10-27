@@ -158,7 +158,7 @@ export function VisaRequirementsPage() {
                   {row.official_site_url && (
                     <p>
                       <a href={row.official_site_url} target="_blank" rel="noopener noreferrer">
-                        {loaded.view.destination} official government site
+                        {loaded.view.destination || 'Destination'} official government site
                       </a>
                     </p>
                   )}

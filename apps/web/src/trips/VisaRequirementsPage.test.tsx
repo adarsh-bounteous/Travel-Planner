@@ -77,6 +77,25 @@ describe('Visa requirements', () => {
     expect(within(card).queryByText('Confirm with official sources.')).not.toBeInTheDocument()
   })
 
+  it('links to an official-site search for a destination outside the known list', async () => {
+    stubApi({
+      'GET /trips/t1': { status: 200, body: trip },
+      'GET /trips/t1/visa': {
+        status: 200,
+        body: {
+          destination: 'Peru',
+          published_on: '2026-10-20',
+          travellers: [{ ...noData, official_site_url: 'https://example.test/search?q=Peru' }],
+        },
+      },
+    })
+    renderAt('/trips/t1/visa-requirements')
+    expect(await screen.findByRole('link', { name: 'Peru official government site' })).toHaveAttribute(
+      'href',
+      'https://example.test/search?q=Peru',
+    )
+  })
+
   it("marks I'll check myself", async () => {
     const marked = { ...noData, marked_self_check: true, unresolved: true }
     open([noData], {

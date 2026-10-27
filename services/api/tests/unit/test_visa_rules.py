@@ -30,3 +30,12 @@ def test_unresolved_needs_the_mark_and_no_data():
     assert visa_result_for("Lisbon, Portugal", person("X", "India", "India"), source, ["t1"]).unresolved is True
     source.publish({("Portugal", "India"): VisaRule(required=False)}, date(2026, 10, 27))
     assert visa_result_for("Lisbon, Portugal", person("X", "India", "India"), source, ["t1"]).unresolved is False
+
+
+def test_no_data_for_a_destination_outside_the_table_still_links_somewhere():
+    source = InMemoryVisaRules({}, date(2026, 10, 20))
+    result = visa_result_for("Cusco, Peru", person("X", "India", "India"), source, [])
+    assert result.status == "no_data"
+    assert result.official_site_url.startswith("https://")
+    assert "Peru" in result.official_site_url
+    assert "advisory" not in result.official_site_url.lower()

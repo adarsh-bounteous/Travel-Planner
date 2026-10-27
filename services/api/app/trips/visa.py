@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Literal, Protocol
+from urllib.parse import quote_plus
 
 from pydantic import BaseModel
 
@@ -19,6 +20,12 @@ OFFICIAL_SITES = {
     "United Kingdom": "https://www.gov.uk/check-uk-visa",
     "United States": "https://travel.state.gov/content/travel/en/us-visas.html",
 }
+
+
+def _fallback_site(country: str) -> str:
+    """A search for the destination's government visa page, for countries outside OFFICIAL_SITES."""
+    query = quote_plus(f"{country or 'destination'} government visa immigration official site")
+    return f"https://www.google.com/search?q={query}"
 
 
 class VisaRule(BaseModel):
@@ -122,7 +129,7 @@ def visa_result_for(
                 "you need one. Check the official site, then decide how to proceed."
             ),
             confirm_note=None,
-            official_site_url=OFFICIAL_SITES.get(country),
+            official_site_url=OFFICIAL_SITES.get(country) or _fallback_site(country),
             marked_self_check=marked,
             unresolved=marked,
         )

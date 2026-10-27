@@ -21,6 +21,8 @@ class CostSummary(BaseModel):
     missing_categories: list[str]  # needed categories with no chosen option, in needed order
     unpriced_count: int
     unconvertible_count: int  # priced in a currency the rate source cannot convert
+    restaurant_total: float  # sum of the restaurant estimates in the trip currency, 2 dp
+    restaurant_unpriced_count: int  # restaurant picks with no estimate, left out of the total
     rates: list[FxRate]  # one per foreign currency that was converted
 
 
@@ -75,6 +77,22 @@ def summarise_cost(trip: Trip, rates: RateSource) -> CostSummary:
             if currency != trip.currency:
                 used[currency] = rate
             total += amount * rate
+    restaurant_sum = Decimal(0)
+    restaurant_unpriced = 0
+    for r in trip.restaurants:
+        if r.typical_price is None:
+            unpriced += 1
+            restaurant_unpriced += 1
+            continue
+        currency = r.currency.upper()
+        rate = rates.rate(currency, trip.currency)
+        if rate is None:
+            unconvertible += 1
+            continue
+        if currency != trip.currency:
+            used[currency] = rate
+        restaurant_sum += r.typical_price * (trip.traveller_count or 1) * rate
+    total += restaurant_sum
     total = total.quantize(CENT, rounding=ROUND_HALF_UP)
     budget = None if trip.budget is None else Decimal(str(trip.budget))
     over = total - budget if budget is not None and total > budget else Decimal(0)
@@ -87,6 +105,8 @@ def summarise_cost(trip: Trip, rates: RateSource) -> CostSummary:
         missing_categories=[c for c in trip.needed_categories if c.casefold() not in chosen],
         unpriced_count=unpriced,
         unconvertible_count=unconvertible,
+        restaurant_total=float(restaurant_sum.quantize(CENT, rounding=ROUND_HALF_UP)),
+        restaurant_unpriced_count=restaurant_unpriced,
         rates=[FxRate(currency=c, rate=float(r)) for c, r in used.items()],
     )
 

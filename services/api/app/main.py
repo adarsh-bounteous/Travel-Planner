@@ -24,6 +24,7 @@ from app.routers import (
     profile,
     rates,
     restaurant_options,
+    restaurant_picks,
     saved_places,
     shared,
     sim_options,
@@ -58,6 +59,7 @@ app.include_router(trips.router)
 app.include_router(stay_options.router)
 app.include_router(activity_options.router)
 app.include_router(restaurant_options.router)
+app.include_router(restaurant_picks.router)
 app.include_router(sim_options.router)
 app.include_router(insurance.router)
 app.include_router(flight_shortlist.router)

@@ -62,7 +62,10 @@ describe('TripDetailPage itinerary', () => {
   it('opens on the Itinerary tab with one stack per day, in date order (AC1, AC2)', async () => {
     open(trip({ is_owner: false }))
     expect(await screen.findByRole('tab', { name: 'Itinerary', selected: true })).toBeVisible()
-    const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    const headings = screen
+      .getAllByRole('heading', { level: 3 })
+      .map((h) => h.textContent)
+      .filter((text) => text !== 'Unscheduled')
     expect(headings).toHaveLength(3)
     expect(headings[0]).toMatch(/^3 March/)
     expect(headings[1]).toMatch(/^4 March/)

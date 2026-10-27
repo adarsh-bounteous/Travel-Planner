@@ -17,6 +17,10 @@ export type CostSummary = {
   missing_categories: string[]
   unpriced_count: number
   unconvertible_count: number
+  /** Sum of the restaurant estimates in the trip currency. */
+  restaurant_total?: number
+  /** Restaurant picks with no estimate, left out of the total. */
+  restaurant_unpriced_count?: number
   rates: { currency: string; rate: number }[]
 }
 
@@ -177,7 +181,7 @@ export type RestaurantOption = {
   cuisine: string
   dining_style: string
   price_level: number
-  typical_price: string
+  typical_price: string | null
   currency: string
   suits: string[]
   url: string | null
@@ -301,7 +305,22 @@ export type VisaView = { destination: string; published_on: string; travellers: 
 export type Editor = { email: string; accepted: boolean; invite_url?: string }
 export type Invite = { email: string; trip_name: string }
 
+export type Meal = 'breakfast' | 'lunch' | 'dinner'
+/** A restaurant picked for the trip; no date means Unscheduled. The price is per person, null when unknown. */
+export type RestaurantPick = {
+  id: string
+  name: string
+  city: string
+  cuisine: string
+  typical_price: string | null
+  currency: string
+  url: string | null
+  date: string | null
+  meal: Meal | null
+}
+
 export type Trip = {
+  restaurants?: RestaurantPick[]
   id: string
   unresolved_visas?: string[]
   name: string
@@ -482,6 +501,14 @@ export const fetchRestaurantOptions = (tripId: string) =>
 
 export const fetchRestaurantShortlist = (tripId: string) =>
   call<RestaurantShortlist>(`/trips/${encodeURIComponent(tripId)}/restaurant-shortlist`)
+
+export const pickRestaurant = (
+  tripId: string,
+  input: { name: string; city: string; date: string | null; meal: Meal | null },
+) => call<Trip>(`/trips/${encodeURIComponent(tripId)}/restaurants`, 'POST', input)
+
+export const moveRestaurant = (tripId: string, id: string, input: { date: string | null; meal: Meal | null }) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/restaurants/${encodeURIComponent(id)}`, 'PUT', input)
 
 export const saveDiningNeeds = (tripId: string, needs: string[]) =>
   call<{ needs: string[] }>(`/trips/${encodeURIComponent(tripId)}/dining-needs`, 'PUT', { needs })

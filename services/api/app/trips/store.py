@@ -128,6 +128,53 @@ class ChosenSim(BaseModel):
     url: HttpUrl
 
 
+Meal = Literal["breakfast", "lunch", "dinner"]
+Date = date  # a field named `date` shadows the type inside its own class body
+
+
+def _check_day_and_meal(day: date | None, meal: Meal | None) -> None:
+    if (day is None) != (meal is None):
+        raise ValueError("day and meal are set together")
+
+
+class RestaurantPickFields(BaseModel):
+    """What an editor supplies to pick a restaurant: which one, and optionally where it goes."""
+
+    name: TrimmedName
+    city: TrimmedName
+    date: Date | None = None  # None = Unscheduled
+    meal: Meal | None = None  # set exactly when date is set
+
+    @model_validator(mode="after")
+    def _day_and_meal_together(self) -> "RestaurantPickFields":
+        _check_day_and_meal(self.date, self.meal)
+        return self
+
+
+class RestaurantPickMove(BaseModel):
+    date: Date | None = None
+    meal: Meal | None = None
+
+    @model_validator(mode="after")
+    def _day_and_meal_together(self) -> "RestaurantPickMove":
+        _check_day_and_meal(self.date, self.meal)
+        return self
+
+
+class RestaurantPick(BaseModel):
+    """A restaurant picked for the Trip: a snapshot of the shortlisted entry."""
+
+    id: str
+    name: str
+    city: str
+    cuisine: str
+    typical_price: Decimal | None  # per person; None = unknown
+    currency: str  # may differ from the trip currency
+    url: str | None = None
+    date: Date | None = None
+    meal: Meal | None = None
+
+
 class InsurancePick(BaseModel):
     """The insurance plan picked from the shortlist: a snapshot of its group total for the trip."""
 
@@ -249,6 +296,7 @@ class Trip(TripFields):
     stays: list[Stay] = []  # server-owned: changed only through the stay routes
     transport: list[TransportPick] = []  # server-owned: changed only through the transport routes
     sim: ChosenSim | None = None  # server-owned: changed only through the SIM routes
+    restaurants: list[RestaurantPick] = []  # server-owned: changed only through the restaurant routes
     insurance: InsurancePick | None = None  # server-owned: changed only through the insurance routes
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route

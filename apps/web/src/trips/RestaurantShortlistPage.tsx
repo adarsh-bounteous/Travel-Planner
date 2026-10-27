@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import { AlertIcon, SearchIcon } from '../auth/icons'
 import { fetchRestaurantShortlist, fetchTrip } from './api'
-import type { RestaurantShortlist } from './api'
+import type { RestaurantShortlist, ShortlistEntry, Trip } from './api'
 import { RestaurantCompare } from './RestaurantCompare'
+import { RestaurantPickDialog } from './RestaurantPickDialog'
 import { RestaurantShortlistEntry } from './RestaurantShortlistEntry'
 import { formatMoney, plural } from './stayOptions'
 import { Toast } from './Toast'
@@ -18,13 +19,13 @@ const VIEWS = [
 
 const restaurantKey = (e: { restaurant: { name: string; city: string } }) => `${e.restaurant.name}-${e.restaurant.city}`
 
-/** Compare the matching restaurants, or pick from their ranked shortlist. Removing and choosing live on the page. */
+/** Compare the matching restaurants, or pick from their ranked shortlist. Removing and adding to the trip live on the page. */
 export function RestaurantShortlistPage() {
   const { tripId = '', view = '' } = useParams()
-  const [tripName, setTripName] = useState('Trip')
+  const [trip, setTrip] = useState<Trip | null>(null)
   const [result, setResult] = useState<Load>({ state: 'loading' })
   const [removed, setRemoved] = useState<string[]>([])
-  const [chosen, setChosen] = useState<string | null>(null)
+  const [adding, setAdding] = useState<ShortlistEntry | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
 
   const load = useCallback(() => {
@@ -36,7 +37,7 @@ export function RestaurantShortlistPage() {
 
   useEffect(() => {
     fetchTrip(tripId)
-      .then((trip) => setTripName(trip.name))
+      .then(setTrip)
       .catch(() => undefined)
     load()
   }, [tripId, load])
@@ -52,14 +53,14 @@ export function RestaurantShortlistPage() {
 
   const remove = (key: string, name: string) => {
     setRemoved((r) => [...r, key])
-    setChosen((c) => (c === key ? null : c))
     say(`${name} removed from your shortlist`, () => setRemoved((r) => r.filter((k) => k !== key)))
   }
-  const choose = (key: string, name: string) => {
-    const now = chosen === key ? null : key
-    setChosen(now)
-    say(now ? `${name} chosen from your shortlist` : `${name} is no longer chosen`)
+  const added = (updated: Trip, message: string) => {
+    setTrip(updated)
+    setAdding(null)
+    say(message)
   }
+  const travellers = trip?.traveller_count ?? 1
   const restore = () => {
     setRemoved([])
     say('Shortlist restored')
@@ -70,7 +71,7 @@ export function RestaurantShortlistPage() {
       <nav className="crumbs" aria-label="Breadcrumb">
         <ol>
           <li>
-            <Link to={tripHref}>{tripName}</Link>
+            <Link to={tripHref}>{trip?.name ?? 'Trip'}</Link>
           </li>
           <li>
             <Link to={optionsHref}>Restaurants</Link>
@@ -126,8 +127,8 @@ export function RestaurantShortlistPage() {
             <>
               <p className="text-muted">
                 {shortlist.budget_per_person !== null && shortlist.currency
-                  ? `Ranked for your budget of ${formatMoney(shortlist.budget_per_person, shortlist.currency)} per person, then by how many of your preferences each restaurant meets. Choose from this list.`
-                  : 'Ranked by how many of your preferences each restaurant meets, then by price. Choose from this list.'}
+                  ? `Ranked for your budget of ${formatMoney(shortlist.budget_per_person, shortlist.currency)} per person, then by how many of your preferences each restaurant meets. Add as many as you like. Estimates use your group of ${plural(travellers, 'traveller', 'travellers')}.`
+                  : `Ranked by how many of your preferences each restaurant meets, then by price. Add as many as you like. Estimates use your group of ${plural(travellers, 'traveller', 'travellers')}.`}
               </p>
               <div className="stack">
                 {visible.map((e) => (
@@ -136,9 +137,11 @@ export function RestaurantShortlistPage() {
                     entry={e}
                     budget={shortlist.budget_per_person}
                     currency={shortlist.currency}
-                    chosen={chosen === restaurantKey(e)}
+                    added={(trip?.restaurants ?? []).some(
+                      (p) => p.name === e.restaurant.name && p.city === e.restaurant.city,
+                    )}
                     onRemove={() => remove(restaurantKey(e), e.restaurant.name)}
-                    onChoose={() => choose(restaurantKey(e), e.restaurant.name)}
+                    onAdd={() => setAdding(e)}
                   />
                 ))}
               </div>
@@ -175,6 +178,17 @@ export function RestaurantShortlistPage() {
               : 'Your shortlist is empty'}
           </p>
         </>
+      )}
+      {adding && trip && (
+        <RestaurantPickDialog
+          mode="add"
+          tripId={tripId}
+          restaurant={adding.restaurant}
+          days={trip.days ?? []}
+          travellers={travellers}
+          onClose={() => setAdding(null)}
+          onDone={added}
+        />
       )}
       {toast && <Toast key={toast.key} message={toast.message} undo={toast.undo} />}
     </div>

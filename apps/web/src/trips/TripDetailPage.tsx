@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
-import type { Activity, Day, Reminder, Stay, Trip } from './api'
+import type { Activity, Day, Reminder, RestaurantPick, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
 import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
@@ -12,6 +12,7 @@ import { ItineraryTab } from './ItineraryTab'
 import { ReminderModal } from './ReminderModal'
 import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
+import { RestaurantPickDialog } from './RestaurantPickDialog'
 import { RemoveStayModal } from './RemoveStayModal'
 import { ShareTripModal } from './ShareTripModal'
 import { StayDrawer } from './StayDrawer'
@@ -39,6 +40,7 @@ type Panel =
   | { id: 'reminder-edit'; reminder: Reminder }
   | { id: 'add-activity'; day: Day }
   | { id: 'remove-activity'; activity: Activity }
+  | { id: 'move-restaurant'; pick: RestaurantPick }
   | { id: 'add-stay' }
   | { id: 'edit-stay'; stay: Stay }
   | { id: 'remove-stay'; stay: Stay }
@@ -266,7 +268,9 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onEditReminder={(reminder) => setPanel({ id: 'reminder-edit', reminder })}
             onAddActivity={(day) => setPanel({ id: 'add-activity', day })}
             onMoveActivity={move}
-            onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}          />
+            onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
+            onMoveRestaurant={(pick) => setPanel({ id: 'move-restaurant', pick })}
+          />
         ) : tab === 'stays' ? (
           <StaysSection
             tripId={tripId}
@@ -322,6 +326,17 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             setToast({ id: Date.now(), message })
           }}
           onCopied={() => setToast({ id: Date.now(), message: 'Link copied.' })}
+        />
+      )}
+      {canEdit && panel.id === 'move-restaurant' && (
+        <RestaurantPickDialog
+          mode="move"
+          tripId={trip.id}
+          pick={panel.pick}
+          days={trip.days ?? []}
+          travellers={trip.traveller_count ?? 1}
+          onClose={close}
+          onDone={saved}
         />
       )}
       {trip.is_owner && panel.id === 'rename' && (

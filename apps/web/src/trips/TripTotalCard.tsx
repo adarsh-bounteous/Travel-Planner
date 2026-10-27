@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { AlertIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, InfoIcon } from '../auth/icons'
 import type { CostSummary, InsurancePick } from './api'
 
 const amountFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 })
@@ -27,6 +27,8 @@ export function TripTotalCard({
   insurance?: InsurancePick | null
 }) {
   const { currency } = cost
+  const unpricedRestaurants = cost.restaurant_unpriced_count ?? 0
+  const hasRestaurants = (cost.restaurant_total ?? 0) > 0 || unpricedRestaurants > 0
   const missing = cost.missing_categories.map((c) => c.toLowerCase())
   return (
     <section className="card stack stack-sm" aria-label="Trip total">
@@ -55,10 +57,29 @@ export function TripTotalCard({
         </Link>
       )}
       {cost.over_budget_by > 0 && (
-        <span className="badge badge-danger" role="alert">
+        <div className="alert alert-warning" role="alert">
           <AlertIcon />
           {`Over budget by ${formatMoney(cost.over_budget_by, currency)}`}
-        </span>
+        </div>
+      )}
+      {cost.budget != null && cost.over_budget_by === 0 && (
+        <p className="text-sm">
+          <CheckIcon />
+          {`${formatMoney(cost.budget - cost.total, currency)} left of your ${formatMoney(cost.budget, currency)} budget.`}
+        </p>
+      )}
+      {hasRestaurants && (
+        <dl className="total-lines">
+          <dt>Restaurant estimates</dt>
+          <dd>{formatMoney(cost.restaurant_total ?? 0, currency)}</dd>
+        </dl>
+      )}
+      {unpricedRestaurants > 0 && (
+        <p className="text-muted text-sm">
+          {unpricedRestaurants === 1
+            ? "1 restaurant has no estimate and isn't counted."
+            : `${unpricedRestaurants} restaurants have no estimate and aren't counted.`}
+        </p>
       )}
       {missing.length > 0 && (
         <span className="badge badge-warning">

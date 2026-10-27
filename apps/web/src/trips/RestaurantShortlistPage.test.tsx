@@ -9,7 +9,7 @@ const trip: Trip = { id: 't1', name: 'Lisbon trip', destination: 'Lisbon', is_ow
 const entry = (
   rank: number,
   name: string,
-  price: string,
+  price: string | null,
   fits: boolean,
   met: string[] = [],
   cuisine = 'Portuguese',
@@ -110,29 +110,41 @@ describe('shortlist tab', () => {
     expect(screen.getAllByRole('article')).toHaveLength(5)
   })
 
-  it('offers Choose only on shortlisted restaurants and clears it on removal (AC4)', async () => {
-    open('shortlist')
+  it('offers Add to trip on every entry and shows a picked one as added (AC1)', async () => {
+    stubApi({
+      'GET /trips/t1': {
+        status: 200,
+        body: {
+          ...trip,
+          restaurants: [
+            { id: 'p1', name: 'Mesa Real', city: 'Lisbon', cuisine: 'Portuguese', typical_price: '68', currency: 'EUR', url: null, date: null, meal: null },
+          ],
+        },
+      },
+      'GET /trips/t1/restaurant-shortlist': { status: 200, body: shortlist(FIVE) },
+    })
+    renderAt('/trips/t1/restaurant-options/shortlist')
     await screen.findAllByRole('article')
-    expect(screen.getAllByRole('button', { name: /^Choose / })).toHaveLength(5)
-    fireEvent.click(screen.getByRole('button', { name: 'Choose Peixe Grill' }))
-    expect(screen.getByRole('button', { name: 'Choose Peixe Grill' })).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Peixe Grill from shortlist' }))
-    expect(screen.queryByRole('button', { name: 'Choose Peixe Grill' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
-    expect(screen.getByRole('button', { name: 'Choose Peixe Grill' })).toHaveAttribute('aria-pressed', 'false')
+    expect(await screen.findByRole('button', { name: 'Added to trip' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Add Casa Lima to trip' })).toBeEnabled()
+    expect(screen.getAllByRole('button', { name: /^Add .* to trip$/ })).toHaveLength(4)
   })
 
-  it('keeps removed restaurants on the compare tab and the choice across tabs', async () => {
+  it('opens the add dialog from Add to trip (AC1)', async () => {
     open('shortlist')
     await screen.findAllByRole('article')
-    fireEvent.click(screen.getByRole('button', { name: 'Choose Casa Lima' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Mesa Real from shortlist' }))
-    fireEvent.click(screen.getByRole('tab', { name: 'Compare' }))
-    expect(await screen.findByTestId('comparison')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(5)
-    fireEvent.click(screen.getByRole('tab', { name: 'Shortlist' }))
-    expect(screen.getAllByRole('article')).toHaveLength(4)
-    expect(screen.getByRole('button', { name: 'Choose Casa Lima' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Add Casa Lima to trip' }))
+    expect(screen.getByRole('dialog')).toHaveTextContent('Casa Lima')
+  })
+
+  it('shows an entry with no typical price without throwing (AC9)', async () => {
+    open('shortlist', [entry(1, 'Cantina Nova', null, true)])
+    expect(await screen.findByText(/Typical price not available/)).toBeInTheDocument()
+  })
+
+  it('tells the traveller picks are for their group', async () => {
+    open('shortlist')
+    expect(await screen.findByText(/Add as many as you like/)).toBeInTheDocument()
   })
 
   it('shows a retryable alert when loading fails', async () => {

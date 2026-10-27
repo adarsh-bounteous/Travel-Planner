@@ -47,7 +47,8 @@ def _meets(label: str, filters: DiningFilters, r: RestaurantOption) -> bool:
 
 def _fits(r: RestaurantOption, trip: Trip, budget: Decimal | None) -> bool:
     # Without exchange rates, a restaurant priced in another currency cannot be compared, so it is not marked over.
-    return budget is None or r.currency != trip.currency or r.typical_price <= budget
+    # The same goes for one with no known price.
+    return budget is None or r.currency != trip.currency or r.typical_price is None or r.typical_price <= budget
 
 
 def build_shortlist(
@@ -60,7 +61,7 @@ def build_shortlist(
     for r in options.options:
         met = [label for label in labels if _meets(label, filters, r)]
         scored.append((r, _fits(r, trip, budget), met))
-    scored.sort(key=lambda s: (not s[1], -len(s[2]), s[0].typical_price, s[0].name))
+    scored.sort(key=lambda s: (not s[1], -len(s[2]), s[0].typical_price is None, s[0].typical_price or Decimal(0), s[0].name))
     return RestaurantShortlist(
         place=options.place,
         budget_per_person=budget,

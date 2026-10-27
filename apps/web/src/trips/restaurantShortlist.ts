@@ -7,6 +7,8 @@ export const canCompare = (entries: ShortlistEntry[]) => entries.length >= 2
 /** The one-sentence reason for an entry: its price against the budget, then the preferences it meets. */
 export function shortlistReason(entry: ShortlistEntry, budget: string | null, currency: string | null) {
   const { restaurant, fits_budget, preferences_met, preferences_total } = entry
+  if (restaurant.typical_price === null)
+    return 'Typical price not available. No typical price is known yet, so there is no budget check.'
   const price = formatMoney(restaurant.typical_price, restaurant.currency)
   const against =
     budget !== null && currency

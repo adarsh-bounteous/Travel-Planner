@@ -222,6 +222,7 @@ class Trip(TripFields):
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes
+    visa_self_checks: list[str] = []  # server-owned: traveller ids (or "owner") marked "I'll check myself"
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
     share_token: str | None = None  # server-owned: changed only through the share-link routes
 

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
-import type { Activity, ChosenOption, ChosenStay, Day, Reminder, Trip } from './api'
+import type { Activity, ChosenOption, ChosenStay, Day, Reminder, RestaurantPick, Trip } from './api'
 import { LEGS, legName, pickSummary } from './flights'
+import { estimateLabel, mealLabel, picksForDay, unscheduled } from './restaurantPicks'
 import { formatRange } from './stays'
 import { formatMoney } from './TripTotalCard'
 
@@ -148,6 +149,29 @@ function ChosenTransport({ trip }: { trip: Trip }) {
   )
 }
 
+type PickRowProps = {
+  pick: RestaurantPick
+  travellers: number
+  editable: boolean
+  onMove?: (pick: RestaurantPick) => void
+}
+
+/** One restaurant pick: its meal when it has a day, its estimate, and a Move button for editors. */
+function PickRow({ pick, travellers, editable, onMove }: PickRowProps) {
+  return (
+    <li className="pick-row">
+      {pick.meal && <span className="meal-label">{mealLabel(pick.meal)}</span>}
+      <span className="pick-name">{pick.name}</span>
+      <span className="badge badge-neutral">{estimateLabel(pick, travellers)}</span>
+      {editable && onMove && (
+        <button className="btn btn-ghost" type="button" aria-label={`Move ${pick.name}`} onClick={() => onMove(pick)}>
+          Move
+        </button>
+      )}
+    </li>
+  )
+}
+
 type ItineraryTabProps = {
   trip: Trip
   onRename: (day: Day, index: number) => void
@@ -156,6 +180,7 @@ type ItineraryTabProps = {
   onAddActivity: (day: Day) => void
   onMoveActivity: (activity: Activity, date: string) => Promise<void>
   onRemoveActivity: (activity: Activity) => void
+  onMoveRestaurant?: (pick: RestaurantPick) => void
 }
 
 /** One stack per day, in date order, each holding only that day's chosen options, activities and reminders. */
@@ -167,6 +192,7 @@ export function ItineraryTab({
   onAddActivity,
   onMoveActivity,
   onRemoveActivity,
+  onMoveRestaurant,
 }: ItineraryTabProps) {
   const [movingId, setMovingId] = useState<string | null>(null)
   const [moveFailed, setMoveFailed] = useState(false)
@@ -174,6 +200,9 @@ export function ItineraryTab({
   const activities = trip.activities ?? []
   const options = trip.options ?? []
   const reminders = trip.reminders ?? []
+  const restaurants = trip.restaurants ?? []
+  const travellers = trip.traveller_count ?? 1
+  const loosePicks = unscheduled(restaurants)
   const editable = trip.can_edit ?? trip.is_owner ?? false
 
   if (days.length === 0)
@@ -192,10 +221,36 @@ export function ItineraryTab({
     <div className="stack stack-lg">
       <ChosenTransport trip={trip} />
       <ChosenStays trip={trip} editable={editable} />
+      <section className="card stack stack-sm" aria-labelledby="itinerary-unscheduled">
+        <div className="title-row">
+          <h3 className="text-lg" id="itinerary-unscheduled">
+            Unscheduled
+          </h3>
+          {editable && (
+            <Link
+              className="btn btn-secondary"
+              to={`/trips/${encodeURIComponent(trip.id)}/restaurant-options/shortlist`}
+            >
+              <PlusIcon />
+              Add restaurants
+            </Link>
+          )}
+        </div>
+        {loosePicks.length > 0 ? (
+          <ul className="pick-list">
+            {loosePicks.map((pick) => (
+              <PickRow key={pick.id} pick={pick} travellers={travellers} editable={editable} onMove={onMoveRestaurant} />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted">No unscheduled restaurants. Anything you add without a day lands here.</p>
+        )}
+      </section>
       <div className="grid">
       {days.map((day, index) => {
         const chosen = options.filter((option) => option.date === day.date)
         const planned = activities.filter((activity) => activity.date === day.date)
+        const meals = picksForDay(restaurants, day.date)
         const dated = reminders.filter((r) => r.date === day.date)
         // Notes not shown under an option of this day: trip notes, and activity notes dated on another day.
         const loose = dated.filter((r) => !chosen.some((option) => option.id === r.option_id))
@@ -273,7 +328,8 @@ export function ItineraryTab({
                 })}
               </ul>
             ) : (
-              planned.length === 0 && (
+              planned.length === 0 &&
+              meals.length === 0 && (
                 <div className="empty-state">
                   <p>Nothing chosen for this day yet</p>
                   <p className="text-sm">
@@ -281,6 +337,13 @@ export function ItineraryTab({
                   </p>
                 </div>
               )
+            )}
+            {meals.length > 0 && (
+              <ul className="pick-list">
+                {meals.map((pick) => (
+                  <PickRow key={pick.id} pick={pick} travellers={travellers} editable={editable} onMove={onMoveRestaurant} />
+                ))}
+              </ul>
             )}
             {planned.length > 0 && (
               <ul className="options">

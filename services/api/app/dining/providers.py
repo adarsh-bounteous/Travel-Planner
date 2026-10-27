@@ -15,7 +15,7 @@ class InMemoryRestaurantProvider:
 
 
 def _restaurant(
-    city: str, name: str, cuisine: str, style: str, level: int, price: int, suits: list[str]
+    city: str, name: str, cuisine: str, style: str, level: int, price: int | None, suits: list[str]
 ) -> ProviderRestaurant:
     slug = name.lower().replace(" ", "-")
     return ProviderRestaurant(
@@ -24,7 +24,7 @@ def _restaurant(
         cuisine=cuisine,
         dining_style=style,
         price_level=level,
-        typical_price=Decimal(price),
+        typical_price=None if price is None else Decimal(price),
         currency="EUR",
         suits=suits,
         url=f"https://example.com/restaurants/{slug}",
@@ -51,6 +51,7 @@ SEED_CATALOGUES: dict[str, dict[str, list[ProviderRestaurant]]] = {
             _lisbon("Mesa Real", "Portuguese", "Fine dining", 3, 68, ["vegetarian", "halal", "gluten-free"]),
             _lisbon("Peixe e Sal", "Portuguese", "Casual", 2, 24, []),
             _lisbon("Pastel Lab", "Cafe", "Casual", 1, 9, ["vegetarian", "gluten-free"]),
+            _lisbon("Cantina Nova", "Portuguese", "Casual", 1, None, ["vegetarian"]),
         ],
         "porto": [
             _porto("Ribeira Simples", "Portuguese", "Casual", 2, 18, ["vegetarian"]),

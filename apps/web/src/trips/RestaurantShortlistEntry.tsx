@@ -6,16 +6,16 @@ type Props = {
   entry: ShortlistEntry
   budget: string | null
   currency: string | null
-  chosen: boolean
+  added: boolean
   onRemove: () => void
-  onChoose: () => void
+  onAdd: () => void
 }
 
-/** One ranked restaurant with the reason it is where it is; Choose is offered only here. */
-export function RestaurantShortlistEntry({ entry, budget, currency, chosen, onRemove, onChoose }: Props) {
+/** One ranked restaurant with the reason it is where it is; Add to trip is offered only here. */
+export function RestaurantShortlistEntry({ entry, budget, currency, added, onRemove, onAdd }: Props) {
   const name = entry.restaurant.name
   return (
-    <article className={chosen ? 'card entry is-chosen' : 'card entry'} aria-label={name}>
+    <article className={added ? 'card entry is-chosen' : 'card entry'} aria-label={name}>
       <div className="row-between">
         <h3>{name}</h3>
         {entry.fits_budget ? (
@@ -35,22 +35,16 @@ export function RestaurantShortlistEntry({ entry, budget, currency, chosen, onRe
         <button className="btn btn-ghost" type="button" aria-label={`Remove ${name} from shortlist`} onClick={onRemove}>
           Remove
         </button>
-        <button
-          className="btn btn-primary"
-          type="button"
-          aria-pressed={chosen}
-          aria-label={`Choose ${name}`}
-          onClick={onChoose}
-        >
-          {chosen ? (
-            <>
-              <CheckIcon />
-              Chosen
-            </>
-          ) : (
-            'Choose'
-          )}
-        </button>
+        {added ? (
+          <button className="btn btn-secondary" type="button" disabled aria-pressed="true">
+            <CheckIcon />
+            Added to trip
+          </button>
+        ) : (
+          <button className="btn btn-primary" type="button" aria-label={`Add ${name} to trip`} onClick={onAdd}>
+            Add to trip
+          </button>
+        )}
       </div>
     </article>
   )

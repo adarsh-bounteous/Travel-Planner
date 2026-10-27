@@ -102,3 +102,31 @@ describe('TripTotalCard', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('TripTotalCard restaurant estimates', () => {
+  it('shows the restaurant line with its amount (AC6)', () => {
+    show({ restaurant_total: 82 })
+    expect(screen.getByText('Restaurant estimates').nextElementSibling).toHaveTextContent('82 EUR')
+  })
+
+  it('warns when over budget (AC7)', () => {
+    show({ total: 274, budget: 250, over_budget_by: 24, restaurant_total: 82 })
+    expect(screen.getByRole('alert')).toHaveTextContent('Over budget by 24 EUR')
+  })
+
+  it('shows no warning and what is left within budget (AC8)', () => {
+    show({ total: 200, budget: 250, restaurant_total: 82 })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByText(/left of your/)).toHaveTextContent('50 EUR left of your 250 EUR budget.')
+  })
+
+  it('notes picks with no estimate that are not counted (AC10)', () => {
+    show({ restaurant_total: 38, restaurant_unpriced_count: 1 })
+    expect(screen.getByText("1 restaurant has no estimate and isn't counted.")).toBeInTheDocument()
+  })
+
+  it('has no restaurant line without picks', () => {
+    show()
+    expect(screen.queryByText('Restaurant estimates')).not.toBeInTheDocument()
+  })
+})

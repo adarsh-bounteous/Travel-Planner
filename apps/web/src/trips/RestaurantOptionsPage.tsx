@@ -17,7 +17,7 @@ function RestaurantCard({ option, home }: { option: RestaurantOption; home: bool
       </div>
       <h3>{option.name}</h3>
       <p className="text-muted">
-        {`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. Typically ${formatMoney(option.typical_price, option.currency)} per person.`}
+        {`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. ${option.typical_price === null ? 'Typical price not available.' : `Typically ${formatMoney(option.typical_price, option.currency)} per person.`}`}
       </p>
       <div className="restaurant-foot">
         <span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>

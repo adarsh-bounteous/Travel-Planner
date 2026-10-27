@@ -33,7 +33,9 @@ export function RestaurantCompare({ entries, optionsHref }: { entries: Shortlist
             </p>
             <p>
               <span className="fact-label">Typical price per person:</span>{' '}
-              <strong>{formatMoney(r.typical_price, r.currency)}</strong>
+              <strong>
+                {r.typical_price === null ? 'Typical price not available' : formatMoney(r.typical_price, r.currency)}
+              </strong>
             </p>
           </article>
         ))}

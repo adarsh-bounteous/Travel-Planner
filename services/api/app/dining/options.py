@@ -35,7 +35,7 @@ class ProviderRestaurant(BaseModel):
     cuisine: str
     dining_style: str
     price_level: int  # 1 (cheapest) to 4
-    typical_price: Decimal  # per person, whole currency units
+    typical_price: Decimal | None  # per person, whole currency units; None = no known price
     currency: str
     suits: list[str]
     url: str | None = None

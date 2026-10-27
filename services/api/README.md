@@ -26,6 +26,8 @@ FastAPI service. Python 3.12.
 | `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
+With local mode on, `GET /places` returns places generated from the searched destination (Lisbon, Kyoto and Paris; any other destination has none) instead of the places service, and makes no outside request. `PUT /local/mode` with `{"local_mode": true}` is refused with `403 {"code": "local_mode_not_allowed"}` outside the local environment; the switch is set at startup and the route never changes it.
+
 ## Run it locally
 
 See [Local setup](../../docs/local-setup.md) for the demo account, reset and faked services. Details:

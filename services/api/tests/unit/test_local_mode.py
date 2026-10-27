@@ -38,7 +38,7 @@ def test_unrecognised_value_is_refused():
 
 def test_off_means_no_stand_in():
     assert stand_ins_for(False) == LocalStandIns(
-        storage=False, sign_in=False, cloud_services=False
+        storage=False, sign_in=False, cloud_services=False, places=False
     )
 
 
@@ -55,7 +55,7 @@ def test_on_with_unset_environment_is_refused():
 
 def test_on_enables_every_stand_in():
     assert stand_ins_for(True) == LocalStandIns(
-        storage=True, sign_in=True, cloud_services=True
+        storage=True, sign_in=True, cloud_services=True, places=True
     )
 
 

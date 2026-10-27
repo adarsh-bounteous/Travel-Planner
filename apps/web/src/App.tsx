@@ -20,6 +20,7 @@ import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
+import { SettingsPage } from './local/SettingsPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
@@ -69,6 +70,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <AccountPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account/settings"
+            element={
+              <RequireAuth>
+                <SettingsPage />
               </RequireAuth>
             }
           />

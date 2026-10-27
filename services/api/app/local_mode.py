@@ -17,6 +17,7 @@ class LocalStandIns:
     storage: bool
     sign_in: bool
     cloud_services: bool
+    places: bool
 
 
 def resolve_local_mode(env: Mapping[str, str]) -> tuple[str, bool]:
@@ -39,5 +40,8 @@ def resolve_local_mode(env: Mapping[str, str]) -> tuple[str, bool]:
 
 def stand_ins_for(local_mode: bool) -> LocalStandIns:
     return LocalStandIns(
-        storage=local_mode, sign_in=local_mode, cloud_services=local_mode
+        storage=local_mode,
+        sign_in=local_mode,
+        cloud_services=local_mode,
+        places=local_mode,
     )

@@ -22,7 +22,7 @@ def test_status_on_in_local(monkeypatch):
     with TestClient(app) as client:
         body = client.get("/startup-status").json()
     assert body["local_mode"] is True
-    assert set(body["stand_ins"]) == {"storage", "sign_in", "cloud_services"}
+    assert set(body["stand_ins"]) == {"storage", "sign_in", "cloud_services", "places"}
     assert all(body["stand_ins"].values())
 
 

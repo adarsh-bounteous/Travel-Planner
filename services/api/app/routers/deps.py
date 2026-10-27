@@ -7,6 +7,7 @@ from app.auth.session import read_session
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
 from app.routers.auth import _local_identity, _set_session, get_now
+from app.places.local_search import LocalPlaceSearch
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
@@ -77,6 +78,12 @@ def _local_saved_places() -> PersistentSavedPlaceStore:
 @lru_cache
 def _places() -> PlaceSearch:
     return InMemoryPlaceSearch(SEED_CATALOGUE)
+
+
+@lru_cache
+def _local_places() -> PlaceSearch:
+    """Local mode's places stand-in: generated from the destination, no outside request."""
+    return LocalPlaceSearch()
 
 
 @lru_cache
@@ -160,7 +167,7 @@ def get_transport_providers() -> list[TransportProvider]:
 
 
 def get_places() -> PlaceSearch:
-    return _places()
+    return _local_places() if get_settings().local_mode else _places()
 
 
 def get_local_seed_target() -> LocalSeedTarget | None:

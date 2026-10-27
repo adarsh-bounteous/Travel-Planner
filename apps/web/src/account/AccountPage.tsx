@@ -213,6 +213,9 @@ export function AccountPage() {
         <Link className="btn btn-secondary" to="/profile/transport">
           Transport preferences
         </Link>
+        <Link className="btn btn-secondary" to="/account/settings">
+          Settings
+        </Link>
       </div>
       {method === 'email' && (
         <>

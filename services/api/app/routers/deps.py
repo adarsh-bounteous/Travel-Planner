@@ -30,6 +30,7 @@ from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
 from app.trips.forecast import DayForecast, ForecastSource, ForecastUnavailable, LocalForecast
 from app.trips.rates import SEED_RATES, InMemoryRates, LastKnownRates, LocalRates, RateSource
+from app.trips.visa import SEED_PUBLISHED_ON, SEED_VISA_RULES, InMemoryVisaRules, VisaRuleSource
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
 from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
 from app.trips.local_saved_store import SAVED_PLACES_FILE_NAME, PersistentSavedPlaceStore
@@ -127,6 +128,12 @@ def _local_recommendations() -> RecommendationSource:
 @lru_cache
 def _rates() -> RateSource:
     return InMemoryRates(SEED_RATES)
+
+
+@lru_cache
+def get_visa_rules() -> VisaRuleSource:
+    """One seeded source, in local mode too: it makes no outside call."""
+    return InMemoryVisaRules(SEED_VISA_RULES, SEED_PUBLISHED_ON)
 
 
 @lru_cache

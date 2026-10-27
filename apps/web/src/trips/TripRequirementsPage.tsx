@@ -6,16 +6,10 @@ import type { Trip, TravellerRequirement } from './api'
 import { CompanionDetailsDrawer } from './CompanionDetailsDrawer'
 import { Toast } from './Toast'
 
-type Kind = 'visa' | 'medical'
 type Load =
   | { status: 'loading' }
   | { status: 'failed' }
   | { status: 'loaded'; trip: Trip; rows: TravellerRequirement[] }
-
-const KINDS: { id: Kind; label: string; column: string }[] = [
-  { id: 'visa', label: 'Visa', column: 'Visa requirement' },
-  { id: 'medical', label: 'Medical', column: 'Medical requirement' },
-]
 
 const dates = (trip: Trip) =>
   [trip.start_date, trip.end_date]
@@ -37,7 +31,6 @@ export function TripRequirementsPage() {
   const { tripId = '' } = useParams()
   const [load, setLoad] = useState<Load>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
-  const [kind, setKind] = useState<Kind>('visa')
   const [editing, setEditing] = useState<string | null>(null)
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null)
 
@@ -76,7 +69,6 @@ export function TripRequirementsPage() {
     )
 
   const { trip, rows } = load
-  const column = KINDS.find((k) => k.id === kind)!.column
   const editingTraveller = (trip.travellers ?? []).find((t) => t.id === editing)
 
   return (
@@ -91,20 +83,6 @@ export function TripRequirementsPage() {
           <Link to={`/trips/${encodeURIComponent(trip.id)}`}>Back to travellers</Link>
         </div>
       </div>
-      <div className="tabs" role="tablist" aria-label="Requirement type">
-        {KINDS.map(({ id, label }) => (
-          <button
-            key={id}
-            className="tab"
-            role="tab"
-            type="button"
-            aria-selected={kind === id}
-            onClick={() => setKind(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
       <div className="req-wrap" aria-live="polite">
         <table className="req">
           <thead>
@@ -113,20 +91,19 @@ export function TripRequirementsPage() {
               <th scope="col">Citizenship</th>
               <th scope="col">Residence</th>
               <th scope="col">Health status</th>
-              <th scope="col">{column}</th>
+              <th scope="col">Medical requirement</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => {
-              const text = kind === 'visa' ? row.visa : row.medical
               return (
                 <tr key={row.traveller_id ?? 'owner'}>
                   <td data-label="Traveller">{row.name}</td>
                   <td data-label="Citizenship">{row.citizenship || 'Not yet entered'}</td>
                   <td data-label="Residence">{row.residence || 'Not yet entered'}</td>
                   <td data-label="Health status">{row.health_status || 'Not yet entered'}</td>
-                  <td data-label={column}>
-                    {text ??
+                  <td data-label="Medical requirement">
+                    {row.medical ??
                       (row.traveller_id && incomplete(row) ? (
                         <>
                           <span className="badge badge-warning">

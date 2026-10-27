@@ -18,9 +18,9 @@ const trip = {
 }
 
 const rows = [
-  { traveller_id: null, name: 'You (owner)', citizenship: 'Ireland', residence: 'Ireland', health_status: 'None reported', visa: 'No visa needed for stays up to 90 days', medical: 'No extra requirements' },
-  { traveller_id: 'a', name: 'Ana', citizenship: 'Canada', residence: 'Canada', health_status: 'Allergies', visa: 'No visa needed for stays up to 90 days', medical: 'Carry an allergy card and any medication in its original packaging' },
-  { traveller_id: 'b', name: 'Ben', citizenship: '', residence: '', health_status: '', visa: null, medical: null },
+  { traveller_id: null, name: 'You (owner)', citizenship: 'Ireland', residence: 'Ireland', health_status: 'None reported', medical: 'No extra requirements' },
+  { traveller_id: 'a', name: 'Ana', citizenship: 'Canada', residence: 'Canada', health_status: 'Allergies', medical: 'Carry an allergy card and any medication in its original packaging' },
+  { traveller_id: 'b', name: 'Ben', citizenship: '', residence: '', health_status: '', medical: null },
 ]
 
 const open = () => {
@@ -32,16 +32,11 @@ const open = () => {
 }
 
 describe('Trip requirements', () => {
-  it('shows each traveller visa text on the Visa tab (AC2)', async () => {
+  it('shows each traveller medical text and no visa tab', async () => {
     open()
     expect(await screen.findByRole('heading', { name: 'Trip requirements' })).toBeInTheDocument()
-    expect(screen.getAllByText('No visa needed for stays up to 90 days')).toHaveLength(2)
+    expect(screen.queryByRole('tab', { name: 'Visa' })).not.toBeInTheDocument()
     expect(screen.getByText('Details needed')).toBeInTheDocument()
-  })
-
-  it('shows medical text on the Medical tab (AC3)', async () => {
-    open()
-    fireEvent.click(await screen.findByRole('tab', { name: 'Medical' }))
     expect(screen.getByText(/allergy card/)).toBeInTheDocument()
   })
 

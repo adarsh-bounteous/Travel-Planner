@@ -212,6 +212,8 @@ export class ForbiddenError extends Error {}
 export class ValidationError extends Error {}
 /** The place is already on this trip (409). */
 export class AlreadyOnTripError extends Error {}
+/** The invite was already accepted (409). */
+export class InviteUsedError extends Error {}
 
 /** Fired when a change to a trip is answered 404: an editor's access may have just been removed. */
 export const TRIP_WRITE_REFUSED = 'trip-write-refused'
@@ -230,6 +232,7 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
     throw new NotFoundError()
   }
   if (response.status === 409 && path.endsWith('/places')) throw new AlreadyOnTripError()
+  if (response.status === 409 && path.endsWith('/accept')) throw new InviteUsedError()
   if (response.status === 422) throw new ValidationError()
   if (!response.ok) throw new Error(`request failed: ${response.status}`)
   if (response.status === 204) return undefined as T

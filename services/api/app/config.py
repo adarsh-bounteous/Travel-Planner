@@ -24,6 +24,9 @@ class Settings:
     trips_table_name: str
     cookie_secure: bool
     invite_from_address: str = ""
+    availability_table_name: str = "trip-planner-availability"
+    oncall_alert_topic_arn: str = ""
+    public_health_url: str = ""
     environment: str = "production"
     local_mode: bool = False
     local_data_dir: Path = DEFAULT_LOCAL_DATA_DIR
@@ -53,5 +56,8 @@ def get_settings() -> Settings:
         trips_table_name=env.get("TRIPS_TABLE_NAME", "trip-planner-trips"),
         cookie_secure=env.get("COOKIE_SECURE", "true").lower() != "false",
         invite_from_address=env.get("INVITE_FROM_ADDRESS", ""),
+        availability_table_name=env.get("AVAILABILITY_TABLE_NAME", "trip-planner-availability"),
+        oncall_alert_topic_arn=env.get("ONCALL_ALERT_TOPIC_ARN", ""),
+        public_health_url=env.get("PUBLIC_HEALTH_URL", ""),
         local_data_dir=Path(env.get("LOCAL_DATA_DIR") or DEFAULT_LOCAL_DATA_DIR),
     )

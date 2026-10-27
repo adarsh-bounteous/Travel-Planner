@@ -19,11 +19,14 @@ BLANK = {
     "citizenship": "",
     "residence": "",
     "health_status": "",
+    "vaccinations_had": [],
+    "pregnant": None,
     "religion": "",
     "diet": "",
     "tastes": [],
     "travel_style": "",
     "transport_preferences": NO_PREFERENCES,
+    "sim_preference": None,
 }
 
 

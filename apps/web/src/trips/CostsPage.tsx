@@ -34,6 +34,13 @@ function costLines(trip: Trip): CostLine[] {
       amount: Number(p.picked_fare),
       currency: p.currency,
     })
+  if (trip.sim)
+    lines.push({
+      id: 'sim',
+      name: `SIM: ${trip.sim.name}`,
+      amount: Number(trip.sim.price) * (trip.traveller_count ?? 1),
+      currency: trip.sim.currency,
+    })
   return lines
 }
 

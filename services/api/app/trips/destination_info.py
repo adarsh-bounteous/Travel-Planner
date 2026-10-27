@@ -58,6 +58,11 @@ _SUMMARY = {
 }
 
 
+def country_for(destination: str | None) -> str:
+    """The destination's country, as the seeded destination data names it."""
+    return _country(destination)
+
+
 def _band(high: int) -> str:
     return "cold" if high < 10 else "cool" if high < 17 else "mild" if high < 23 else "warm" if high < 28 else "hot"
 

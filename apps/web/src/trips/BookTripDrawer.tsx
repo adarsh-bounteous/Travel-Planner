@@ -1,31 +1,35 @@
 import { InfoIcon } from '../auth/icons'
-import type { ChosenOption, InsurancePick } from './api'
+import type { ChosenOption, ChosenSim, InsurancePick } from './api'
 import { formatDay } from './ItineraryTab'
 import { Overlay } from './Overlay'
+import { safeHref } from './safeHref'
 
-/** Only http(s) pages are opened, so a stored `javascript:` URL can never become a link. */
-function bookingHref(option: { booking_url?: string | null }) {
-  if (!option.booking_url) return null
-  try {
-    const { protocol } = new URL(option.booking_url)
-    return protocol === 'http:' || protocol === 'https:' ? option.booking_url : null
-  } catch {
-    return null
-  }
+function BookLink({ href }: { href: string | null }) {
+  return href ? (
+    <a className="btn btn-secondary" href={href} target="_blank" rel="noopener noreferrer">
+      Open booking page<span className="text-sm"> (opens in a new tab)</span>
+    </a>
+  ) : (
+    <p className="text-sm">
+      <InfoIcon /> No booking link is available for this option.
+    </p>
+  )
 }
 
-/** Booking links for the chosen options. Booking itself happens on the provider's site. */
+/** Booking links for the chosen options, the picked SIM and insurance. Booking itself happens on the provider's site. */
 export function BookTripDrawer({
   options,
+  sim,
   insurance,
   onClose,
 }: {
   options: ChosenOption[]
+  sim?: ChosenSim | null
   insurance?: InsurancePick | null
   onClose: () => void
 }) {
   const sorted = [...options].sort((a, b) => a.date.localeCompare(b.date))
-  const insuranceHref = insurance ? bookingHref({ booking_url: insurance.url }) : null
+  const count = options.length + (sim ? 1 : 0) + (insurance ? 1 : 0)
 
   return (
     <Overlay kind="drawer" labelledBy="book-title" onClose={onClose}>
@@ -33,58 +37,35 @@ export function BookTripDrawer({
         <div className="stack stack-sm">
           <h2 id="book-title">Book trip</h2>
           <p className="text-muted">
-            {options.length} chosen {options.length === 1 ? 'option' : 'options'}. Each link opens
-            the provider's site in a new tab.
+            {count} chosen {count === 1 ? 'option' : 'options'}. Each link opens the provider's
+            site in a new tab.
           </p>
         </div>
         <ul className="link-list">
-          {sorted.map((option) => {
-            const href = bookingHref(option)
-            return (
-              <li key={option.id} className="card stack stack-sm">
-                <div>
-                  <div className="option-title">{option.title}</div>
-                  <div className="text-sm text-muted">
-                    {option.category}, {formatDay(option.date)}
-                  </div>
+          {sorted.map((option) => (
+            <li key={option.id} className="card stack stack-sm">
+              <div>
+                <div className="option-title">{option.title}</div>
+                <div className="text-sm text-muted">
+                  {option.category}, {formatDay(option.date)}
                 </div>
-                {href ? (
-                  <a
-                    className="btn btn-secondary"
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Open booking page<span className="text-sm"> (opens in a new tab)</span>
-                  </a>
-                ) : (
-                  <p className="text-sm">
-                    <InfoIcon /> No booking link is available for this option.
-                  </p>
-                )}
-              </li>
-            )
-          })}
+              </div>
+              <BookLink href={safeHref(option.booking_url)} />
+            </li>
+          ))}
+          {sim && (
+            <li className="card stack stack-sm">
+              <div className="option-title">{`SIM: ${sim.name}`}</div>
+              <BookLink href={safeHref(sim.url)} />
+            </li>
+          )}
           {insurance && (
             <li className="card stack stack-sm">
               <div>
                 <div className="option-title">{`Insurance provider site: ${insurance.name}`}</div>
                 <div className="text-sm text-muted">{insurance.provider}</div>
               </div>
-              {insuranceHref ? (
-                <a
-                  className="btn btn-secondary"
-                  href={insuranceHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open booking page<span className="text-sm"> (opens in a new tab)</span>
-                </a>
-              ) : (
-                <p className="text-sm">
-                  <InfoIcon /> No booking link is available for this option.
-                </p>
-              )}
+              <BookLink href={safeHref(insurance.url)} />
             </li>
           )}
         </ul>

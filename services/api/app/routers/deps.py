@@ -17,6 +17,9 @@ from app.flights.providers import InMemoryFlightProvider
 from app.attractions.options import ActivityProvider
 from app.attractions.providers import SEED_CATALOGUES as ACTIVITY_SEED_CATALOGUES
 from app.attractions.providers import InMemoryActivityProvider
+from app.sims.options import SimProvider
+from app.sims.providers import SEED_CATALOGUES as SIM_SEED_CATALOGUES
+from app.sims.providers import InMemorySimProvider
 from app.insurance.options import InsuranceProvider
 from app.insurance.providers import SEED_CATALOGUES as INSURANCE_SEED_CATALOGUES
 from app.insurance.providers import InMemoryInsuranceProvider
@@ -259,6 +262,15 @@ def _local_flight_providers() -> list[FlightProvider]:
 @lru_cache
 def _local_transport_providers() -> list[TransportProvider]:
     return [LocalTransportProvider()]
+
+
+@lru_cache
+def _sim_providers() -> list[SimProvider]:
+    return [InMemorySimProvider(name, source, catalogue) for name, (source, catalogue) in SIM_SEED_CATALOGUES.items()]
+
+
+def get_sim_providers() -> list[SimProvider]:
+    return _sim_providers()
 
 
 def get_activity_providers() -> list[ActivityProvider]:

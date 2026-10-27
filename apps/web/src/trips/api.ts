@@ -40,6 +40,47 @@ export type ChosenStay = {
   total: string
   currency: string
 }
+export type SimType = 'esim' | 'physical'
+/** The SIM picked for a trip: a server-held snapshot, priced per traveller in the option's currency. */
+export type ChosenSim = {
+  option_id: string
+  name: string
+  provider: string
+  sim_type: SimType
+  valid_from: string
+  valid_to: string
+  data_gb: string
+  price: string
+  currency: string
+  url: string
+}
+export type SimOption = {
+  id: string
+  name: string
+  provider: string
+  source: 'web_search' | 'partner'
+  sim_type: SimType
+  countries: string[]
+  coverage_count: number
+  valid_from: string
+  valid_to: string
+  data_gb: string
+  price: string
+  currency: string
+  traveller_prices: { label: string; price: string }[]
+  group_total: string
+  url: string
+}
+export type SimOptions = {
+  place: string
+  start_date: string | null
+  end_date: string | null
+  travellers: string[]
+  preference: SimType | null
+  options: SimOption[]
+  /** The stored pick; `covers_dates` is false when the trip dates moved away from its validity. */
+  picked: (ChosenSim & { covers_dates: boolean }) | null
+}
 /** The insurance plan picked from the shortlist: its group total at the time, in the plan's currency. */
 export type InsurancePick = {
   plan_id: string
@@ -249,6 +290,7 @@ export type Trip = {
   stays?: Stay[]
   transport?: TransportPick[]
   insurance?: InsurancePick | null
+  sim?: ChosenSim | null
   places?: TripPlace[]
   travellers?: Traveller[]
   editors?: Editor[]
@@ -304,6 +346,8 @@ export type Profile = {
   tastes: string[]
   travel_style: string
   transport_preferences: TransportPreferences
+  /** Owned by the Traveller profile epic; only ranks SIM options when set. */
+  sim_preference?: SimType | null
 }
 
 export class NotFoundError extends Error {}
@@ -397,6 +441,14 @@ export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria
 
 export const fetchActivityOptions = (tripId: string) =>
   call<ActivityOptions>(`/trips/${encodeURIComponent(tripId)}/activity-options`)
+
+export const fetchSimOptions = (tripId: string) =>
+  call<SimOptions>(`/trips/${encodeURIComponent(tripId)}/sim-options`)
+
+export const pickSim = (tripId: string, optionId: string) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/sim`, 'PUT', { option_id: optionId })
+
+export const clearSim = (tripId: string) => call<Trip>(`/trips/${encodeURIComponent(tripId)}/sim`, 'DELETE')
 
 export const fetchInsuranceOptions = (tripId: string) =>
   call<InsuranceOptions>(`/trips/${encodeURIComponent(tripId)}/insurance-options`)

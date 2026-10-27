@@ -25,6 +25,7 @@ from app.routers import (
     rates,
     saved_places,
     shared,
+    sim_options,
     startup_status,
     stay_options,
     transport,
@@ -55,6 +56,7 @@ app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)
 app.include_router(activity_options.router)
+app.include_router(sim_options.router)
 app.include_router(insurance.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)

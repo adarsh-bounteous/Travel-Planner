@@ -113,6 +113,21 @@ class ChosenStay(BaseModel):
     currency: str  # the offer's currency; may differ from the trip currency
 
 
+class ChosenSim(BaseModel):
+    """The SIM picked for a Trip: a snapshot of the shortlisted option, priced per traveller."""
+
+    option_id: str
+    name: str
+    provider: str
+    sim_type: Literal["esim", "physical"]
+    valid_from: date
+    valid_to: date
+    data_gb: Decimal
+    price: Decimal  # per traveller
+    currency: str  # the option's currency; may differ from the trip currency
+    url: HttpUrl
+
+
 class InsurancePick(BaseModel):
     """The insurance plan picked from the shortlist: a snapshot of its group total for the trip."""
 
@@ -233,6 +248,7 @@ class Trip(TripFields):
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
     stays: list[Stay] = []  # server-owned: changed only through the stay routes
     transport: list[TransportPick] = []  # server-owned: changed only through the transport routes
+    sim: ChosenSim | None = None  # server-owned: changed only through the SIM routes
     insurance: InsurancePick | None = None  # server-owned: changed only through the insurance routes
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route

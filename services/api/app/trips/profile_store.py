@@ -48,6 +48,7 @@ class Profile(BaseModel):
     )
     travel_style: str = Field(default="", max_length=80)
     transport_preferences: TransportPreferences = Field(default_factory=TransportPreferences)
+    sim_preference: Literal["esim", "physical"] | None = None  # None = no preference; only then SIM type never reorders
 
 
 class ProfileStore(Protocol):

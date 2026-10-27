@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -119,7 +119,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
   const options = trip.options ?? []
-  const bookable = options.length > 0 || Boolean(trip.insurance)
+  const bookable = options.length > 0 || Boolean(trip.sim) || Boolean(trip.insurance)
   const close = () => setPanel({ id: 'none' })
   /** Opens the "pick cleared" dialog when a user's own change removed the insurance pick. */
   const track = (updated: Trip) => {
@@ -181,6 +181,10 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
               </span>
             )}
           </div>
+          <Link className="btn btn-secondary" to={`/trips/${encodeURIComponent(trip.id)}/sim-options`}>
+            SIM options
+            <ArrowRightIcon />
+          </Link>
           {canEdit && (
             <button
               className="btn btn-secondary"
@@ -379,7 +383,12 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         />
       )}
       {panel.id === 'book' && (
-        <BookTripDrawer options={options} insurance={trip.insurance} onClose={close} />
+        <BookTripDrawer
+          options={options}
+          sim={trip.sim}
+          insurance={trip.insurance}
+          onClose={close}
+        />
       )}
       {insuranceCleared && <InsurancePickClearedModal onOk={() => setInsuranceCleared(false)} />}
       {accessRemoved && <AccessRemovedModal onOk={() => navigate('/')} />}

@@ -26,6 +26,7 @@ import { InvitePage } from './trips/InvitePage'
 import { ActivityOptionsPage } from './trips/ActivityOptionsPage'
 import { InsuranceComparePage } from './trips/InsuranceComparePage'
 import { InsuranceOptionsPage } from './trips/InsuranceOptionsPage'
+import { SimOptionsPage } from './trips/SimOptionsPage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
@@ -210,6 +211,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/sim-options"
+            element={
+              <RequireAuth>
+                <SimOptionsPage />
               </RequireAuth>
             }
           />

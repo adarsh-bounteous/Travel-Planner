@@ -57,9 +57,12 @@ def test_profile_plus_trip_need_is_combined():
 def test_home_cuisine_first_and_others_kept():
     out = gather_restaurants(PROVIDERS, _trip(), DiningFilters(home_cuisine="Portuguese"))
     cuisines = [o.cuisine for o in out.options]
-    first_other = next(i for i, c in enumerate(cuisines) if c != "Portuguese")
-    assert all(c == "Portuguese" for c in cuisines[:first_other])
+    assert cuisines[0] == "Portuguese"
+    assert cuisines == sorted(cuisines, key=lambda c: c != "Portuguese")  # no Portuguese after another cuisine
     assert any(c != "Portuguese" for c in cuisines)
+    # Without a home cuisine the catalogue order is kept, which starts with another cuisine.
+    plain = gather_restaurants(PROVIDERS, _trip(), DiningFilters()).options
+    assert plain[0].cuisine != "Portuguese"
 
 
 def test_nothing_matching_is_empty():

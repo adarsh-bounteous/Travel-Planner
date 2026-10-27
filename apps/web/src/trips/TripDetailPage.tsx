@@ -206,7 +206,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
-      {trip.cost && <TripTotalCard cost={trip.cost} />}
+      {trip.cost && <TripTotalCard cost={trip.cost} costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`} />}
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
           <button

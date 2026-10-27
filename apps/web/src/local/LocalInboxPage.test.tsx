@@ -43,6 +43,32 @@ describe('local inbox page', () => {
     expect(screen.getByRole('heading', { name: 'Emails' })).toBeInTheDocument()
   })
 
+  it('lists an email change as Confirm your new email address', async () => {
+    stubApi(
+      {
+        'GET /local/inbox': {
+          status: 200,
+          body: [
+            {
+              to: 'new@example.com',
+              trip_name: '',
+              link: 'http://localhost:5173/confirm-email/tok3',
+              kind: 'email_change',
+              subject: 'Confirm your new email address',
+              sent_at: '2026-01-01T00:00:00+00:00',
+            },
+          ],
+        },
+      },
+      { signedOut: true },
+    )
+    renderAt('/local/inbox')
+    expect(
+      await screen.findByRole('heading', { name: 'Confirm your new email address' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('To new@example.com')).toBeInTheDocument()
+  })
+
   it('opens an invite email with an Accept invite action', async () => {
     stubApi({ 'GET /local/inbox': { status: 200, body: [invite] } }, { signedOut: true })
     renderAt('/local/inbox')

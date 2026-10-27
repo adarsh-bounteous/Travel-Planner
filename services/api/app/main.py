@@ -33,6 +33,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     session_secret()  # fail closed: refuse to start without a signing key
     settings = get_settings()  # fail closed: refuse to start with local mode on outside the local environment
     if settings.local_mode:
+        deps._local_trips()  # build now, so an unreadable data file stops startup, not the first request
         run_first_start_seed(deps.get_local_seed_target(), date.today())
     yield
 

@@ -26,7 +26,9 @@ from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
-from app.trips.store import DynamoTripStore, InMemoryTripStore, TripStore
+from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
+from app.trips.local_store import PersistentTripStore
+from app.trips.store import DynamoTripStore, TripStore
 
 
 class ApiError(Exception):
@@ -43,9 +45,9 @@ def _trips() -> TripStore:
 
 
 @lru_cache
-def _local_trips() -> InMemoryTripStore:
-    """Local mode's trip storage stand-in: in memory, so every local start is a first start."""
-    return InMemoryTripStore()
+def _local_trips() -> PersistentTripStore:
+    """Local mode's trip storage stand-in: kept in a data file, so trips survive a restart."""
+    return PersistentTripStore(LocalDataFile(get_settings().local_data_dir / LOCAL_DATA_FILE_NAME))
 
 
 @lru_cache

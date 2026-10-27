@@ -200,3 +200,11 @@ def test_known_emails_lists_every_account_in_order(env):
     provider.create_confirmed_user("b@example.com", "pw-pw-pw-pw1")
     provider.create_confirmed_user("a@example.com", "pw-pw-pw-pw1")
     assert provider.known_emails() == ["a@example.com", "b@example.com"]
+
+
+def test_complete_google_does_not_sign_in_an_unconfirmed_account(env):
+    provider = env["make"]()
+    provider.sign_up_email("new@example.com", "pw-pw-pw-pw1")
+    uid = provider.complete_google("new@example.com")
+    assert uid == "google-new@example.com" and not provider.user_exists(uid)
+    assert "new@example.com" not in provider.known_emails()

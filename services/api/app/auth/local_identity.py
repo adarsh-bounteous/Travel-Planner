@@ -5,6 +5,7 @@ import sqlite3
 from collections.abc import Callable
 from contextlib import closing
 from datetime import datetime, timedelta
+from typing import Literal
 from pathlib import Path
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -33,7 +34,9 @@ CREATE TABLE IF NOT EXISTS confirmation_tokens (
     token TEXT PRIMARY KEY,
     email TEXT NOT NULL,
     expires_at TEXT NOT NULL,
-    used_at TEXT
+    used_at TEXT,
+    user_id TEXT,
+    new_email TEXT
 );
 """
 
@@ -63,15 +66,21 @@ class LocalIdentityProvider:
         clock: Callable[[], datetime],
         send_confirmation: Callable[[str, str], None],
         link_base: Callable[[], str],
+        send_email_change: Callable[[str, str], None] | None = None,
     ) -> None:
         self._path = db_path
         self._clock = clock
         self._send_confirmation = send_confirmation
         self._link_base = link_base
-        self.pending_email: dict[str, str] = {}
+        self._send_email_change = send_email_change or send_confirmation
         db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._db() as db:
             db.executescript(_SCHEMA)
+            # An accounts file from before email change lacks these columns.
+            have = {row["name"] for row in db.execute("PRAGMA table_info(confirmation_tokens)")}
+            for column in ("user_id", "new_email"):
+                if column not in have:
+                    db.execute(f"ALTER TABLE confirmation_tokens ADD COLUMN {column} TEXT")
 
     def _db(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self._path)
@@ -96,7 +105,6 @@ class LocalIdentityProvider:
     def reset(self) -> None:
         self._run("DELETE FROM users")
         self._run("DELETE FROM confirmation_tokens")
-        self.pending_email.clear()
 
     def account_exists(self, email: str) -> bool:
         return bool(self._run("SELECT 1 FROM users WHERE email = ?", email.lower()))
@@ -131,20 +139,36 @@ class LocalIdentityProvider:
         self._insert_user(email, password, 0)
         self._issue_link(email)
 
-    def confirm_email(self, token: str) -> None:
-        rows = self._run(
-            "SELECT email, expires_at, used_at FROM confirmation_tokens WHERE token = ?", token
-        )
-        if not rows:
-            raise LinkInvalid
-        row = rows[0]
-        if row["used_at"] is not None:
-            raise LinkAlreadyUsed
-        now = self._clock()
-        if now > datetime.fromisoformat(row["expires_at"]):
-            raise LinkExpired
-        self._run("UPDATE confirmation_tokens SET used_at = ? WHERE token = ?", now.isoformat(), token)
-        self._run("UPDATE users SET confirmed = 1 WHERE email = ?", row["email"])
+    def confirm_email(self, token: str) -> Literal["sign_up", "email_change"]:
+        """Open a link: confirms a sign-up, or moves the account to the new email of a change."""
+        with closing(self._db()) as db, db:
+            row = db.execute(
+                "SELECT email, expires_at, used_at, user_id, new_email"
+                " FROM confirmation_tokens WHERE token = ?",
+                (token,),
+            ).fetchone()
+            if row is None:
+                raise LinkInvalid
+            if row["used_at"] is not None:
+                raise LinkAlreadyUsed
+            now = self._clock()
+            if now > datetime.fromisoformat(row["expires_at"]):
+                raise LinkExpired
+            if row["new_email"] is None:
+                db.execute(
+                    "UPDATE confirmation_tokens SET used_at = ? WHERE token = ?", (now.isoformat(), token)
+                )
+                db.execute("UPDATE users SET confirmed = 1 WHERE email = ?", (row["email"],))
+                return "sign_up"
+            if db.execute("SELECT 1 FROM users WHERE email = ?", (row["new_email"],)).fetchone():
+                raise EmailTaken
+            db.execute(
+                "UPDATE confirmation_tokens SET used_at = ? WHERE token = ?", (now.isoformat(), token)
+            )
+            db.execute(
+                "UPDATE users SET email = ? WHERE user_id = ?", (row["new_email"], row["user_id"])
+            )
+            return "email_change"
 
     def sign_in_email(self, email: str, password: str) -> str:
         rows = self._run(
@@ -170,9 +194,29 @@ class LocalIdentityProvider:
 
     def request_email_change(self, email: str, current_password: str, new_email: str) -> None:
         self.check_password(email, current_password)
+        new_email = new_email.lower()
         if self.account_exists(new_email):
             raise EmailTaken
-        self.pending_email[email] = new_email
+        user_id = self.user_id_for(email)
+        # Only the newest link works: retire any earlier unused change link for this account.
+        now = self._clock().isoformat()
+        self._run(
+            "UPDATE confirmation_tokens SET used_at = ?"
+            " WHERE user_id = ? AND new_email IS NOT NULL AND used_at IS NULL",
+            now,
+            user_id,
+        )
+        token = secrets.token_urlsafe(32)
+        self._run(
+            "INSERT INTO confirmation_tokens (token, email, expires_at, user_id, new_email)"
+            " VALUES (?, ?, ?, ?, ?)",
+            token,
+            email.lower(),
+            (self._clock() + CONFIRMATION_LINK_LIFETIME).isoformat(),
+            user_id,
+            new_email,
+        )
+        self._send_email_change(new_email, f"{self._link_base()}/confirm-email/{token}")
 
     def change_password(self, email: str, current_password: str, new_password: str) -> None:
         self.check_password(email, current_password)

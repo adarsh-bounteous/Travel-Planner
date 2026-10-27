@@ -20,6 +20,9 @@ from app.attractions.providers import InMemoryActivityProvider
 from app.sims.options import SimProvider
 from app.sims.providers import SEED_CATALOGUES as SIM_SEED_CATALOGUES
 from app.sims.providers import InMemorySimProvider
+from app.insurance.options import InsuranceProvider
+from app.insurance.providers import SEED_CATALOGUES as INSURANCE_SEED_CATALOGUES
+from app.insurance.providers import InMemoryInsuranceProvider
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.transport.options import TransportProvider
@@ -120,6 +123,17 @@ def _activity_providers() -> list[ActivityProvider]:
     return [
         InMemoryActivityProvider(name, source, catalogue, clock)
         for name, (source, catalogue) in ACTIVITY_SEED_CATALOGUES.items()
+    ]
+
+
+@lru_cache
+def _insurance_providers() -> list[InsuranceProvider]:
+    def clock() -> datetime:
+        return datetime.now(UTC)
+
+    return [
+        InMemoryInsuranceProvider(name, source, catalogue, clock)
+        for name, (source, catalogue) in INSURANCE_SEED_CATALOGUES.items()
     ]
 
 
@@ -261,6 +275,10 @@ def get_sim_providers() -> list[SimProvider]:
 
 def get_activity_providers() -> list[ActivityProvider]:
     return _activity_providers()
+
+
+def get_insurance_providers() -> list[InsuranceProvider]:
+    return _insurance_providers()  # seeded in local mode too: no outside call
 
 
 def get_stay_providers() -> list[StayProvider]:

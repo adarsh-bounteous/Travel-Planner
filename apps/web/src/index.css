@@ -387,3 +387,28 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .option-price .total { border-top: var(--border-width) solid var(--color-border); padding-top: var(--space-1); font-weight: var(--font-weight-bold); }
 .option-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 @media (min-width: 48rem) { .option-body { grid-template-columns: 1fr 16rem; } }
+
+/* Insurance options and compare */
+.plan-card { display: grid; gap: var(--space-3); }
+.plan-card.is-picked { border: var(--border-width-strong) solid var(--color-primary); background: var(--color-primary-subtle); }
+.plan-body { display: grid; gap: var(--space-3); }
+.plan-facts { min-width: 0; margin: 0; }
+.plan-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.price-table { width: 100%; border-collapse: collapse; }
+.price-table th, .price-table td { padding: var(--space-1) 0; text-align: left; font-weight: var(--font-weight-regular); }
+.price-table td { text-align: right; }
+.group-total { display: flex; justify-content: space-between; gap: var(--space-3); border-top: var(--border-width) solid var(--color-border); padding-top: var(--space-1); font-weight: var(--font-weight-bold); }
+.cmp { width: 100%; border-collapse: collapse; }
+.cmp th, .cmp td { padding: var(--space-2) var(--space-3); text-align: left; vertical-align: top; border-bottom: var(--border-width) solid var(--color-border); }
+.cmp thead th { background: var(--color-surface); }
+.cmp ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.insurance-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.insurance-row p { margin: 0; }
+@media (max-width: 47.99rem) {
+  .cmp, .cmp thead, .cmp tbody, .cmp tr, .cmp td { display: block; }
+  .cmp thead { position: absolute; left: -9999px; }
+  .cmp tr { margin-bottom: var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-2); }
+  .cmp td { border: 0; padding: var(--space-1) var(--space-2); }
+  .cmp td::before { content: attr(data-label); display: block; font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+}
+@media (min-width: 48rem) { .plan-body { grid-template-columns: 1fr 18rem; } }

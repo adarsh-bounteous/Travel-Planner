@@ -6,6 +6,7 @@ import type { Activity, Day, Reminder, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
 import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
+import { InsurancePickClearedModal } from './InsurancePickClearedModal'
 import { DeleteTripModal } from './DeleteTripModal'
 import { ItineraryTab } from './ItineraryTab'
 import { ReminderModal } from './ReminderModal'
@@ -60,6 +61,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
   const [load, setLoad] = useState<LoadState>('loading')
   const [tab, setTab] = useState<Tab>('itinerary')
   const [accessRemoved, setAccessRemoved] = useState(false)
+  const [insuranceCleared, setInsuranceCleared] = useState(false)
   const [panel, setPanel] = useState<Panel>({ id: 'none' })
   const [toast, setToast] = useState<{ id: number; message: string; undo?: () => void } | null>(
     null,
@@ -117,10 +119,15 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
   const options = trip.options ?? []
-  const hasBookable = options.length > 0 || Boolean(trip.sim)
+  const bookable = options.length > 0 || Boolean(trip.sim) || Boolean(trip.insurance)
   const close = () => setPanel({ id: 'none' })
-  const saved = (updated: Trip, message: string) => {
+  /** Opens the "pick cleared" dialog when a user's own change removed the insurance pick. */
+  const track = (updated: Trip) => {
+    if (trip.insurance && !updated.insurance) setInsuranceCleared(true)
     setTrip(updated)
+  }
+  const saved = (updated: Trip, message: string) => {
+    track(updated)
     setToast({ id: Date.now(), message })
     close()
   }
@@ -162,13 +169,13 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             <button
               className="btn btn-primary"
               type="button"
-              disabled={!hasBookable}
-              aria-describedby={hasBookable ? undefined : 'book-hint'}
+              disabled={!bookable}
+              aria-describedby={bookable ? undefined : 'book-hint'}
               onClick={() => setPanel({ id: 'book' })}
             >
               Book trip
             </button>
-            {!hasBookable && (
+            {!bookable && (
               <span className="text-sm text-muted" id="book-hint">
                 Choose an option to enable booking.
               </span>
@@ -213,7 +220,26 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
-      {trip.cost && <TripTotalCard cost={trip.cost} costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`} />}
+      <div className="insurance-row">
+        <p aria-live="polite">
+          {trip.insurance ? `Insurance: ${trip.insurance.name} picked` : 'Insurance: not yet picked'}
+        </p>
+        {canEdit && (
+          <Link
+            className="btn btn-secondary"
+            to={`/trips/${encodeURIComponent(trip.id)}/insurance-options`}
+          >
+            Insurance options
+          </Link>
+        )}
+      </div>
+      {trip.cost && (
+        <TripTotalCard
+          cost={trip.cost}
+          costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`}
+          insurance={trip.insurance}
+        />
+      )}
       {trip.is_owner && <VisaSummaryCard tripId={trip.id} unresolved={trip.unresolved_visas ?? []} />}
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
@@ -263,7 +289,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           <TravelersTab
             trip={trip}
             onChanged={(updated, message, undo) => {
-              setTrip(updated)
+              track(updated)
               setToast({ id: Date.now(), message, undo })
             }}
           />
@@ -356,7 +382,15 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           }
         />
       )}
-      {panel.id === 'book' && <BookTripDrawer options={options} sim={trip.sim} onClose={close} />}
+      {panel.id === 'book' && (
+        <BookTripDrawer
+          options={options}
+          sim={trip.sim}
+          insurance={trip.insurance}
+          onClose={close}
+        />
+      )}
+      {insuranceCleared && <InsurancePickClearedModal onOk={() => setInsuranceCleared(false)} />}
       {accessRemoved && <AccessRemovedModal onOk={() => navigate('/')} />}
       <Toast key={toast?.id} message={toast?.message ?? null} undo={toast?.undo} />
     </div>

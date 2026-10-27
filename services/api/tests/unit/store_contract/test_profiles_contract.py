@@ -20,3 +20,7 @@ def test_profile_survives_a_restart(store):
     rules_profiles.rule_profile_survives_a_restart(store)
 
 
+
+
+def test_health_details_round_trip(store):
+    rules_profiles.rule_health_details_round_trip(store)

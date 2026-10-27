@@ -233,9 +233,18 @@ class LocalIdentityProvider:
             raise WrongPassword
 
     def google_authorize_url(self, state: str) -> str:
-        return "https://google.example/authorize?" + urlencode({"state": state})
+        return f"{self._link_base()}/local/google-consent?" + urlencode({"state": state})
 
     def complete_google(self, code: str) -> str:
+        """`code` is the email chosen on the local consent page: its account, else an unlinked identity."""
         if code == "cancelled":
             raise GoogleCancelled
+        if self.account_exists(code):
+            return self.user_id_for(code)
         return f"google-{code}"
+
+    def user_exists(self, user_id: str) -> bool:
+        return bool(self._run("SELECT 1 FROM users WHERE user_id = ?", user_id))
+
+    def known_emails(self) -> list[str]:
+        return [row["email"] for row in self._run("SELECT email FROM users ORDER BY email")]

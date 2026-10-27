@@ -175,3 +175,28 @@ def test_lookup_ignores_email_case_and_refused_duplicate_changes_nothing(env):
     with pytest.raises(EmailTaken):
         provider.create_confirmed_user("anna@example.com", "differentpass99")
     assert provider.sign_in_email("anna@example.com", PASSWORD) == user_id
+
+
+def test_complete_google_resolves_an_existing_account_by_email(env):
+    provider = env["make"]()
+    user_id = provider.create_confirmed_user("Alex@Example.com", "pw-pw-pw-pw1")
+    assert provider.complete_google("alex@example.com") == user_id
+    assert provider.user_exists(user_id)
+
+
+def test_complete_google_for_unknown_email_is_not_an_account(env):
+    provider = env["make"]()
+    uid = provider.complete_google("new.user@example.com")
+    assert uid == "google-new.user@example.com" and not provider.user_exists(uid)
+
+
+def test_authorize_url_points_at_the_local_consent_page(env):
+    url = env["make"]().google_authorize_url("s1")
+    assert url.startswith("http://web.test/local/google-consent?") and "state=s1" in url
+
+
+def test_known_emails_lists_every_account_in_order(env):
+    provider = env["make"]()
+    provider.create_confirmed_user("b@example.com", "pw-pw-pw-pw1")
+    provider.create_confirmed_user("a@example.com", "pw-pw-pw-pw1")
+    assert provider.known_emails() == ["a@example.com", "b@example.com"]

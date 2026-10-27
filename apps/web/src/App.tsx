@@ -6,6 +6,7 @@ import { TravelSearchPage } from './travel/TravelSearchPage'
 import { AppHeader } from './AppHeader'
 import { ConfirmEmailPage } from './auth/ConfirmEmailPage'
 import { ConfirmLinkPage } from './auth/ConfirmLinkPage'
+import { GoogleConsentPage } from './auth/GoogleConsentPage'
 import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
@@ -28,12 +29,13 @@ import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
-// Every page other than the auth pages must be wrapped in <RequireAuth>, except four:
+// Every page other than the auth pages must be wrapped in <RequireAuth>, except five:
 // the invite page names the email to sign in with while signed out, and the server checks the
 // session on accept; the read-only trip page is for people with no account, and its link is the
 // credential; Destination results browses the read-only catalogue, and a signed-out visitor who
 // chooses Save is sent to sign in (see useSavedPlaces); the local inbox lists the emails local
-// mode would have sent, and its API route answers 404 unless local mode is on.
+// mode would have sent, and its API route answers 404 unless local mode is on; the local Google
+// consent page only finishes through the API's callback, which checks the signed state.
 export default function App() {
   return (
     <>
@@ -199,6 +201,7 @@ export default function App() {
           <Route path="/trips/read-only/:token" element={<SharedTripPage />} />
           <Route path="/invite/:token" element={<InvitePage />} />
           <Route path="/local/inbox" element={<LocalInboxPage />} />
+          <Route path="/local/google-consent" element={<GoogleConsentPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />

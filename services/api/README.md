@@ -79,3 +79,12 @@ The profile is stored as a `profile` map on the account item. It also holds the 
 set-up collects (citizenship, residence, health status, religion, diet, tastes, travel style);
 all default to empty, so older stored profiles still read. Trip and profile contents are
 personal data and are not logged.
+
+## Local and cloud stores follow the same rules
+
+`tests/unit/store_contract` runs one set of rules (trips, invites, share links, accounts, profiles,
+saved places) against the local store and the DynamoDB store. The `[cloud]` cases run only when
+both tables named by `TRIPS_TABLE_NAME` and `ACCOUNTS_TABLE_NAME` can be described with your
+existing AWS credentials and region; otherwise they are reported as skipped ("cloud tables
+absent"). Cloud cases write under unique `contract-…` ids and delete them afterwards. Run them with
+`sh run-py.sh -m pytest -c pytest.ini tests/unit/store_contract -rs`.

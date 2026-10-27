@@ -61,6 +61,26 @@ describe('restaurant options page', () => {
     expect(screen.getByRole('button', { name: 'Edit trip needs' })).toBeInTheDocument()
   })
 
+  it('links to the comparison and the shortlist, with no Choose button', async () => {
+    open(body([restaurant('Casa Lima'), restaurant('Zaytoon')]))
+    expect(await screen.findByRole('link', { name: 'Compare matches' })).toHaveAttribute(
+      'href',
+      '/trips/t1/restaurant-options/compare',
+    )
+    expect(screen.getByRole('link', { name: 'View shortlist' })).toHaveAttribute(
+      'href',
+      '/trips/t1/restaurant-options/shortlist',
+    )
+    expect(screen.queryByRole('button', { name: /^Choose / })).not.toBeInTheDocument()
+  })
+
+  it('hides the comparison and shortlist links when nothing matches', async () => {
+    open(body([]))
+    await screen.findByText('No restaurants match your filters.')
+    expect(screen.queryByRole('link', { name: 'Compare matches' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'View shortlist' })).not.toBeInTheDocument()
+  })
+
   it('shows a skeleton while loading', async () => {
     vi.stubGlobal(
       'fetch',

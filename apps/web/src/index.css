@@ -341,6 +341,14 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .identity-main { min-width: 0; flex: 1; overflow-wrap: anywhere; }
 .consent-actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 .tabs a.tab { text-decoration: none; display: inline-flex; align-items: center; }
+.row-end { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.fact-label { color: var(--color-fg-muted); }
+.entry { display: flex; flex-direction: column; gap: var(--space-2); }
+.entry.is-chosen { border-color: var(--color-primary); }
+.entry h3, .compare-card h3 { margin: 0; overflow-wrap: anywhere; }
+.entry p, .compare-card p { margin: 0; }
+.compare-card { display: flex; flex-direction: column; gap: var(--space-2); }
+.badge .icon { width: 1em; height: 1em; margin-right: var(--space-1); }
 .cost-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .cost-name { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); min-width: 0; flex: 1; }
 .cost-amount { display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: var(--space-1); min-width: 0; max-width: 60%; overflow-wrap: anywhere; }

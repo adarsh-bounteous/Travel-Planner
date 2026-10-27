@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -40,3 +42,34 @@ def test_inbox_does_not_exist_with_local_mode_off(monkeypatch):
     monkeypatch.delenv("INVITE_FROM_ADDRESS", raising=False)
     with TestClient(app) as client:
         assert client.get("/local/inbox").status_code == 404
+
+
+def test_inbox_lists_confirmation_and_invite_newest_first(local_client):
+    local_client.post("/auth/sign-up", json={"email": "new@example.com", "password": "correct horse 42"})
+    local_client.post("/auth/sign-in", json={"email": DEMO_EMAIL, "password": DEMO_PASSWORD})
+    trip = local_client.get("/trips").json()[0]
+    local_client.post(f"/trips/{trip['id']}/editors", json={"email": "ana@example.com"})
+    invite, confirmation = local_client.get("/local/inbox").json()
+    assert (invite["kind"], invite["subject"]) == ("invite", "You are invited to a trip")
+    assert (confirmation["kind"], confirmation["subject"]) == ("confirmation", "Confirm your sign-in")
+    assert confirmation["to"] == "new@example.com"
+    datetime.fromisoformat(invite["sent_at"])
+
+
+def test_inbox_link_completes_the_confirmation(local_client):
+    local_client.post("/auth/sign-up", json={"email": "new@example.com", "password": "correct horse 42"})
+    [mail] = local_client.get("/local/inbox").json()
+    token = mail["link"].rsplit("/", 1)[1]
+    assert local_client.post("/auth/confirm", json={"token": token}).json() == {"status": "confirmed"}
+    assert local_client.post("/auth/sign-in", json={"email": "new@example.com", "password": "correct horse 42"}).status_code == 200
+    assert local_client.post("/auth/confirm", json={"token": token}).status_code == 409
+
+
+def test_local_mode_never_calls_ses(local_client, monkeypatch):
+    def refuse(*args, **kwargs):
+        raise AssertionError("external call")
+
+    monkeypatch.setattr("boto3.client", refuse)
+    monkeypatch.setenv("INVITE_FROM_ADDRESS", "no-reply@example.com")
+    local_client.post("/auth/sign-up", json={"email": "new@example.com", "password": "correct horse 42"})
+    assert len(local_client.get("/local/inbox").json()) == 1

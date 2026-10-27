@@ -115,27 +115,28 @@ class LocalIdentityProvider:
     def user_id_for(self, email: str) -> str:
         return self._run("SELECT user_id FROM users WHERE email = ?", email.lower())[0]["user_id"]
 
-    def create_confirmed_user(self, email: str, password: str) -> str:
-        email = email.lower()
+    def _insert_user(self, email: str, password: str, confirmed: int) -> str:
         user_id = f"user-{uuid4().hex}"
-        self._run(
-            "INSERT INTO users (user_id, email, password_hash, confirmed) VALUES (?, ?, ?, 1)",
-            user_id,
-            email,
-            _hash_password(password),
-        )
+        try:
+            self._run(
+                "INSERT INTO users (user_id, email, password_hash, confirmed) VALUES (?, ?, ?, ?)",
+                user_id,
+                email.lower(),
+                _hash_password(password),
+                confirmed,
+            )
+        except sqlite3.IntegrityError as error:
+            raise EmailTaken from error
         return user_id
+
+    def create_confirmed_user(self, email: str, password: str) -> str:
+        return self._insert_user(email, password, 1)
 
     def sign_up_email(self, email: str, password: str) -> None:
         email = email.lower()
         if self.account_exists(email):
             raise EmailTaken
-        self._run(
-            "INSERT INTO users (user_id, email, password_hash) VALUES (?, ?, ?)",
-            f"user-{uuid4().hex}",
-            email,
-            _hash_password(password),
-        )
+        self._insert_user(email, password, 0)
         self._issue_link(email)
 
     def confirm_email(self, token: str) -> Literal["sign_up", "email_change"]:

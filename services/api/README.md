@@ -22,7 +22,7 @@ FastAPI service. Python 3.12.
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
-| `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file, so local accounts survive an API restart. Git-ignored. |
+| `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file, `store.json` (trips, invites, share links) and `profiles.json` (traveller profiles and preferences), so all survive an API restart. Git-ignored. |
 | `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
@@ -58,8 +58,8 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 
 ### Demo account and sample trips
 
-In local mode accounts are kept in a file under `LOCAL_DATA_DIR` and survive a restart, while trips
-are kept in memory. Sign-up sends a confirmation link to the local inbox. On a local start with no
+In local mode accounts are kept in a file under `LOCAL_DATA_DIR` and survive a restart, and trips
+are kept in `store.json` in the same directory, and traveller profiles in `profiles.json`, so they survive too. Sign-up sends a confirmation link to the local inbox. On a local start with no
 trips, the API ensures the demo account exists and seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
 Kyoto", dated from the day of the start). Sign in with `demo@example.com` and `demo-password-1`;
 no sign-up is needed. Fresh sign-up still works. The demo password is for local use only.
@@ -79,3 +79,12 @@ The profile is stored as a `profile` map on the account item. It also holds the 
 set-up collects (citizenship, residence, health status, religion, diet, tastes, travel style);
 all default to empty, so older stored profiles still read. Trip and profile contents are
 personal data and are not logged.
+
+## Local and cloud stores follow the same rules
+
+`tests/unit/store_contract` runs one set of rules (trips, invites, share links, accounts, profiles,
+saved places) against the local store and the DynamoDB store. The `[cloud]` cases run only when
+both tables named by `TRIPS_TABLE_NAME` and `ACCOUNTS_TABLE_NAME` can be described with your
+existing AWS credentials and region; otherwise they are reported as skipped ("cloud tables
+absent"). Cloud cases write under unique `contract-…` ids and delete them afterwards. Run them with
+`sh run-py.sh -m pytest -c pytest.ini tests/unit/store_contract -rs`.

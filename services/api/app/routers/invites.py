@@ -24,6 +24,8 @@ def _live_invite(trips: TripStore, token: str):
 @router.get("/{token}")
 def read_invite(token: str, trips: TripStore = Depends(get_trips)) -> dict:
     invite, trip = _live_invite(trips, token)
+    if any(e.token == token and e.accepted for e in trip.editors):
+        raise ApiError(409, "invite_used")
     return {"email": invite.email, "trip_name": trip.name}
 
 
@@ -37,9 +39,10 @@ def accept_invite(
     invite, trip = _live_invite(trips, token)
     if identity.email_for(user_id).strip().lower() != invite.email:
         raise ApiError(403, "wrong_account")
-    for editor in trip.editors:
-        if editor.token == token:
-            editor.accepted = True
+    editor = next(e for e in trip.editors if e.token == token)
+    if editor.accepted:
+        raise ApiError(409, "invite_used")
+    editor.accepted = True
     trips.save_trip(invite.owner_id, trip)
     trips.link_editor(invite.email, invite.owner_id, invite.trip_id)
     return {"trip_id": invite.trip_id}

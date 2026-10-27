@@ -147,3 +147,16 @@ def test_reset_clears_accounts_and_restores_the_demo_user(local_client):
 def test_confirm_does_not_exist_with_local_mode_off(monkeypatch):
     monkeypatch.delenv("LOCAL_MODE", raising=False)
     assert TestClient(app).post("/auth/confirm", json={"token": "x"}).status_code == 404
+
+
+def test_account_created_by_sign_up_is_found_by_email_without_a_cloud_table(local_client):
+    assert sign_up(local_client).status_code == 202
+    assert auth._local_identity().account_exists("ana@example.com")
+
+
+def test_sign_up_with_a_taken_email_in_any_case_shows_an_error(local_client):
+    sign_up(local_client)
+    second = local_client.post("/auth/sign-up", json={**CREDS, "email": "Ana@Example.com"})
+    assert second.status_code == 400
+    assert second.json() == {"code": "could_not_create"}
+    assert auth._local_identity().account_exists("ana@example.com")

@@ -26,7 +26,11 @@ from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
-from app.trips.store import DynamoTripStore, InMemoryTripStore, TripStore
+from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
+from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
+from app.trips.local_saved_store import SAVED_PLACES_FILE_NAME, PersistentSavedPlaceStore
+from app.trips.local_store import PersistentTripStore
+from app.trips.store import DynamoTripStore, TripStore
 
 
 class ApiError(Exception):
@@ -43,9 +47,15 @@ def _trips() -> TripStore:
 
 
 @lru_cache
-def _local_trips() -> InMemoryTripStore:
-    """Local mode's trip storage stand-in: in memory, so every local start is a first start."""
-    return InMemoryTripStore()
+def _local_trips() -> PersistentTripStore:
+    """Local mode's trip storage stand-in: kept in a data file, so trips survive a restart."""
+    return PersistentTripStore(LocalDataFile(get_settings().local_data_dir / LOCAL_DATA_FILE_NAME))
+
+
+@lru_cache
+def _local_profiles() -> PersistentProfileStore:
+    """Local mode's profile storage stand-in: kept in its own data file, so profiles survive a restart."""
+    return PersistentProfileStore(LocalDataFile(get_settings().local_data_dir / PROFILES_FILE_NAME))
 
 
 @lru_cache
@@ -56,6 +66,12 @@ def _profiles() -> ProfileStore:
 @lru_cache
 def _saved_places() -> SavedPlaceStore:
     return DynamoSavedPlaceStore(get_settings().accounts_table_name)
+
+
+@lru_cache
+def _local_saved_places() -> PersistentSavedPlaceStore:
+    """Local mode's saved places: kept in their own data file, so they survive a restart."""
+    return PersistentSavedPlaceStore(LocalDataFile(get_settings().local_data_dir / SAVED_PLACES_FILE_NAME))
 
 
 @lru_cache
@@ -160,11 +176,11 @@ def get_trips() -> TripStore:
 
 
 def get_profiles() -> ProfileStore:
-    return _profiles()
+    return _local_profiles() if get_settings().local_mode else _profiles()
 
 
 def get_saved_places() -> SavedPlaceStore:
-    return _saved_places()
+    return _local_saved_places() if get_settings().local_mode else _saved_places()
 
 
 def get_current_user(

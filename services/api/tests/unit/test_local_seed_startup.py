@@ -80,7 +80,7 @@ def real_local(monkeypatch):
     """Local mode with the app's own wiring: no override of get_local_seed_target."""
     local(monkeypatch)
     monkeypatch.setenv("COOKIE_SECURE", "false")
-    caches = (auth._local_identity, auth._local_accounts, deps._local_trips)
+    caches = (auth._local_identity, auth._local_accounts, deps._local_trips, deps._local_profiles)
     for cache in caches:
         cache.cache_clear()
     yield
@@ -133,13 +133,20 @@ def test_local_mode_off_keeps_the_cloud_stores(monkeypatch):
     assert deps.get_local_seed_target() is None
 
 
-def test_fresh_start_clears_local_data_and_reseeds_the_demo_account(real_local):
-    """What the documented reset (stop and run pnpm start again) relies on."""
+def test_restart_keeps_local_data_and_clearing_the_file_reseeds(real_local, tmp_path):
+    """What the documented reset (stop, clear store.json, start again) relies on."""
     with TestClient(app) as first:
         sign_in_demo(first)
         first.post("/auth/sign-up", json={"email": "sam@example.com", "password": "abcdefghij12"})
         trip = first.get("/trips").json()[0]
         first.delete(f"/trips/{trip['id']}")
+    for cache in (auth._local_identity, auth._local_accounts, deps._local_trips):
+        cache.cache_clear()
+    with TestClient(app) as restarted:
+        sign_in_demo(restarted)
+        assert [t["name"] for t in restarted.get("/trips").json()] != []
+        assert trip["id"] not in [t["id"] for t in restarted.get("/trips").json()]
+    (tmp_path / "local-data" / "store.json").unlink()
     for cache in (auth._local_identity, auth._local_accounts, deps._local_trips):
         cache.cache_clear()
     with TestClient(app) as second:

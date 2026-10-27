@@ -36,7 +36,7 @@ export const MESSAGES: Record<Problem, Message> = {
   },
   link_already_used: {
     tone: 'danger',
-    text: 'This confirmation link has already been used. Sign in instead.',
+    text: 'This link has already been used or has expired.',
   },
   link_invalid: {
     tone: 'danger',

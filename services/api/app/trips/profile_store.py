@@ -61,6 +61,9 @@ class InMemoryProfileStore:
     def save_profile(self, owner_id: str, profile: Profile) -> None:
         self._profiles[owner_id] = profile
 
+    def reset(self) -> None:
+        self._profiles.clear()
+
 
 class DynamoProfileStore:
     """Keeps the profile as a `profile` map on the traveller's account item."""

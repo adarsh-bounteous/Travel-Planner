@@ -32,3 +32,11 @@ def rule_profile_survives_a_restart(store):
     owner = store.new_id()
     store.profiles.save_profile(owner, Profile(display_name="Ana"))
     assert store.reopen().profiles.get_profile(owner) == Profile(display_name="Ana")
+
+
+def rule_health_details_round_trip(store):
+    owner = store.new_id()
+    profile = Profile(vaccinations_had=["Hepatitis A"], pregnant=True)
+    store.profiles.save_profile(owner, profile)
+    saved = store.profiles.get_profile(owner)
+    assert saved.vaccinations_had == ["Hepatitis A"] and saved.pregnant is True

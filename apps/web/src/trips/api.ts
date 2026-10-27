@@ -135,6 +135,23 @@ export type TravellerRequirement = {
   visa: string | null
   medical: string | null
 }
+export type VaccinationGuidance = {
+  name: string
+  status: 'required' | 'recommended' | 'already_had' | 'unsuitable_in_pregnancy'
+}
+export type TravellerGuidance = {
+  traveller_id: string | null
+  name: string
+  citizenship: string
+  residence: string
+  result: 'guidance' | 'no_data' | 'none_required'
+  tests: string[]
+  vaccinations: VaccinationGuidance[]
+  advisories: string[]
+  health_details_given: boolean
+  official_site_url: string | null
+  confirm_note: string
+}
 /** An editor as the owner sees them; `invite_url` is a path on this site. */
 export type Editor = { email: string; accepted: boolean; invite_url?: string }
 export type Invite = { email: string; trip_name: string }
@@ -426,7 +443,10 @@ export const removeTraveller = (tripId: string, travellerId: string) =>
 export const fetchRequirements = (tripId: string) =>
   call<TravellerRequirement[]>(`/trips/${encodeURIComponent(tripId)}/requirements`)
 
-export const addTraveller = (tripId: string, name: string) =>
+export const fetchMedicalGuidance = (tripId: string) =>
+  call<TravellerGuidance[]>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
+
+export const addTraveller =(tripId: string, name: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })
 
 export const inviteEditor = (tripId: string, email: string) =>

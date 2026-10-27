@@ -36,6 +36,11 @@ class Profile(BaseModel):
     citizenship: str = Field(default="", max_length=80)
     residence: str = Field(default="", max_length=80)
     health_status: str = Field(default="", max_length=80)
+    # Optional health details read by medical guidance; collected in the Traveller profile epic.
+    vaccinations_had: list[Annotated[str, StringConstraints(max_length=60)]] = Field(
+        default_factory=list, max_length=30
+    )
+    pregnant: bool | None = None  # None = not provided
     religion: str = Field(default="", max_length=80)
     diet: str = Field(default="", max_length=80)
     tastes: list[Annotated[str, StringConstraints(max_length=40)]] = Field(

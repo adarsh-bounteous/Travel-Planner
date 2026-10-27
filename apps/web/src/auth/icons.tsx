@@ -97,6 +97,21 @@ export const PlusIcon = () => (
   </Icon>
 )
 
+export const UserIcon = () => (
+  <Icon>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </Icon>
+)
+
+export const ImageIcon = () => (
+  <Icon>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <circle cx="9" cy="9" r="2" />
+    <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+  </Icon>
+)
+
 export const SearchIcon = () => (
   <Icon>
     <circle cx="11" cy="11" r="8" />

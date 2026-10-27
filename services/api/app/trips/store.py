@@ -225,6 +225,7 @@ class Trip(TripFields):
     visa_self_checks: list[str] = []  # server-owned: traveller ids (or "owner") marked "I'll check myself"
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
     share_token: str | None = None  # server-owned: changed only through the share-link routes
+    dining_needs: list[str] = []  # server-owned: extra dining needs for this trip only, changed only through the dining-needs route
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:

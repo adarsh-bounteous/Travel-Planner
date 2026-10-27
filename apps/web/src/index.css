@@ -337,3 +337,8 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .travel-option-price { font-weight: var(--font-weight-bold); font-size: var(--font-size-lg); }
 @media (min-width: 30rem) { .travel-option { flex-direction: row; align-items: center; justify-content: space-between; } }
 .radio { width: var(--size-check); height: var(--size-check); accent-color: var(--color-primary); }
+
+.verdict { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.confirm { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--font-size-sm); color: var(--color-fg-muted); padding-top: var(--space-2); border-top: var(--border-width) solid var(--color-border); }
+.confirm .icon { flex: none; margin-top: 2px; }
+.visa-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }

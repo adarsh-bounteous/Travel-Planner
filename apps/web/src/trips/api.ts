@@ -132,15 +132,30 @@ export type TravellerRequirement = {
   citizenship: string
   residence: string
   health_status: string
-  visa: string | null
   medical: string | null
 }
+
+export type VisaStatus = 'required' | 'not_needed' | 'no_data'
+export type VisaResult = {
+  traveller_id: string | null
+  name: string
+  citizenship: string
+  residence: string
+  status: VisaStatus | null
+  message: string | null
+  confirm_note: string | null
+  official_site_url: string | null
+  marked_self_check: boolean
+  unresolved: boolean
+}
+export type VisaView = { destination: string; published_on: string; travellers: VisaResult[] }
 /** An editor as the owner sees them; `invite_url` is a path on this site. */
 export type Editor = { email: string; accepted: boolean; invite_url?: string }
 export type Invite = { email: string; trip_name: string }
 
 export type Trip = {
   id: string
+  unresolved_visas?: string[]
   name: string
   destination?: string | null
   start_date?: string | null
@@ -425,6 +440,16 @@ export const removeTraveller = (tripId: string, travellerId: string) =>
 
 export const fetchRequirements = (tripId: string) =>
   call<TravellerRequirement[]>(`/trips/${encodeURIComponent(tripId)}/requirements`)
+
+export const fetchVisa = (tripId: string) =>
+  call<VisaView>(`/trips/${encodeURIComponent(tripId)}/visa`)
+
+export const setVisaSelfCheck = (tripId: string, key: string, checked: boolean) =>
+  call<VisaView>(
+    `/trips/${encodeURIComponent(tripId)}/visa/${encodeURIComponent(key)}/self-check`,
+    'PUT',
+    { checked },
+  )
 
 export const addTraveller = (tripId: string, name: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })

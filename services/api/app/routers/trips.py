@@ -18,13 +18,22 @@ from app.routers.deps import (
     get_rates,
     get_recommendations,
     get_trips,
+    get_visa_rules,
 )
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
 from app.trips.profile_store import ProfileStore
 from app.trips.rates import RateSource
 from app.trips.recommendations import Recommendation, RecommendationSource
-from app.trips.requirements import TravellerRequirement, medical_for, visa_for
+from app.trips.requirements import TravellerRequirement, medical_for
+from app.trips.visa import (
+    Person,
+    VisaResult,
+    VisaRuleSource,
+    destination_country,
+    self_check_key,
+    visa_result_for,
+)
 from app.trips.store import (
     Activity,
     ActivityFields,
@@ -77,6 +86,7 @@ INVALID_ACTIVITY = ApiError(422, "invalid_activity")
 INVALID_STAY = ApiError(422, "invalid_stay")
 INVALID_TRANSPORT = ApiError(422, "invalid_transport")
 ALREADY_ON_TRIP = ApiError(409, "already_on_trip")
+VISA_HAS_DATA = ApiError(409, "visa_has_data")
 INVALID_PLACE = ApiError(422, "invalid_place")
 INVALID_TRAVELLER = ApiError(422, "invalid_traveller")
 INVALID_EMAIL = ApiError(422, "invalid_email")
@@ -103,6 +113,7 @@ class TripView(Trip):
     can_edit: bool = True
     cost: CostSummary | None = None
     share_url: str | None = None  # relative; owner only. The raw share_token is never sent
+    unresolved_visas: list[str] = []  # owner only, on GET: names marked "I'll check myself" with still no data
 
 
 def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = None) -> TripView:
@@ -260,12 +271,18 @@ def get_trip(
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
     rates: RateSource = Depends(get_rates),
+    profiles: ProfileStore = Depends(get_profiles),
+    visa_rules: VisaRuleSource = Depends(get_visa_rules),
     identity: IdentityProvider = Depends(get_identity),
 ) -> TripView:
-    trip, owner, _ = _load(trips, identity, user, trip_id)  # same 404 for another traveller's trip and one that never existed
+    trip, owner, is_owner = _load(trips, identity, user, trip_id)  # same 404 for another traveller's trip and one that never existed
     if not trip.days and trip.start_date and trip.end_date:
         trip = trip.model_copy(update={"days": _days(trip, trip.start_date, trip.end_date)})  # saved before days existed; not written
-    return _view(trip, rates, user, owner)
+    view = _view(trip, rates, user, owner)
+    if is_owner:
+        results = _visa_results(trip, profiles.get_profile(owner), visa_rules)
+        view.unresolved_visas = [r.name for r in results if r.unresolved]
+    return view
 
 
 @router.put("/{trip_id}")
@@ -372,9 +389,30 @@ def remove_traveller(
     trip = _owned_trip(trips, identity, owner, trip_id)
     traveller = _traveller(trip, traveller_id)
     trip.travellers = [t for t in trip.travellers if t is not traveller]
+    trip.visa_self_checks = [k for k in trip.visa_self_checks if k != traveller.id]
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
+
+
+def _people(trip: Trip, profile) -> list[Person]:
+    """The owner (from their profile, read only) then each named traveller."""
+    return [
+        Person(
+            traveller_id=None,
+            name="You (owner)",
+            citizenship=profile.citizenship if profile else "",
+            residence=profile.residence if profile else "",
+        ),
+        *(
+            Person(traveller_id=t.id, name=t.name, citizenship=t.citizenship, residence=t.residence)
+            for t in trip.travellers
+        ),
+    ]
+
+
+def _visa_results(trip: Trip, profile, source: VisaRuleSource) -> list[VisaResult]:
+    return [visa_result_for(trip.destination, p, source, trip.visa_self_checks) for p in _people(trip, profile)]
 
 
 @router.get("/{trip_id}/requirements")
@@ -387,28 +425,77 @@ def trip_requirements(
 ) -> list[TravellerRequirement]:
     trip = _owned_trip(trips, identity, owner, trip_id)
     profile = profiles.get_profile(owner)  # read only: the owner's own answers
-    people = [
-        (
-            None,
-            "You (owner)",
-            profile.citizenship if profile else "",
-            profile.residence if profile else "",
-            profile.health_status if profile else "",
-        ),
-        *((t.id, t.name, t.citizenship, t.residence, t.health_status) for t in trip.travellers),
-    ]
+    health = [profile.health_status if profile else "", *(t.health_status for t in trip.travellers)]
     return [
         TravellerRequirement(
-            traveller_id=tid,
-            name=name,
-            citizenship=cit,
-            residence=res,
-            health_status=health,
-            visa=visa_for(trip.destination, cit, res),
-            medical=medical_for(health),
+            traveller_id=p.traveller_id,
+            name=p.name,
+            citizenship=p.citizenship,
+            residence=p.residence,
+            health_status=h,
+            medical=medical_for(h),
         )
-        for tid, name, cit, res, health in people
+        for p, h in zip(_people(trip, profile), health, strict=True)
     ]
+
+
+class VisaView(BaseModel):
+    destination: str
+    published_on: date
+    travellers: list[VisaResult]
+
+
+class SelfCheck(BaseModel):
+    checked: bool
+
+
+def _visa_view(
+    trip: Trip, profile, source: VisaRuleSource
+) -> VisaView:
+    return VisaView(
+        destination=destination_country(trip.destination),
+        published_on=source.published_on(),
+        travellers=_visa_results(trip, profile, source),
+    )
+
+
+@router.get("/{trip_id}/visa")
+def trip_visa(
+    trip_id: str,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    profiles: ProfileStore = Depends(get_profiles),
+    visa_rules: VisaRuleSource = Depends(get_visa_rules),
+    identity: IdentityProvider = Depends(get_identity),
+) -> VisaView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    return _visa_view(trip, profiles.get_profile(owner), visa_rules)
+
+
+@router.put("/{trip_id}/visa/{traveller_key}/self-check")
+def set_visa_self_check(
+    trip_id: str,
+    traveller_key: str,
+    body: SelfCheck,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    profiles: ProfileStore = Depends(get_profiles),
+    visa_rules: VisaRuleSource = Depends(get_visa_rules),
+    identity: IdentityProvider = Depends(get_identity),
+    now: datetime = Depends(get_now),
+) -> VisaView:
+    trip = _owned_trip(trips, identity, owner, trip_id)
+    profile = profiles.get_profile(owner)
+    person = next((p for p in _people(trip, profile) if self_check_key(p) == traveller_key), None)
+    if person is None:
+        raise NOT_FOUND
+    if visa_result_for(trip.destination, person, visa_rules, []).status != "no_data":
+        raise VISA_HAS_DATA  # the mark only means something while there is no data
+    others = [k for k in trip.visa_self_checks if k != traveller_key]
+    trip.visa_self_checks = [*others, traveller_key] if body.checked else others
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
+    return _visa_view(trip, profile, visa_rules)
 
 
 @router.post("/{trip_id}/editors", status_code=201)

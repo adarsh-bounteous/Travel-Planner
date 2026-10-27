@@ -26,6 +26,7 @@ import { StayShortlistPage } from './trips/StayShortlistPage'
 import { SharedTripPage } from './trips/SharedTripPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
+import { VisaRequirementsPage } from './trips/VisaRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
 // Every page other than the auth pages must be wrapped in <RequireAuth>, except four:
@@ -137,6 +138,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripRequirementsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/visa-requirements"
+            element={
+              <RequireAuth>
+                <VisaRequirementsPage />
               </RequireAuth>
             }
           />

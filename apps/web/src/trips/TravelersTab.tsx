@@ -102,12 +102,18 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
               </div>
             </div>
           ))}
-          <div>
+          <div className="traveller-actions">
             <Link
               className="btn btn-primary"
               to={`/trips/${encodeURIComponent(trip.id)}/requirements`}
             >
               View trip requirements
+            </Link>
+            <Link
+              className="btn btn-secondary"
+              to={`/trips/${encodeURIComponent(trip.id)}/visa-requirements`}
+            >
+              Visa requirements
             </Link>
           </div>
         </div>

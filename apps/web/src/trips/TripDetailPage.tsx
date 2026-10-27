@@ -22,6 +22,7 @@ import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripRecommendationsTab } from './TripRecommendationsTab'
 import { TripTotalCard } from './TripTotalCard'
+import { VisaSummaryCard } from './VisaSummaryCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
 type Tab = 'overview' | 'itinerary' | 'stays' | 'transport' | 'travelers' | 'recommendations'
@@ -207,6 +208,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         </p>
       </div>
       {trip.cost && <TripTotalCard cost={trip.cost} costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`} />}
+      {trip.is_owner && <VisaSummaryCard tripId={trip.id} unresolved={trip.unresolved_visas ?? []} />}
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
           <button

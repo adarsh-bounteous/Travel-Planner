@@ -13,6 +13,7 @@ from app.routers import (
     flight_shortlist,
     health,
     invites,
+    local_google,
     local_inbox,
     local_mode,
     local_reset,
@@ -56,6 +57,7 @@ app.include_router(invites.router)
 app.include_router(shared.router)
 app.include_router(local_inbox.router)
 app.include_router(local_reset.router)
+app.include_router(local_google.router)
 app.include_router(local_mode.router)
 app.include_router(travel_search.router)
 app.include_router(profile.router)

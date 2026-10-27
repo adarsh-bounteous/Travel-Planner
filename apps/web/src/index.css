@@ -317,6 +317,15 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .transport-option-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .transport-option-price { font-weight: var(--font-weight-bold); }
 .inbox-col { max-width: 40rem; margin: 0 auto; }
+.consent-col { max-width: var(--size-modal-width); margin: 0 auto; }
+.consent-card { border-style: dashed; border-color: var(--color-warning); }
+.consent-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+.identities { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.identities legend { padding: 0; margin-bottom: var(--space-2); font-weight: var(--font-weight-bold); }
+.identity { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.identity:has(input:checked) { border-color: var(--color-primary); }
+.identity-main { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.consent-actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
 .tabs a.tab { text-decoration: none; display: inline-flex; align-items: center; }
 .cost-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .cost-name { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); min-width: 0; flex: 1; }

@@ -17,6 +17,7 @@ from app.routers import (
     local_reset,
     places,
     profile,
+    rates,
     saved_places,
     shared,
     startup_status,
@@ -55,6 +56,7 @@ app.include_router(local_reset.router)
 app.include_router(profile.router)
 app.include_router(places.router)
 app.include_router(saved_places.router)
+app.include_router(rates.router)
 
 
 @app.exception_handler(ApiError)

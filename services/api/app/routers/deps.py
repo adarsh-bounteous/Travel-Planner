@@ -4,6 +4,7 @@ from functools import lru_cache
 from fastapi import Cookie, Depends, Response
 
 from app.auth.session import read_session
+from app.availability.store import DynamoProbeStore, InMemoryProbeStore, ProbeStore
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
 from app.routers.auth import _local_identity, _set_session, get_now
@@ -64,6 +65,21 @@ def _local_trips() -> PersistentTripStore:
 def _local_profiles() -> PersistentProfileStore:
     """Local mode's profile storage stand-in: kept in its own data file, so profiles survive a restart."""
     return PersistentProfileStore(LocalDataFile(get_settings().local_data_dir / PROFILES_FILE_NAME))
+
+
+@lru_cache
+def _probe_store() -> ProbeStore:
+    return DynamoProbeStore(get_settings().availability_table_name)
+
+
+@lru_cache
+def _local_probe_store() -> InMemoryProbeStore:
+    """Local mode's probe history stand-in: empty, so no table is needed to run locally."""
+    return InMemoryProbeStore()
+
+
+def get_probe_store() -> ProbeStore:
+    return _local_probe_store() if get_settings().local_mode else _probe_store()
 
 
 @lru_cache

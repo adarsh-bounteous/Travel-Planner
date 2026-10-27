@@ -70,3 +70,26 @@ are for accounts created in local mode; the demo account is already confirmed.
 
 If you set `WEB_PORT`, use that port instead of 5173. The inbox is empty after every start, and it
 returns "not found" when local mode is off.
+
+## Availability gate (ADR-0005)
+
+Monthly availability must be at least 99.9%, taken as at most 43 minutes of downtime. A month with
+more downtime is reported as breached with its downtime budget exhausted, and both raise an alert to
+on-call. `GET /availability` (signed-in travellers only) shows the current month's figure, including downtime up to now. Local
+mode has an empty in-memory probe history, so no table is needed.
+
+The scheduled handler is `app.availability.runner.handler`. These resources are provisioned outside
+this repo:
+
+| Setting | Purpose |
+|---|---|
+| `AVAILABILITY_TABLE_NAME` | DynamoDB probe history, partition key `month` (string), sort key `at` (string). Default `trip-planner-availability`. |
+| `ONCALL_ALERT_TOPIC_ARN` | SNS topic the on-call team subscribes to. Required by the month-end gate. |
+| `PUBLIC_HEALTH_URL` | Public URL of `/health`. When empty, every probe counts as down. |
+
+Two EventBridge schedules invoke the handler:
+
+- `{"task": "probe"}` every minute.
+- `{"task": "month_end_gate"}` at 00:05 UTC on day 1, which evaluates the month that just ended.
+
+A failed probe counts as downtime until the next probe. Gaps with no probes count as unmeasured.

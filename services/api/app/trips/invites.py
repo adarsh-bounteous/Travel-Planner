@@ -1,3 +1,5 @@
+from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Protocol
 
 
@@ -8,18 +10,25 @@ class InviteSender(Protocol):
 
 
 class InMemoryInviteSender:
-    def __init__(self) -> None:
+    def __init__(self, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+        self._clock = clock
         self.sent: list[tuple[str, str, str]] = []
+        self.sent_at: list[datetime] = []
 
     def reset(self) -> None:
         self.sent.clear()
+        self.sent_at.clear()
+
+    def _record(self, email: str, trip_name: str, link: str) -> None:
+        self.sent.append((email, trip_name, link))
+        self.sent_at.append(self._clock())
 
     def send(self, email: str, trip_name: str, link: str) -> None:
-        self.sent.append((email, trip_name, link))
+        self._record(email, trip_name, link)
 
     def send_confirmation(self, email: str, link: str) -> None:
         """An empty trip name marks a sign-up confirmation rather than an invite."""
-        self.sent.append((email, "", link))
+        self._record(email, "", link)
 
 
 class NoInviteSender:

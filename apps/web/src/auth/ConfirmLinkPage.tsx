@@ -36,6 +36,9 @@ export function ConfirmLinkPage() {
             <span>{MESSAGES[outcome].text}</span>
           </div>
         )}
+        {(outcome === 'link_expired' || outcome === 'link_already_used') && (
+          <p className="text-muted text-sm">Nothing was changed. Ask for a new email to try again.</p>
+        )}
         <Link className="btn btn-secondary" to="/sign-in">
           Sign in
         </Link>

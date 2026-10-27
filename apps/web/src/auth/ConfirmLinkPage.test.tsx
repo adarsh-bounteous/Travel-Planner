@@ -22,4 +22,17 @@ describe('confirmation link page', () => {
     renderAt('/confirm-email/tok1')
     expect(await screen.findByText(text)).toBeVisible()
   })
+
+  it.each([
+    [410, 'link_expired'],
+    [409, 'link_already_used'],
+  ])('shows one used-or-expired message and completes nothing for %i', async (status, code) => {
+    stubApi({ 'POST /auth/confirm': { status, body: { code } } }, { signedOut: true })
+    renderAt('/confirm-email/tok1')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This link has already been used or has expired.',
+    )
+    expect(screen.getByText(/Nothing was changed/)).toBeVisible()
+    expect(screen.queryByText('Your email is confirmed')).not.toBeInTheDocument()
+  })
 })

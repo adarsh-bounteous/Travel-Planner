@@ -66,9 +66,20 @@ describe('invite page', () => {
     expect(screen.getByRole('button', { name: 'Switch account' })).toBeInTheDocument()
   })
 
-  it('says an unknown or revoked invite is no longer valid', async () => {
+  it.each([
+    [409, { code: 'invite_used' }],
+    [404, { code: 'not_found' }],
+  ])('says a used or expired invite link was already used or has expired (%i)', async (status, body) => {
+    stubApi({ 'GET /invites/tok1': { status, body } }, { email: 'ana@example.com' })
+    renderAt('/invite/tok1')
+    expect(await screen.findByText('This link has already been used or has expired.')).toBeInTheDocument()
+    expect(screen.getByText(/Nothing was changed/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open trip' })).not.toBeInTheDocument()
+  })
+
+  it('says an unknown or revoked invite has expired', async () => {
     stubApi({}, { signedOut: true })
     renderAt('/invite/gone')
-    expect(await screen.findByText('This invite is no longer valid')).toBeInTheDocument()
+    expect(await screen.findByText('This link has already been used or has expired.')).toBeInTheDocument()
   })
 })

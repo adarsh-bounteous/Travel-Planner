@@ -24,6 +24,8 @@ def _live_invite(trips: TripStore, token: str):
 @router.get("/{token}")
 def read_invite(token: str, trips: TripStore = Depends(get_trips)) -> dict:
     invite, trip = _live_invite(trips, token)
+    if any(e.token == token and e.accepted for e in trip.editors):
+        raise ApiError(409, "invite_used")
     return {"email": invite.email, "trip_name": trip.name}
 
 

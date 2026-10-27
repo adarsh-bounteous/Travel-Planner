@@ -5,7 +5,7 @@ import { rememberReturnTo, takeReturnTo } from '../auth/returnTo'
 import { acceptInvite, fetchInvite, InviteUsedError } from './api'
 import type { Invite } from './api'
 
-type Load = { state: 'loading' } | { state: 'invalid' } | { state: 'ready'; invite: Invite }
+type Load = { state: 'loading' } | { state: 'invalid' } | { state: 'used' } | { state: 'ready'; invite: Invite }
 
 /** Public page behind an editor invite link. It offers sign-in only, never sign-up. */
 export function InvitePage() {
@@ -19,7 +19,7 @@ export function InvitePage() {
   useEffect(() => {
     fetchInvite(token).then(
       (invite) => setLoad({ state: 'ready', invite }),
-      () => setLoad({ state: 'invalid' }),
+      (error) => setLoad({ state: error instanceof InviteUsedError ? 'used' : 'invalid' }),
     )
   }, [token])
 
@@ -51,13 +51,13 @@ export function InvitePage() {
   if (load.state === 'loading' || status === 'loading')
     return <span className="spinner" role="status" aria-label="Loading" />
 
-  if (load.state === 'invalid')
+  if (load.state === 'invalid' || load.state === 'used')
     return (
       <div className="stack stack-lg narrow">
         <h2>Trip invite</h2>
         <div className="empty-state">
-          <h3>This invite is no longer valid</h3>
-          <p>Ask the trip owner to send you a new one.</p>
+          <h3>This link has already been used or has expired.</h3>
+          <p>Nothing was changed. Ask the trip owner to send a new invite.</p>
           {status === 'signedIn' && <Link to="/">Back to your trips</Link>}
         </div>
       </div>

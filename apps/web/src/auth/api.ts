@@ -7,6 +7,9 @@ export type AuthErrorCode =
   | 'not_available'
   | 'invalid_email'
   | 'email_unavailable'
+  | 'link_expired'
+  | 'link_already_used'
+  | 'link_invalid'
   | 'unknown'
 
 export class AuthError extends Error {
@@ -26,6 +29,9 @@ const KNOWN_CODES: AuthErrorCode[] = [
   'not_available',
   'invalid_email',
   'email_unavailable',
+  'link_expired',
+  'link_already_used',
+  'link_invalid',
 ]
 
 async function post(
@@ -93,6 +99,8 @@ export const requestSignUp = (email: string, password: string) =>
   post('/auth/sign-up', { email, password })
 
 export const requestSignOut = () => post('/auth/sign-out')
+
+export const requestConfirmLink = (token: string) => post('/auth/confirm', { token })
 
 export const requestResend = (email: string) => post('/auth/resend-confirmation', { email })
 

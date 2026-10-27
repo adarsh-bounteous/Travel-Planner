@@ -6,6 +6,11 @@ def _session_secret(monkeypatch):
     monkeypatch.setenv("SESSION_SECRET", "test-session-secret")
 
 
+@pytest.fixture(autouse=True)
+def _local_data_dir(monkeypatch, tmp_path):
+    monkeypatch.setenv("LOCAL_DATA_DIR", str(tmp_path / "local-data"))
+
+
 @pytest.fixture
 def sign_in_as():
     """Return a function that builds a client with its own cookie jar, signed in as `email`.

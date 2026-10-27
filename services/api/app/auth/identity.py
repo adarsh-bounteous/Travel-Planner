@@ -25,6 +25,18 @@ class GoogleCancelled(IdentityError):
     pass
 
 
+class LinkInvalid(IdentityError):
+    pass
+
+
+class LinkExpired(IdentityError):
+    pass
+
+
+class LinkAlreadyUsed(IdentityError):
+    pass
+
+
 class IdentityProvider(Protocol):
     """The Identity Provider (ADR-0009). Confirmation email delivery is its job (ADR-0010)."""
 

@@ -19,7 +19,8 @@ def test_reset_removes_previous_accounts(real_local):  # noqa: F811
 def test_reset_also_clears_trips_and_inbox(real_local):  # noqa: F811
     with TestClient(app) as client:
         deps._local_invite_sender().send("a@b.co", "Trip", "http://x")
-        deps._local_trips().save_trip("user-9", deps._local_trips().list_trips("user-1")[0])
+        demo_id = auth._local_identity().user_id_for("demo@example.com")
+        deps._local_trips().save_trip("user-9", deps._local_trips().list_trips(demo_id)[0])
         client.post("/local/reset", headers=RESET)
         assert deps._local_invite_sender().sent == []
         assert deps._local_trips().list_trips("user-9") == []

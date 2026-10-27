@@ -22,6 +22,7 @@ FastAPI service. Python 3.12.
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
+| `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file, so local accounts survive an API restart. Git-ignored. |
 | `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
@@ -57,15 +58,14 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 
 ### Demo account and sample trips
 
-In local mode sign-in, accounts and trips are kept in memory, so every local start begins with
-empty data. On the first local start, when local data is completely empty (no accounts and no trips), the
-API seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
+In local mode accounts are kept in a file under `LOCAL_DATA_DIR` and survive a restart, while trips
+are kept in memory. Sign-up sends a confirmation link to the local inbox. On a local start with no
+trips, the API ensures the demo account exists and seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
 Kyoto", dated from the day of the start). Sign in with `demo@example.com` and `demo-password-1`;
 no sign-up is needed. Fresh sign-up still works. The demo password is for local use only.
 
-Seeding runs only when local data is empty, and it never updates anything, so a restart adds no
-second demo account or trips and keeps your edits. If other data exists but the demo account or
-its trips are missing, nothing is added. A crash part-way through seeding is not repaired. For a
+Seeding runs only when there are no trips, and it never updates anything, so a restart adds no
+second demo account or trips. If trips exist but the demo account is missing, nothing is added. A crash part-way through seeding is not repaired. For a
 fresh first start, clear the local data. In local mode `GET /startup-status` also returns
 `demo_account` (email and password) once the demo account exists, so the sign-in page can offer
 it. It is `null` whenever local mode is off.

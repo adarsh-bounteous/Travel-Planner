@@ -152,9 +152,7 @@ def get_local_seed_target() -> LocalSeedTarget | None:
     if not get_settings().local_mode:
         return None
     identity, trips = _local_identity(), _local_trips()
-    return LocalSeedTarget(
-        is_empty=lambda: identity.is_empty() and trips.is_empty(), identity=identity, trips=trips
-    )
+    return LocalSeedTarget(is_empty=trips.is_empty, identity=identity, trips=trips)
 
 
 def get_trips() -> TripStore:

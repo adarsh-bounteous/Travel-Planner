@@ -1,7 +1,7 @@
 # Local setup
 
 Run the whole app on your machine with no cloud account. Local mode swaps the cloud dependencies
-for in-memory stand-ins, listed below.
+for local stand-ins, listed below.
 
 ## Setup steps
 
@@ -26,20 +26,22 @@ trips: "Weekend in Lisbon" and "Summer in Kyoto". The password is for local use 
 
 ## Reset
 
-All local data lives in memory, so there is nothing on disk to delete. To reset, stop `pnpm start`
-with Ctrl+C and run it again:
+Accounts are kept in a file under `LOCAL_DATA_DIR` (default `services/api/.local-data`), so they
+survive a restart. Trips and the local inbox stay in memory. To clear the trips and inbox, stop
+`pnpm start` with Ctrl+C and run it again:
 
     pnpm start
 
-The new start has no data except the demo account and the two sample trips, which are seeded again.
-
-To reset without a restart, open Menu in the web app and choose Reset local data. It is shown only while local sign-in is on.
+The sample trips are seeded again. Accounts you created stay until you open Menu in the web app and
+choose Reset local data (shown only while local sign-in is on), which clears accounts, trips and the
+inbox and restores the demo account and sample trips, or you delete the `LOCAL_DATA_DIR` directory
+while the API is stopped.
 
 ## What is faked
 
 | Cloud dependency | What it replaces | How it is faked locally |
 | --- | --- | --- |
-| Identity Provider | Cognito | `FakeIdentityProvider` keeps sign-in and accounts in memory; the account links sit in `InMemoryAccountStore`. |
+| Identity Provider | Cognito | `LocalIdentityProvider` keeps accounts and confirmation links in a local file, so sign-in works with no cloud identity service; the account links sit in `InMemoryAccountStore`. |
 | Trip Database | DynamoDB trips | `InMemoryTripStore` holds Trips in memory. |
 | Email Delivery | SES | `InMemoryInviteSender` keeps each email in memory and shows it on the local inbox page (see below). |
 | Maps and Places | Places search | `InMemoryPlaceSearch` searches a seed catalogue. |
@@ -57,6 +59,10 @@ Every email the app would send, such as an editor invite, is saved to a local in
 being sent. No email leaves your machine. With `pnpm start` running, the local inbox is at:
 
     http://localhost:5173/local/inbox
+
+Signing up sends a confirmation email to the inbox. Open its link (`/confirm-email/<token>`) to
+confirm the account, then sign in. A link works once and expires after 24 hours. Confirmation links
+are for accounts created in local mode; the demo account is already confirmed.
 
 If you set `WEB_PORT`, use that port instead of 5173. The inbox is empty after every start, and it
 returns "not found" when local mode is off.

@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import { AccountPage } from './account/AccountPage'
 import { AppHeader } from './AppHeader'
 import { ConfirmEmailPage } from './auth/ConfirmEmailPage'
+import { ConfirmLinkPage } from './auth/ConfirmLinkPage'
 import { HomePage } from './auth/HomePage'
 import { RequireAuth } from './auth/RequireAuth'
 import { SignInPage } from './auth/SignInPage'
@@ -165,6 +166,7 @@ export default function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+          <Route path="/confirm-email/:token" element={<ConfirmLinkPage />} />
         </Routes>
       </main>
     </>

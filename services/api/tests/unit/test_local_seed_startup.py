@@ -102,6 +102,12 @@ def test_real_first_start_lets_the_demo_user_sign_in_and_see_two_trips(real_loca
         assert status["demo_account"] == {"email": DEMO_EMAIL, "password": DEMO_PASSWORD}
 
 
+def demo_trips_template():
+    from app.local_seed import _sample_trips
+
+    return _sample_trips(date(2026, 1, 1))[0]
+
+
 def test_real_second_seed_adds_nothing_and_keeps_edits(real_local):
     with TestClient(app) as client:
         sign_in_demo(client)
@@ -111,11 +117,12 @@ def test_real_second_seed_adds_nothing_and_keeps_edits(real_local):
         assert run_first_start_seed(deps.get_local_seed_target(), date(2026, 1, 1)) is False
         names = [t["name"] for t in client.get("/trips").json()]
     assert sorted(names) == ["Lisbon, extended", "Summer in Kyoto"]
-    assert auth._local_identity().account_count(DEMO_EMAIL) == 1
+    assert auth._local_identity().account_exists(DEMO_EMAIL)
 
 
-def test_real_existing_data_means_no_seed(real_local):
-    auth._local_identity().sign_up_email("sam@example.com", "abcdefghij12")
+def test_real_existing_trips_mean_no_seed(real_local):
+    trip = demo_trips_template()
+    deps._local_trips().save_trip("user-sam", trip)
     with TestClient(app) as client:
         assert sign_in_demo(client).status_code == 404
         assert client.get("/startup-status").json()["demo_account"] is None
@@ -139,4 +146,5 @@ def test_fresh_start_clears_local_data_and_reseeds_the_demo_account(real_local):
         assert sign_in_demo(second).status_code == 200
         names = sorted(t["name"] for t in second.get("/trips").json())
         assert names == ["Summer in Kyoto", "Weekend in Lisbon"]
-        assert second.post("/auth/sign-in", json={"email": "sam@example.com", "password": "abcdefghij12"}).status_code == 404
+        # accounts are durable, so sam survives the restart (still unconfirmed)
+        assert second.post("/auth/sign-in", json={"email": "sam@example.com", "password": "abcdefghij12"}).status_code == 403

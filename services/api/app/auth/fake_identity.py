@@ -40,6 +40,9 @@ class FakeIdentityProvider:
     def account_exists(self, email: str) -> bool:
         return email in self._users
 
+    def user_id_for(self, email: str) -> str:
+        return self._users[email].user_id
+
     def is_empty(self) -> bool:
         return not self._users
 

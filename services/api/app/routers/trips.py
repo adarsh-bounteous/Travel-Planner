@@ -281,7 +281,10 @@ def update_trip(
     existing = _owned_trip(trips, identity, owner, trip_id)
     # The body cannot carry days, options or currency: keep the stored ones.
     days = _days(existing, body.start_date, body.end_date)
-    trip = existing.model_copy(update={**body.model_dump(), "days": days, "updated_at": now})
+    fields = body.model_dump()
+    if "interests" not in body.model_fields_set:
+        del fields["interests"]  # settings edits do not send interests: keep the stored ones
+    trip = existing.model_copy(update={**fields, "days": days, "updated_at": now})
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 

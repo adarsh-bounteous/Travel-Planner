@@ -63,3 +63,18 @@ def test_switch_picks_the_source(monkeypatch, mode, has_kyoto):
     source = get_recommendations()
     assert isinstance(source, InMemoryRecommendations)
     assert ("kyoto" in source._catalogue) is has_kyoto
+
+
+def test_editing_a_trip_keeps_its_interests(client):
+    tid = client.post("/trips", json={**BODY, "destination": "Lisbon", "interests": ["Culture"]}).json()["id"]
+    edit = {k: BODY[k] for k in ("name", "destination", "start_date", "end_date", "budget")}
+    assert client.put(f"/trips/{tid}", json={**edit, "destination": "Lisbon", "name": "Renamed"}).status_code == 200
+    recs = client.get(f"/trips/{tid}/recommendations").json()
+    assert recs and {r["interest"] for r in recs} == {"Culture"}
+
+
+def test_service_source_recommendations_match_interests_and_can_be_saved(client):
+    app.dependency_overrides[get_recommendations] = deps._recommendations
+    tid = client.post("/trips", json={**BODY, "destination": "Lisbon", "interests": ["Culture"]}).json()["id"]
+    recs = client.get(f"/trips/{tid}/recommendations").json()
+    assert recs and all(r["interest"] == "Culture" and r["place"]["id"] for r in recs)

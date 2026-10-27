@@ -29,14 +29,7 @@ class InMemoryRecommendations:
         return list(self._catalogue.get(destination.strip().casefold(), []))
 
 
-# Seeded default until a recommendations provider is chosen.
-SEED_RECOMMENDATIONS = {
-    "lisbon": [
-        Recommendation(id="tile-museum", name="Tile Museum", detail="Museum, about 2 hours"),
-        Recommendation(id="alfama-tour", name="Alfama walking tour", detail="Guided walk, about 3 hours"),
-        Recommendation(id="sintra", name="Sintra day trip", detail="Day trip, about 8 hours"),
-    ],
-}
+
 
 
 def _local(slug: str, name: str, detail: str, interest: str, place_type, price, lat: float, lng: float) -> Recommendation:
@@ -59,5 +52,15 @@ SEED_LOCAL_RECOMMENDATIONS = {
         _local("nishiki-market", "Nishiki Market tea stop", "Tea tasting, about 1 hour", "Culture", "food", "budget", 35.0050, 135.7649),
         _local("arashiyama-bamboo", "Arashiyama bamboo grove", "Forest walk, about 2 hours", "Nature", "park", "free", 35.0170, 135.6713),
         _local("philosophers-path", "Philosopher's Path stroll", "Canal walk, about 1.5 hours", "Nature", "park", "free", 35.0270, 135.7948),
+    ],
+}
+
+
+# Seeded default until a recommendations provider is chosen.
+SEED_RECOMMENDATIONS = {
+    "lisbon": [
+        _local("tile-museum", "Tile Museum", "Museum, about 2 hours", "Culture", "museum", "budget", 38.7249, -9.1136),
+        _local("alfama-tour", "Alfama walking tour", "Guided walk, about 3 hours", "Culture", "landmark", "free", 38.7110, -9.1300),
+        _local("sintra", "Sintra day trip", "Day trip, about 8 hours", "Outdoors", "park", "moderate", 38.7979, -9.3880),
     ],
 }

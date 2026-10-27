@@ -10,6 +10,7 @@ from app.local_seed import run_first_start_seed
 from app.routers import (
     activity_options,
     auth,
+    availability,
     deps,
     flight_shortlist,
     health,
@@ -47,6 +48,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="Trip Planner API", lifespan=lifespan)
 app.include_router(health.router)
+app.include_router(availability.router)
 app.include_router(startup_status.router)
 app.include_router(auth.router)
 app.include_router(trips.router)

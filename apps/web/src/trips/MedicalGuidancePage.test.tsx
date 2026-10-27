@@ -98,6 +98,12 @@ describe('Medical guidance', () => {
     expect(screen.getAllByText(NOTE)).toHaveLength(1)
   })
 
+  it('shows the official site link for a destination without a seeded site (AC7)', async () => {
+    const url = 'https://www.google.com/search?q=France+official+government+travel+health+advice'
+    open([{ ...base, traveller_id: null, name: 'You', result: 'no_data', official_site_url: url }])
+    expect(await screen.findByRole('link', { name: 'Official government travel site' })).toHaveAttribute('href', url)
+  })
+
   it('shows nothing required (AC12, AC11)', async () => {
     open([{ ...base, traveller_id: null, name: 'You', result: 'none_required' }])
     expect(await screen.findByText('No medical requirements apply to this trip')).toBeInTheDocument()

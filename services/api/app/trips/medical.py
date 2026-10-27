@@ -1,4 +1,5 @@
 from typing import Literal
+from urllib.parse import quote_plus
 
 from pydantic import BaseModel
 
@@ -42,6 +43,15 @@ _RESIDENCE_EXTRAS: dict[str, tuple[list[str], dict[str, VaccStatus]]] = {
 _UNSUITABLE_IN_PREGNANCY = {"MMR booster"}
 
 _PREGNANCY_ONLY_ADVISORIES = [PREGNANCY_ADVISORY]
+
+
+def _official_site(country: str) -> str:
+    """The seeded official site, else a search for the country's official government travel site."""
+    known = _OFFICIAL_SITES.get(country)
+    if known:
+        return known
+    query = quote_plus(f"{country} official government travel health advice".strip())
+    return f"https://www.google.com/search?q={query}"
 
 
 class VaccinationGuidance(BaseModel):
@@ -91,7 +101,7 @@ def guidance_for(
             tests=[],
             vaccinations=[],
             advisories=[],
-            official_site_url=_OFFICIAL_SITES.get(country),
+            official_site_url=_official_site(country),
         )
 
     route_tests, route_vaccs, route_advisories = route

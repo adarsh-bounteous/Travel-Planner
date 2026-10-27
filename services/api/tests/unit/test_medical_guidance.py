@@ -45,6 +45,15 @@ def test_no_data_route_has_message_and_official_site():
     assert _g("France", "France").official_site_url == "https://www.portugal.gov.pt/"
 
 
+def test_no_data_for_an_unlisted_destination_still_has_an_official_site_link():
+    g = _g(destination="Kyoto, Japan", citizenship="France", residence="France")
+    assert g.official_site_url == "https://www.japan.travel/"
+    for destination in ("Paris, France", "Atlantis", None):
+        url = _g(destination=destination).official_site_url
+        assert url and url.startswith("https://")
+    assert "France" in _g(destination="Paris, France").official_site_url
+
+
 def test_pregnant_yes_adds_advisory_and_marks_unsuitable_vaccination():
     base, preg = _g(), _g(pregnant=True)
     assert "Pregnancy advisory" in preg.advisories and "Pregnancy advisory" not in base.advisories

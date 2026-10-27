@@ -446,7 +446,7 @@ export const fetchRequirements = (tripId: string) =>
 export const fetchMedicalGuidance = (tripId: string) =>
   call<TravellerGuidance[]>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
 
-export const addTraveller =(tripId: string, name: string) =>
+export const addTraveller = (tripId: string, name: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })
 
 export const inviteEditor = (tripId: string, email: string) =>

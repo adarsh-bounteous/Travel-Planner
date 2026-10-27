@@ -27,6 +27,7 @@ from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
 from app.trips.rates import SEED_RATES, InMemoryRates, RateSource
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
+from app.trips.local_profile_store import PROFILES_FILE_NAME, PersistentProfileStore
 from app.trips.local_store import PersistentTripStore
 from app.trips.store import DynamoTripStore, TripStore
 
@@ -48,6 +49,12 @@ def _trips() -> TripStore:
 def _local_trips() -> PersistentTripStore:
     """Local mode's trip storage stand-in: kept in a data file, so trips survive a restart."""
     return PersistentTripStore(LocalDataFile(get_settings().local_data_dir / LOCAL_DATA_FILE_NAME))
+
+
+@lru_cache
+def _local_profiles() -> PersistentProfileStore:
+    """Local mode's profile storage stand-in: kept in its own data file, so profiles survive a restart."""
+    return PersistentProfileStore(LocalDataFile(get_settings().local_data_dir / PROFILES_FILE_NAME))
 
 
 @lru_cache
@@ -162,7 +169,7 @@ def get_trips() -> TripStore:
 
 
 def get_profiles() -> ProfileStore:
-    return _profiles()
+    return _local_profiles() if get_settings().local_mode else _profiles()
 
 
 def get_saved_places() -> SavedPlaceStore:

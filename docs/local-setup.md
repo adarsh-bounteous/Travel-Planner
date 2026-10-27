@@ -34,7 +34,9 @@ empty `services/api/.local-data/store.json`, and run it again:
     pnpm start
 
 The sample trips are seeded again. If `store.json` is unreadable or corrupted, the API stops at
-startup with an error naming the file and does not start until you delete or empty it. Accounts you created stay until you open Menu in the web app and
+startup with an error naming the file and does not start until you delete or empty it. Traveller
+profiles and their preferences are kept the same way in `profiles.json` beside `store.json`; delete or
+empty it to start with blank profiles (an unreadable `profiles.json` also stops startup). Accounts you created stay until you open Menu in the web app and
 choose Reset local data (shown only while local sign-in is on), which clears accounts, trips and the
 inbox and restores the demo account and sample trips, or you delete the `LOCAL_DATA_DIR` directory
 while the API is stopped.
@@ -44,7 +46,7 @@ while the API is stopped.
 | Cloud dependency | What it replaces | How it is faked locally |
 | --- | --- | --- |
 | Identity Provider | Cognito | `LocalIdentityProvider` keeps accounts and confirmation links in a local file, so sign-in works with no cloud identity service; the account links sit in `InMemoryAccountStore`. |
-| Trip Database | DynamoDB trips | `PersistentTripStore` holds Trips in memory and keeps them in `store.json` under `LOCAL_DATA_DIR`. |
+| Trip Database | DynamoDB trips | `PersistentTripStore` holds Trips in memory and keeps them in `store.json` in the local data directory; `PersistentProfileStore` does the same for traveller profiles in `profiles.json`. |
 | Email Delivery | SES | `InMemoryInviteSender` keeps each email in memory and shows it on the local inbox page (see below). |
 | Maps and Places | Places search | `InMemoryPlaceSearch` searches a seed catalogue. |
 | Flight and Hotel Search | Flight and stay providers | `InMemoryFlightProvider` and `InMemoryStayProvider` answer from seed catalogues. |

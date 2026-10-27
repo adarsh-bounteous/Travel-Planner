@@ -24,6 +24,7 @@ import { CurrencyHelperPage } from './trips/CurrencyHelperPage'
 import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
 import { ActivityOptionsPage } from './trips/ActivityOptionsPage'
+import { RestaurantOptionsPage } from './trips/RestaurantOptionsPage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
@@ -216,6 +217,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ActivityOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/restaurant-options"
+            element={
+              <RequireAuth>
+                <RestaurantOptionsPage />
               </RequireAuth>
             }
           />

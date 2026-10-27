@@ -98,6 +98,24 @@ export type ActivityOption = {
   prices: ActivityPrice[]
 }
 export type ActivityOptions = { place: string; travellers: number; options: ActivityOption[] }
+export type RestaurantOption = {
+  name: string
+  city: string
+  cuisine: string
+  dining_style: string
+  price_level: number
+  typical_price: string
+  currency: string
+  suits: string[]
+  url: string | null
+}
+export type RestaurantOptions = {
+  place: string
+  home_cuisine: string
+  options: RestaurantOption[]
+  /** Chips for the filters applied: the owner's profile, and needs added for this trip only. */
+  filters_applied: { profile: string[]; trip: string[] }
+}
 export type StayOptions = {
   place: string
   start_date: string
@@ -225,6 +243,8 @@ export type Trip = {
   share_url?: string | null
   /** Set by GET /trips: shared with this traveller by another traveller. */
   shared?: boolean
+  /** Extra dining needs for this trip only (halal, gluten-free, ...). */
+  dining_needs?: string[]
 }
 
 export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'>
@@ -270,6 +290,8 @@ export type Profile = {
   diet: string
   tastes: string[]
   travel_style: string
+  dining_style?: string
+  price_level?: number | null
   transport_preferences: TransportPreferences
 }
 
@@ -364,6 +386,12 @@ export const fetchStayOptions = (tripId: string, stayId: string, c: StayCriteria
 
 export const fetchActivityOptions = (tripId: string) =>
   call<ActivityOptions>(`/trips/${encodeURIComponent(tripId)}/activity-options`)
+
+export const fetchRestaurantOptions = (tripId: string) =>
+  call<RestaurantOptions>(`/trips/${encodeURIComponent(tripId)}/restaurant-options`)
+
+export const saveDiningNeeds = (tripId: string, needs: string[]) =>
+  call<{ needs: string[] }>(`/trips/${encodeURIComponent(tripId)}/dining-needs`, 'PUT', { needs })
 
 export const chooseStay =(tripId: string, stayId: string, propertyId: string, c: StayCriteria) =>
   call<Trip>(

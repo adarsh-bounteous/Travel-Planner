@@ -22,7 +22,7 @@ FastAPI service. Python 3.12.
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
-| `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file and `store.json` (trips, invites, share links), so both survive an API restart. Git-ignored. |
+| `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file, `store.json` (trips, invites, share links) and `profiles.json` (traveller profiles and preferences), so all survive an API restart. Git-ignored. |
 | `LOCAL_MODE` | off | The one switch every local stand-in follows. Accepts `true`/`on`/`1`/`yes` or `false`/`off`/`0`; any other value is refused. |
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
@@ -59,7 +59,7 @@ environment, the app refuses to start: set `LOCAL_MODE` to off, or run in the lo
 ### Demo account and sample trips
 
 In local mode accounts are kept in a file under `LOCAL_DATA_DIR` and survive a restart, and trips
-are kept in `store.json` in the same directory, so they survive too. Sign-up sends a confirmation link to the local inbox. On a local start with no
+are kept in `store.json` in the same directory, and traveller profiles in `profiles.json`, so they survive too. Sign-up sends a confirmation link to the local inbox. On a local start with no
 trips, the API ensures the demo account exists and seeds one confirmed demo account and two sample trips ("Weekend in Lisbon" and "Summer in
 Kyoto", dated from the day of the start). Sign in with `demo@example.com` and `demo-password-1`;
 no sign-up is needed. Fresh sign-up still works. The demo password is for local use only.

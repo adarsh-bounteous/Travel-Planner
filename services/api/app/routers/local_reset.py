@@ -25,6 +25,7 @@ def reset_local_data(
     _local_identity().reset()
     _local_accounts().reset()
     deps._local_trips().reset()
+    deps._local_profiles().reset()
     deps._local_saved_places().reset()
     deps._local_invite_sender().reset()
     run_first_start_seed(deps.get_local_seed_target(), date.today())

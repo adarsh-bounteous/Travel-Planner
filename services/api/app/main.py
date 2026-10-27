@@ -34,6 +34,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()  # fail closed: refuse to start with local mode on outside the local environment
     if settings.local_mode:
         deps._local_trips()  # build now, so an unreadable data file stops startup, not the first request
+        deps._local_profiles()
         run_first_start_seed(deps.get_local_seed_target(), date.today())
     yield
 

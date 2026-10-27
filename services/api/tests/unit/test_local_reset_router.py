@@ -4,6 +4,7 @@ from app.main import app
 
 RESET = {"X-Local-Reset": "1"}
 from app.routers import auth, deps
+from app.trips.profile_store import Profile
 from tests.unit.test_local_seed_startup import real_local, sign_in_demo  # noqa: F401
 
 
@@ -44,3 +45,11 @@ def test_reset_without_the_confirming_header_is_refused_and_changes_nothing(real
         auth._local_identity().create_confirmed_user("sam@example.com", "abcdefghij12")
         assert client.post("/local/reset").status_code == 403
         assert auth._local_identity().account_exists("sam@example.com")
+
+
+def test_reset_also_clears_profiles(real_local):  # noqa: F811
+    with TestClient(app) as client:
+        user_id = auth._local_identity().user_id_for("demo@example.com")
+        deps._local_profiles().save_profile(user_id, Profile(display_name="Maya"))
+        assert client.post("/local/reset", headers=RESET).status_code == 204
+        assert deps._local_profiles().get_profile(user_id) is None

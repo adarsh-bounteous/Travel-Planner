@@ -80,7 +80,7 @@ def real_local(monkeypatch):
     """Local mode with the app's own wiring: no override of get_local_seed_target."""
     local(monkeypatch)
     monkeypatch.setenv("COOKIE_SECURE", "false")
-    caches = (auth._local_identity, auth._local_accounts, deps._local_trips)
+    caches = (auth._local_identity, auth._local_accounts, deps._local_trips, deps._local_profiles)
     for cache in caches:
         cache.cache_clear()
     yield

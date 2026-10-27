@@ -26,12 +26,12 @@ def local(monkeypatch, tmp_path):
 
 
 def clear():
-    for cache in (auth._local_identity, auth._local_accounts, deps._local_trips, deps._trips):
+    for cache in (auth._local_identity, auth._local_accounts, deps._local_trips, deps._local_profiles, deps._trips):
         cache.cache_clear()
 
 
 def restart():
-    for cache in (auth._local_identity, deps._local_trips):
+    for cache in (auth._local_identity, deps._local_trips, deps._local_profiles):
         cache.cache_clear()
 
 
@@ -136,3 +136,13 @@ def test_a_directory_in_place_of_the_file_stops_startup(local):
     with pytest.raises(LocalDataFileError, match="unreadable or corrupted"):
         with TestClient(app):
             pass
+
+
+def test_unreadable_profiles_file_stops_startup(local):
+    path = local.parent / "profiles.json"
+    path.parent.mkdir(parents=True)
+    path.write_text("{not json")
+    with pytest.raises(LocalDataFileError):
+        with TestClient(app):
+            pass
+    assert path.read_text() == "{not json"

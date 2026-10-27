@@ -588,6 +588,24 @@ def day_recommendations(
     return [r for r in source.for_destination(trip.destination) if r.name not in on_day]
 
 
+@router.get("/{trip_id}/recommendations")
+def trip_recommendations(
+    trip_id: str,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    identity: IdentityProvider = Depends(get_identity),
+    source: RecommendationSource = Depends(get_recommendations),
+) -> list[Recommendation]:
+    trip, _ = _editable_trip(trips, identity, user, trip_id)
+    if not trip.destination:
+        return []
+    recommendations = source.for_destination(trip.destination)
+    if not trip.interests:
+        return recommendations
+    wanted = {i.casefold() for i in trip.interests}
+    return [r for r in recommendations if r.interest and r.interest.casefold() in wanted]
+
+
 @router.post("/{trip_id}/activities", status_code=201)
 def add_activity(
     trip_id: str,

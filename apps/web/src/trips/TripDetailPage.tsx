@@ -20,10 +20,11 @@ import { Toast } from './Toast'
 import { TransportTab } from './TransportTab'
 import { TravelersTab } from './TravelersTab'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
+import { TripRecommendationsTab } from './TripRecommendationsTab'
 import { TripTotalCard } from './TripTotalCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
-type Tab = 'overview' | 'itinerary' | 'stays' | 'transport' | 'travelers'
+type Tab = 'overview' | 'itinerary' | 'stays' | 'transport' | 'travelers' | 'recommendations'
 type Panel =
   | { id: 'none' }
   | { id: 'settings' }
@@ -47,6 +48,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'stays', label: 'Stays' },
   { id: 'transport', label: 'Transport' },
   { id: 'travelers', label: 'Travelers' },
+  { id: 'recommendations', label: 'Recommendations' },
 ]
 
 /** A trip day by day. Only the owner sees the controls that change it. */
@@ -242,6 +244,13 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           />
         ) : tab === 'transport' ? (
           <TransportTab trip={trip} onChanged={setTrip} onViewItinerary={() => setTab('itinerary')} />
+        ) : tab === 'recommendations' ? (
+          <TripRecommendationsTab
+            tripId={tripId}
+            destination={trip.destination}
+            interests={trip.interests ?? []}
+            onBack={() => setTab('itinerary')}
+          />
         ) : tab === 'travelers' ? (
           <TravelersTab
             trip={trip}

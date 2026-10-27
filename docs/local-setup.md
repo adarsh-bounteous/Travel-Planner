@@ -51,7 +51,7 @@ while the API is stopped.
 | Maps and Places | Places search | `InMemoryPlaceSearch` searches a seed catalogue. |
 | Flight and Hotel Search | Flight and stay providers | `InMemoryFlightProvider` and `InMemoryStayProvider` answer from seed catalogues. |
 | Transport options | Train, bus and taxi providers | `InMemoryTransportProvider` answers from seed catalogues. |
-| Recommendations | Recommendation source | `InMemoryRecommendations` serves seed data. |
+| Recommendations | Recommendation source | `InMemoryRecommendations` serves recommendations generated locally from the trip's destination and interests when local mode is on; the seeded source otherwise. |
 | Currency rates | Rate source | `InMemoryRates` serves seed rates. |
 
 Not faked yet: the traveller profile and saved places still use `DynamoProfileStore` and

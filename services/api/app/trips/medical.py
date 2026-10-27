@@ -3,7 +3,7 @@ from urllib.parse import quote_plus
 
 from pydantic import BaseModel
 
-from app.trips.requirements import _country
+from app.trips.visa import destination_country as _country
 
 # Placeholder rules seeded from the design prototype; real medical sources are out of scope.
 VaccStatus = Literal["required", "recommended", "already_had", "unsuitable_in_pregnancy"]

@@ -69,7 +69,9 @@ def test_failed_probe_counts_as_downtime():
     assert rep.downtime == timedelta(minutes=50) and rep.status == "breached"
 
 
-@pytest.mark.parametrize("error", [httpx.ConnectError("refused"), httpx.ReadTimeout("slow")])
+@pytest.mark.parametrize(
+    "error", [httpx.ConnectError("refused"), httpx.ReadTimeout("slow"), OSError("dns"), httpx.InvalidURL("bad")]
+)
 def test_probe_error_is_failure(error):
     def down(url: str) -> int:
         raise error

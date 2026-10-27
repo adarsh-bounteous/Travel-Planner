@@ -34,7 +34,7 @@ def run_probe(url: str, store: ProbeStore, now: datetime, fetch: Callable[[str],
     """Probe the public endpoint. Any non-2xx answer, timeout or connection error is a failure."""
     try:
         ok = 200 <= fetch(url) < 300
-    except httpx.HTTPError:
+    except Exception:  # fail closed: whatever stopped the probe, the endpoint was not shown to be up
         ok = False
     result = ProbeResult(now, ok)
     store.record(result)

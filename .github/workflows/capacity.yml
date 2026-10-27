@@ -1,0 +1,43 @@
+name: capacity
+
+# Checks the ~10,000 registered-user capacity (ADR-0004) on every merge to main and nightly.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 2 * * *"
+
+jobs:
+  capacity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+      - name: Install API dependencies
+        run: uv sync --frozen
+      - name: Start the API in local mode
+        run: |
+          export LOCAL_MODE=true APP_ENV=local COOKIE_SECURE=false
+          export SESSION_SECRET="$(openssl rand -hex 32)"
+          nohup .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > api.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && exit 0
+            sleep 1
+          done
+          cat api.log
+          exit 1
+      - name: Run the 10,000-user load profile
+        run: .venv/bin/python -m loadtest.runner --base-url http://127.0.0.1:8000 --output loadtest-result.json
+      - name: Upload the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capacity-result
+          path: services/api/loadtest-result.json

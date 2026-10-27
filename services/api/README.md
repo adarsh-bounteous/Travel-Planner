@@ -100,6 +100,25 @@ set-up collects (citizenship, residence, health status, religion, diet, tastes, 
 all default to empty, so older stored profiles still read. Trip and profile contents are
 personal data and are not logged.
 
+## Capacity check (10,000 registered users)
+
+`loadtest/` checks that the API serves about 10,000 registered users (ADR-0004). The profile:
+
+- Population: 10,000 registered users, with 10% active at once, so 1,000 concurrent users.
+- Shape: ramp linearly from 0 to 1,000 concurrent users over 2 minutes, then hold 1,000 concurrent users for 5 minutes.
+- Each user signs in as the demo account, then loops `GET /health` and `GET /trips` with 10 s of think time (about 100 requests per second at the plateau).
+- Met only when p95 response time is under 500 ms **and** the error rate is under 1% (non-2xx, timeout or transport error). Exactly 500 ms or exactly 1% is not met. Latency covers the whole run, ramp included.
+
+The profile and limits live in `loadtest/profile.py`. `.github/workflows/capacity.yml` runs the check on every merge to `main` and nightly at 02:00 UTC; a failing check fails the job and the result JSON is uploaded as an artifact.
+
+To run it locally, start the API in local mode, then:
+
+    .venv/bin/python -m loadtest.runner --base-url http://127.0.0.1:8000
+
+It exits 0 when the capacity is met and 1 otherwise. `--scale 0.01` shrinks the run for a quick smoke test only; the pipeline never uses it.
+
+Limitations: the pipeline targets a locally started API (file-backed stores), so it catches application-code and per-request-cost regressions but not infrastructure limits such as Lambda concurrency or DynamoDB capacity. A shared CI runner is noisy; the limits are not loosened for it.
+
 ## Local and cloud stores follow the same rules
 
 `tests/unit/store_contract` runs one set of rules (trips, invites, share links, accounts, profiles,

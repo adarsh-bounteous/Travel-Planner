@@ -23,6 +23,7 @@ import { CostsPage } from './trips/CostsPage'
 import { CurrencyHelperPage } from './trips/CurrencyHelperPage'
 import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
+import { ActivityOptionsPage } from './trips/ActivityOptionsPage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
@@ -207,6 +208,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <TripPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/activity-options"
+            element={
+              <RequireAuth>
+                <ActivityOptionsPage />
               </RequireAuth>
             }
           />

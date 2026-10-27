@@ -19,6 +19,8 @@ BLANK = {
     "citizenship": "",
     "residence": "",
     "health_status": "",
+    "vaccinations_had": [],
+    "pregnant": None,
     "religion": "",
     "diet": "",
     "tastes": [],
@@ -28,6 +30,7 @@ BLANK = {
     "vaccinations_had": [],
     "pregnant": None,
     "transport_preferences": NO_PREFERENCES,
+    "sim_preference": None,
 }
 
 

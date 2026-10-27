@@ -17,6 +17,27 @@ const cost = (overrides: Partial<CostSummary> = {}): CostSummary => ({
 const show = (overrides: Partial<CostSummary> = {}) =>
   render(<TripTotalCard cost={cost(overrides)} />)
 
+describe('TripTotalCard insurance line', () => {
+  const insurance = {
+    plan_id: 'globetrek',
+    name: 'Globetrek Adventure Plus',
+    provider: 'Globetrek',
+    url: 'https://globetrek.example/x',
+    total: '1096.00',
+    currency: 'EUR',
+  }
+
+  it('shows the picked plan with its amount (AC7)', () => {
+    render(<TripTotalCard cost={cost()} insurance={insurance} />)
+    expect(screen.getByText('Insurance: Globetrek Adventure Plus').parentElement).toHaveTextContent('1,096 EUR')
+  })
+
+  it('shows no insurance line without a pick (AC8)', () => {
+    render(<TripTotalCard cost={cost()} />)
+    expect(screen.queryByText(/^Insurance:/)).toBeNull()
+  })
+})
+
 describe('TripTotalCard', () => {
   it('shows the total with its currency code (AC7)', () => {
     show()

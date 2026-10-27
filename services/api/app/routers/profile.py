@@ -20,7 +20,7 @@ def save_profile(
     profiles: ProfileStore = Depends(get_profiles),
 ) -> Profile:
     # PUT replaces the profile; a client that never sends these fields must not wipe them.
-    kept = ("transport_preferences", "dining_style", "price_level")
+    kept = ("transport_preferences", "dining_style", "price_level", "sim_preference")
     missing = [f for f in kept if f not in body.model_fields_set]
     stored = profiles.get_profile(owner) if missing else None
     if stored:

@@ -25,6 +25,9 @@ import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
 import { ActivityOptionsPage } from './trips/ActivityOptionsPage'
 import { RestaurantOptionsPage } from './trips/RestaurantOptionsPage'
+import { InsuranceComparePage } from './trips/InsuranceComparePage'
+import { InsuranceOptionsPage } from './trips/InsuranceOptionsPage'
+import { SimOptionsPage } from './trips/SimOptionsPage'
 import { StayOptionsPage } from './trips/StayOptionsPage'
 import { FlightShortlistPage } from './trips/FlightShortlistPage'
 import { StayShortlistPage } from './trips/StayShortlistPage'
@@ -213,6 +216,14 @@ export default function App() {
             }
           />
           <Route
+            path="/trips/:tripId/sim-options"
+            element={
+              <RequireAuth>
+                <SimOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/trips/:tripId/activity-options"
             element={
               <RequireAuth>
@@ -225,6 +236,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <RestaurantOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/insurance-options"
+            element={
+              <RequireAuth>
+                <InsuranceOptionsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/insurance-options/compare"
+            element={
+              <RequireAuth>
+                <InsuranceComparePage />
               </RequireAuth>
             }
           />

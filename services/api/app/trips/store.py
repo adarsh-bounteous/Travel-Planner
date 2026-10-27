@@ -41,6 +41,8 @@ class TripFields(BaseModel):
     interests: list[Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]] = Field(
         default_factory=list, max_length=10
     )
+    risky_activities: bool | None = None  # None = not answered; asked at New trip set-up (Traveller profile epic)
+    owner_age: int | None = Field(default=None, ge=0, le=120)
 
 
 class TripCreate(TripFields):
@@ -111,6 +113,32 @@ class ChosenStay(BaseModel):
     currency: str  # the offer's currency; may differ from the trip currency
 
 
+class ChosenSim(BaseModel):
+    """The SIM picked for a Trip: a snapshot of the shortlisted option, priced per traveller."""
+
+    option_id: str
+    name: str
+    provider: str
+    sim_type: Literal["esim", "physical"]
+    valid_from: date
+    valid_to: date
+    data_gb: Decimal
+    price: Decimal  # per traveller
+    currency: str  # the option's currency; may differ from the trip currency
+    url: HttpUrl
+
+
+class InsurancePick(BaseModel):
+    """The insurance plan picked from the shortlist: a snapshot of its group total for the trip."""
+
+    plan_id: str
+    name: str
+    provider: str
+    url: HttpUrl  # the plan's booking page on the provider's site
+    total: Decimal
+    currency: str  # the plan's currency; may differ from the trip currency
+
+
 class Stay(StayFields):
     id: str
     chosen: ChosenStay | None = None  # server-owned: changed only through the chosen-stay routes
@@ -146,6 +174,7 @@ class TripPlace(TripPlaceFields):
 
 class TravellerFields(BaseModel):
     name: TrimmedName
+    age: int | None = Field(default=None, ge=0, le=120)
 
 
 # The same options the web offers (apps/web/src/trips/profileQuestions.ts); anything else is refused.
@@ -219,6 +248,8 @@ class Trip(TripFields):
     activities: list[Activity] = []  # server-owned, apart from options so Book trip is unaffected
     stays: list[Stay] = []  # server-owned: changed only through the stay routes
     transport: list[TransportPick] = []  # server-owned: changed only through the transport routes
+    sim: ChosenSim | None = None  # server-owned: changed only through the SIM routes
+    insurance: InsurancePick | None = None  # server-owned: changed only through the insurance routes
     places: list[TripPlace] = []  # server-owned: changed only through the place route; unscheduled (no date)
     travellers: list[Traveller] = []  # server-owned: changed only through the traveller route
     editors: list[Editor] = []  # server-owned: changed only through the editor routes

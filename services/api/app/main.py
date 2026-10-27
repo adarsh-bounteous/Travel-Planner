@@ -14,6 +14,7 @@ from app.routers import (
     deps,
     flight_shortlist,
     health,
+    insurance,
     invites,
     local_google,
     local_inbox,
@@ -25,6 +26,7 @@ from app.routers import (
     restaurant_options,
     saved_places,
     shared,
+    sim_options,
     startup_status,
     stay_options,
     transport,
@@ -56,6 +58,8 @@ app.include_router(trips.router)
 app.include_router(stay_options.router)
 app.include_router(activity_options.router)
 app.include_router(restaurant_options.router)
+app.include_router(sim_options.router)
+app.include_router(insurance.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
 app.include_router(transport_picks.router)

@@ -4,7 +4,7 @@ from datetime import date
 from app.main import app
 from app.routers.deps import get_visa_rules
 from app.trips.visa import OFFICIAL_SITES, InMemoryVisaRules, VisaRule
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip
 
 
 def _d(cit, res):
@@ -12,7 +12,7 @@ def _d(cit, res):
 
 
 def _trip(owner, people, destination="Kyoto, Japan"):
-    tid = owner.post("/trips", json=trip_body(destination=destination)).json()["id"]
+    tid = create_trip(owner, destination=destination)
     ids = {}
     for name, details in people:
         t = owner.post(f"/trips/{tid}/travellers", json={"name": name}).json()["travellers"][-1]
@@ -32,7 +32,7 @@ def _rows(client, tid):
 def test_one_traveller_sees_whether_a_visa_is_needed(sign_in_as):
     a = sign_in_as("a@example.com")
     a.put("/profile", json=_d("Ireland", "Ireland"))
-    tid = a.post("/trips", json=trip_body(destination="Kyoto, Japan")).json()["id"]
+    tid = create_trip(a, destination="Kyoto, Japan")
     assert a.get(f"/trips/{tid}").json()["options"] == []  # no bookings yet
     assert a.get(f"/trips/{tid}/visa").json()["travellers"][0]["status"] == "not_needed"
 

@@ -36,7 +36,15 @@ test('two trips list different local recommendations and say they are generated 
         json: { id, name: destination, destination, interests: ['Culture'], is_owner: true, days: [], options: [], activities: [] },
       }),
     )
-    await page.route(`**/trips/${id}/recommendations`, (route) => route.fulfill({ json: recs }))
+    await page.route(`**/trips/${id}/recommendations`, (route) =>
+      route.fulfill({
+        json: {
+          destination: { country: 'Testland', place: destination, label: `${destination}, Testland` },
+          status: 'ready',
+          items: recs,
+        },
+      }),
+    )
   }
 
   const names: string[][] = []
@@ -65,7 +73,15 @@ test('local recommendation images load offline from the app and stay the same on
       json: { id: 't1', name: 'Lisbon', destination: 'Lisbon', interests: ['Culture'], is_owner: true, days: [], options: [], activities: [] },
     }),
   )
-  await page.route('**/trips/t1/recommendations', (route) => route.fulfill({ json: [local, bare] }))
+  await page.route('**/trips/t1/recommendations', (route) =>
+    route.fulfill({
+      json: {
+        destination: { country: 'Testland', place: 'Lisbon', label: 'Lisbon, Testland' },
+        status: 'ready',
+        items: [local, bare],
+      },
+    }),
+  )
 
   const outside: string[] = []
   page.on('request', (req) => {

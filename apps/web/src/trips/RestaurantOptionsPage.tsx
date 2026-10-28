@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { AlertIcon, EditIcon, ImageIcon, PlusIcon, SearchIcon, UserIcon } from '../auth/icons'
 import { fetchRestaurantOptions, fetchTrip } from './api'
 import type { RestaurantOption, RestaurantOptions, Trip } from './api'
+import { DestinationGate } from './DestinationGate'
 import { DiningNeedsDrawer } from './DiningNeedsDrawer'
 import { RestaurantLink } from './RestaurantLink'
 import { formatMoney, plural } from './stayOptions'
@@ -77,9 +78,28 @@ export function RestaurantOptionsPage() {
           <li aria-current="page">Dining</li>
         </ol>
       </nav>
-      <h1>{ready ? `Restaurants in ${ready.place}` : 'Restaurants'}</h1>
+      <h1>Restaurants</h1>
 
-      {ready && !empty && (
+      {result.state === 'loading' && (
+        <div className="grid" aria-hidden="true">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="card skel-card">
+              <span className="skeleton" />
+              <span className="skeleton" />
+              <span className="skeleton" />
+            </div>
+          ))}
+        </div>
+      )}
+      {result.state === 'failed' && (
+        <div className="alert alert-danger" role="alert">
+          <AlertIcon />
+          We couldn't load restaurants. Check your connection and try again.
+        </div>
+      )}
+      {ready && (
+        <DestinationGate tripId={tripId} destination={ready.destination} status={ready.status}>
+      {!empty && (
         <div className="row-between">
           <Link className="btn btn-secondary" to={`/trips/${encodeURIComponent(tripId)}/restaurant-options/compare`}>
             Compare matches
@@ -90,7 +110,6 @@ export function RestaurantOptionsPage() {
         </div>
       )}
 
-      {ready && (
         <div className="stack stack-sm">
           <div className="filter-row">
             <div className="cluster" role="group" aria-label="Filters applied">
@@ -125,27 +144,9 @@ export function RestaurantOptionsPage() {
             </span>
           </div>
         </div>
-      )}
 
-      {homeNote && <p className="text-muted">{`${ready?.home_cuisine} restaurants are listed first.`}</p>}
+      {homeNote && <p className="text-muted">{`${ready.home_cuisine} restaurants are listed first.`}</p>}
 
-      {result.state === 'loading' && (
-        <div className="grid" aria-hidden="true">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="card skel-card">
-              <span className="skeleton" />
-              <span className="skeleton" />
-              <span className="skeleton" />
-            </div>
-          ))}
-        </div>
-      )}
-      {result.state === 'failed' && (
-        <div className="alert alert-danger" role="alert">
-          <AlertIcon />
-          We couldn't load restaurants. Check your connection and try again.
-        </div>
-      )}
       {empty && (
         <div className="empty-state" role="status">
           <SearchIcon />
@@ -163,7 +164,7 @@ export function RestaurantOptionsPage() {
           )}
         </div>
       )}
-      {ready && !empty && (
+      {!empty && (
         <>
           <div className="grid">
             {ready.options.map((o) => (
@@ -174,6 +175,8 @@ export function RestaurantOptionsPage() {
             {`Showing ${plural(ready.options.length, 'matching restaurant', 'matching restaurants')}`}
           </p>
         </>
+      )}
+        </DestinationGate>
       )}
 
       {editing && (

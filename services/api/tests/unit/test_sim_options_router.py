@@ -1,11 +1,10 @@
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip, trip_body
 
 URL = "https://roamly.example/roamly-europe-10"
 
 
 def _trip(client, **changes):
-    body = trip_body(destination="Lisbon, Portugal", start_date="2027-03-12", end_date="2027-03-20", **changes)
-    return client.post("/trips", json=body).json()["id"]
+    return create_trip(client, destination="Lisbon, Portugal", start_date="2027-03-12", end_date="2027-03-20", **changes)
 
 
 def test_shortlist_lists_both_sources_with_prices_per_traveller(sign_in_as):
@@ -76,8 +75,7 @@ def test_pick_stays_but_flags_when_dates_change(sign_in_as):
 
 
 def _dated(client, start, end, destination="Lisbon, Portugal"):
-    body = trip_body(destination=destination, start_date=start, end_date=end)
-    return client.post("/trips", json=body).json()["id"]
+    return create_trip(client, destination=destination, start_date=start, end_date=end)
 
 
 def test_april_2027_trip_shows_sim_options(sign_in_as):

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { AlertIcon, SearchIcon } from '../auth/icons'
 import { clearSim, fetchSimOptions, fetchTrip, pickSim } from './api'
 import type { SimOption, SimOptions } from './api'
+import { DestinationGate } from './DestinationGate'
 import { SimOptionCard, formatSimRange } from './SimOptionCard'
 import { Toast } from './Toast'
 
@@ -13,8 +14,6 @@ const PREFERENCE_TEXT = {
   physical: ['Preference: Physical SIM', 'Physical SIM options are ranked first.'],
   none: ['No SIM preference', 'Ordered by coverage, then data, then price.'],
 } as const
-
-const countryOf = (place: string) => place.split(',').pop()?.trim() ?? place
 
 /** SIM and eSIM options for the trip destination and dates, to compare, pick and book. */
 export function SimOptionsPage() {
@@ -59,7 +58,7 @@ export function SimOptionsPage() {
   const stale = data?.picked && !data.options.some((o) => o.id === data.picked?.option_id) ? data.picked : null
   const [badge, note] = PREFERENCE_TEXT[data?.preference ?? 'none']
   const tripDates = data?.start_date && data.end_date ? formatSimRange(data.start_date, data.end_date) : ''
-  const country = data ? countryOf(data.place) : ''
+  const country = data?.destination?.country ?? ''
 
   return (
     <div className="stack stack-lg">
@@ -96,7 +95,9 @@ export function SimOptionsPage() {
           We couldn't update your pick. Check your connection and try again.
         </div>
       )}
-      {data && (data.options.length > 0 || stale) && (
+      {data && (
+        <DestinationGate tripId={tripId} destination={data.destination} status={data.status}>
+      {(data.options.length > 0 || stale) && (
         <>
           <div className="cluster">
             <span className="badge badge-neutral">{badge}</span>
@@ -116,7 +117,7 @@ export function SimOptionsPage() {
           </div>
         </div>
       )}
-      {data && (data.options.length > 0 || stale) && (
+      {(data.options.length > 0 || stale) && (
         <div className="stack" aria-live="polite">
           {stale && (
             <SimOptionCard
@@ -147,7 +148,7 @@ export function SimOptionsPage() {
           ))}
         </div>
       )}
-      {data && data.options.length === 0 && !stale && (
+      {data.options.length === 0 && !stale && (
         <div className="empty-state">
           <SearchIcon />
           <h2 className="text-lg">No SIM options match this destination and trip dates.</h2>
@@ -156,6 +157,8 @@ export function SimOptionsPage() {
             Change trip dates
           </Link>
         </div>
+      )}
+        </DestinationGate>
       )}
       {toast && <Toast key={toast.id} message={toast.message} />}
     </div>

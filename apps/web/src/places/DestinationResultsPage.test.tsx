@@ -428,3 +428,63 @@ describe('Destination results in local mode', () => {
     expect(screen.queryByText(/generated locally/)).not.toBeInTheDocument()
   })
 })
+
+describe('Destination results for a trip', () => {
+  const STARTER = { status: 200, body: [{ name: 'Portugal', places: ['Lisbon'] }] }
+  const tripWith = (over: object) => ({ status: 200, body: { id: 't1', name: 'Iberia', ...over } })
+
+  it('shows the trip destination label and its places (AC4, AC5)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /trips/t1': tripWith({ country: 'Portugal', place: 'Lisbon' }),
+      'GET /starter-destinations': STARTER,
+    })
+    renderAt('/destinations?destination=Lisbon&trip=t1')
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+  })
+
+  it('searches the trip place when no destination is in the address (AC4)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /trips/t1': tripWith({ country: 'Portugal', place: 'Lisbon' }),
+      'GET /starter-destinations': STARTER,
+    })
+    renderAt('/destinations?trip=t1')
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+  })
+
+  it('asks to choose a destination when the trip has none (AC6)', async () => {
+    stubApi({ ...lisbon, 'GET /trips/t1': tripWith({}), 'GET /starter-destinations': STARTER })
+    renderAt('/destinations?trip=t1')
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+  })
+
+  it('asks to choose a place when the trip has a country only (AC8)', async () => {
+    stubApi({ ...lisbon, 'GET /trips/t1': tripWith({ country: 'Portugal' }), 'GET /starter-destinations': STARTER })
+    renderAt('/destinations?trip=t1')
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+  })
+
+  it('says there is no information for a country with no data (AC7)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /trips/t1': tripWith({ country: 'Atlantis', place: 'Lisbon' }),
+      'GET /starter-destinations': STARTER,
+    })
+    renderAt('/destinations?destination=Lisbon&trip=t1')
+    expect(await screen.findByText('No information available for this country')).toBeInTheDocument()
+  })
+
+  it('says there is no information for a place with no places (AC9)', async () => {
+    stubApi({
+      'GET /places?destination=Lisbon': { status: 200, body: [] },
+      'GET /trips': { status: 200, body: [] },
+      'GET /trips/t1': tripWith({ country: 'Portugal', place: 'Lisbon' }),
+      'GET /starter-destinations': STARTER,
+    })
+    renderAt('/destinations?destination=Lisbon&trip=t1')
+    expect(await screen.findByText('No information available for this place')).toBeInTheDocument()
+    expect(screen.queryByText('No places match your search')).not.toBeInTheDocument()
+  })
+})

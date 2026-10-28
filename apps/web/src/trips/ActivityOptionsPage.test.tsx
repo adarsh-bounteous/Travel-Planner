@@ -34,8 +34,17 @@ const option = (title: string, over: Partial<ActivityOption> = {}): ActivityOpti
   ...over,
 })
 
-const open = (options: ActivityOption[]) => {
-  const body: ActivityOptions = { place: 'Lisbon', travellers: 2, options }
+const LISBON = { country: 'Portugal', place: 'Lisbon', label: 'Lisbon, Portugal' }
+
+const open = (options: ActivityOption[], over: Partial<ActivityOptions> = {}) => {
+  const body: ActivityOptions = {
+    place: 'Lisbon',
+    destination: LISBON,
+    status: 'ready',
+    travellers: 2,
+    options,
+    ...over,
+  }
   stubApi({
     'GET /trips/t1': { status: 200, body: trip },
     'GET /trips/t1/activity-options': { status: 200, body },
@@ -79,5 +88,22 @@ describe('activity options page', () => {
     open([])
     expect(await screen.findByText(/nothing matches/i)).toBeInTheDocument()
     expect(screen.getByText(/change your interests or budget/i)).toBeInTheDocument()
+  })
+
+  it('shows the chosen destination label (AC4, AC5)', async () => {
+    open([option('Tile Museum')])
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
+  })
+
+  it('asks to choose a destination when there is none (AC6, AC8)', async () => {
+    open([], { destination: null, status: 'no_destination' })
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+    expect(screen.queryByText(/nothing matches/i)).not.toBeInTheDocument()
+  })
+
+  it('says there is no information for a place with no data (AC9)', async () => {
+    open([], { status: 'no_place_data' })
+    expect(await screen.findByText('No information available for this place')).toBeInTheDocument()
+    expect(screen.queryByText(/nothing matches/i)).not.toBeInTheDocument()
   })
 })

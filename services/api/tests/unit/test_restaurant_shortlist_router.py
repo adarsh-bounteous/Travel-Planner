@@ -1,12 +1,11 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip
 
 
 def _trip(client, destination="Lisbon"):
-    body = trip_body(name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination=destination)
-    return client.post("/trips", json=body).json()["id"]
+    return create_trip(client, name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination=destination)
 
 
 def _shortlist(client, tid):

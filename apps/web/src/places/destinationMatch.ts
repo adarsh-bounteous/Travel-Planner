@@ -1,3 +1,5 @@
+import { destinationLabel } from '../trips/destination'
+
 export type Catalogue = { name: string; places: string[] }[]
 export type Choice = { country: string; place: string }
 export type Evaluation =
@@ -52,7 +54,7 @@ export function evaluateDestination(query: string, catalogue: Catalogue): Evalua
   return best ? { kind: 'near', choice: best } : { kind: 'none' }
 }
 
-export const formatDestination = (c: Choice) => `${c.place}, ${c.country}`
+export const formatDestination = (c: Choice) => destinationLabel(c.country, c.place)
 
 /** Reads a stored "Place, Country"; anything else (legacy free text) is no choice. */
 export function parseDestination(

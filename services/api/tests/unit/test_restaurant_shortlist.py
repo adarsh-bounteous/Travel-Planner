@@ -23,7 +23,8 @@ def _trip(budget=700, travellers=2, days=7):
     return Trip(
         id="t1",
         name="Trip",
-        destination="Lisbon",
+        country="Portugal",
+        place="Lisbon",
         budget=budget,
         traveller_count=travellers,
         start_date=date(2027, 1, 1),
@@ -33,7 +34,7 @@ def _trip(budget=700, travellers=2, days=7):
 
 
 def _options(*specs):
-    return RestaurantOptions(place="Lisbon", options=[_r(*s) for s in specs])
+    return RestaurantOptions(destination=None, status="ready", place="Lisbon", options=[_r(*s) for s in specs])
 
 
 def _names(out):
@@ -83,7 +84,7 @@ def test_budget_per_person_and_missing_budget():
 
 
 def test_other_currency_counts_as_fitting():
-    options = RestaurantOptions(place="Lisbon", options=[_r("Tokyo", 9000, currency="JPY")])
+    options = RestaurantOptions(destination=None, status="ready", place="Lisbon", options=[_r("Tokyo", 9000, currency="JPY")])
     out = build_shortlist(options, _trip(), DiningFilters(), [])
     assert out.entries[0].fits_budget is True
 

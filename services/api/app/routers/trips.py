@@ -20,11 +20,19 @@ from app.routers.deps import (
     get_trips,
     get_visa_rules,
 )
+from app.trips.destination import (
+    ChosenDestination,
+    DestinationStatus,
+    chosen_destination,
+    country_has_any_place,
+    destination_status,
+)
 from app.trips.destination_conversion import convert_trip
 from app.trips.destination_match import best_match
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
 from app.trips.medical import TravellerGuidance, guidance_for
+from app.trips.medical import has_data as medical_has_data
 from app.trips.profile_store import Profile, ProfileStore
 from app.trips.rates import RateSource
 from app.trips.recommendations import Recommendation, RecommendationSource
@@ -33,7 +41,7 @@ from app.trips.visa import (
     Person,
     VisaResult,
     VisaRuleSource,
-    destination_country,
+    has_guidance,
     self_check_key,
     visa_result_for,
 )
@@ -461,8 +469,14 @@ def _people(trip: Trip, profile) -> list[Person]:
     ]
 
 
+def _chosen_country(trip: Trip) -> str:
+    chosen = chosen_destination(trip)
+    return chosen.country if chosen else ""
+
+
 def _visa_results(trip: Trip, profile, source: VisaRuleSource) -> list[VisaResult]:
-    return [visa_result_for(trip.destination, p, source, trip.visa_self_checks) for p in _people(trip, profile)]
+    country = _chosen_country(trip)
+    return [visa_result_for(country, p, source, trip.visa_self_checks) for p in _people(trip, profile)]
 
 
 @router.get("/{trip_id}/requirements")
@@ -490,7 +504,8 @@ def trip_requirements(
 
 
 class VisaView(BaseModel):
-    destination: str
+    destination: ChosenDestination | None
+    status: DestinationStatus
     published_on: date
     travellers: list[VisaResult]
 
@@ -502,8 +517,12 @@ class SelfCheck(BaseModel):
 def _visa_view(
     trip: Trip, profile, source: VisaRuleSource
 ) -> VisaView:
+    chosen = chosen_destination(trip)
     return VisaView(
-        destination=destination_country(trip.destination),
+        destination=chosen,
+        status=destination_status(
+            chosen, needs_place=False, country_has_data=bool(chosen) and has_guidance(chosen.country)
+        ),
         published_on=source.published_on(),
         travellers=_visa_results(trip, profile, source),
     )
@@ -539,13 +558,19 @@ def set_visa_self_check(
     person = next((p for p in _people(trip, profile) if self_check_key(p) == traveller_key), None)
     if person is None:
         raise NOT_FOUND
-    if visa_result_for(trip.destination, person, visa_rules, []).status != "no_data":
+    if visa_result_for(_chosen_country(trip), person, visa_rules, []).status != "no_data":
         raise VISA_HAS_DATA  # the mark only means something while there is no data
     others = [k for k in trip.visa_self_checks if k != traveller_key]
     trip.visa_self_checks = [*others, traveller_key] if body.checked else others
     trip.updated_at = now
     trips.save_trip(owner, trip)
     return _visa_view(trip, profile, visa_rules)
+
+
+class MedicalGuidanceView(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
+    travellers: list[TravellerGuidance]
 
 
 @router.get("/{trip_id}/medical-guidance")
@@ -555,25 +580,32 @@ def trip_medical_guidance(
     trips: TripStore = Depends(get_trips),
     profiles: ProfileStore = Depends(get_profiles),
     identity: IdentityProvider = Depends(get_identity),
-) -> list[TravellerGuidance]:
+) -> MedicalGuidanceView:
     trip = _owned_trip(trips, identity, owner, trip_id)
+    chosen = chosen_destination(trip)
     profile = profiles.get_profile(owner) or Profile()  # read only: the owner's own answers
     people = [
         (None, profile.display_name or "You", profile),
         *((t.id, t.name, t) for t in trip.travellers),
     ]
-    return [
-        guidance_for(
-            trip.destination,
-            who.citizenship,
-            who.residence,
-            who.vaccinations_had,
-            who.pregnant,
-            name=name,
-            traveller_id=tid,
-        )
-        for tid, name, who in people
-    ]
+    return MedicalGuidanceView(
+        destination=chosen,
+        status=destination_status(
+            chosen, needs_place=False, country_has_data=bool(chosen) and medical_has_data(chosen.country)
+        ),
+        travellers=[
+            guidance_for(
+                chosen.country if chosen else "",
+                who.citizenship,
+                who.residence,
+                who.vaccinations_had,
+                who.pregnant,
+                name=name,
+                traveller_id=tid,
+            )
+            for tid, name, who in people
+        ],
+    )
 
 
 @router.post("/{trip_id}/editors", status_code=201)
@@ -750,10 +782,17 @@ def day_recommendations(
     source: RecommendationSource = Depends(get_recommendations),
 ) -> list[Recommendation]:
     trip, _ = _editable_trip(trips, identity, user, trip_id)
-    if not trip.destination:
+    chosen = chosen_destination(trip)
+    if chosen is None or not chosen.place:
         return []
     on_day = {a.name for a in trip.activities if a.date == day_date}
-    return [r for r in source.for_destination(trip.destination) if r.name not in on_day]
+    return [r for r in source.for_destination(chosen.place) if r.name not in on_day]
+
+
+class TripRecommendations(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
+    items: list[Recommendation]
 
 
 @router.get("/{trip_id}/recommendations")
@@ -763,15 +802,20 @@ def trip_recommendations(
     trips: TripStore = Depends(get_trips),
     identity: IdentityProvider = Depends(get_identity),
     source: RecommendationSource = Depends(get_recommendations),
-) -> list[Recommendation]:
+) -> TripRecommendations:
     trip, _ = _editable_trip(trips, identity, user, trip_id)
-    if not trip.destination:
-        return []
-    recommendations = source.for_destination(trip.destination)
-    if not trip.interests:
-        return recommendations
+    chosen = chosen_destination(trip)
+    # Place data is measured before the interest filter, so a filter that empties the list is not "no information".
+    recommendations = source.for_destination(chosen.place) if chosen and chosen.place else []
+    status = destination_status(
+        chosen,
+        needs_place=True,
+        country_has_data=bool(chosen) and country_has_any_place(chosen.country, lambda p: bool(source.for_destination(p))),
+        place_has_data=bool(recommendations),
+    )
     wanted = {i.casefold() for i in trip.interests}
-    return [r for r in recommendations if r.interest and r.interest.casefold() in wanted]
+    items = [r for r in recommendations if r.interest and r.interest.casefold() in wanted] if wanted else recommendations
+    return TripRecommendations(destination=chosen, status=status, items=items)
 
 
 @router.post("/{trip_id}/activities", status_code=201)

@@ -3,12 +3,13 @@ import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon, CheckIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import { fetchMedicalGuidance, fetchTrip } from './api'
-import type { Trip, TravellerGuidance, VaccinationGuidance } from './api'
+import type { MedicalGuidanceView, Trip, TravellerGuidance, VaccinationGuidance } from './api'
+import { DestinationGate } from './DestinationGate'
 
 type Load =
   | { status: 'loading' }
   | { status: 'failed' }
-  | { status: 'loaded'; trip: Trip; rows: TravellerGuidance[] }
+  | { status: 'loaded'; trip: Trip; view: MedicalGuidanceView }
 
 const STATUS: Record<VaccinationGuidance['status'], { badge: string; label: string; icon: ReactNode }> = {
   required: { badge: 'badge-warning', label: 'Required', icon: <AlertIcon /> },
@@ -133,7 +134,7 @@ export function MedicalGuidancePage() {
   useEffect(() => {
     let current = true
     Promise.all([fetchTrip(tripId), fetchMedicalGuidance(tripId)]).then(
-      ([trip, rows]) => current && setLoad({ status: 'loaded', trip, rows }),
+      ([trip, view]) => current && setLoad({ status: 'loaded', trip, view }),
       () => current && setLoad({ status: 'failed' }),
     )
     return () => {
@@ -170,8 +171,7 @@ export function MedicalGuidancePage() {
       </div>
     )
 
-  const { trip, rows } = load
-  const country = (trip.destination ?? trip.name).split(',').pop()?.trim()
+  const { trip, view } = load
   return (
     <div className="stack stack-lg">
       <nav className="crumbs" aria-label="Breadcrumb">
@@ -186,16 +186,20 @@ export function MedicalGuidancePage() {
         </ol>
       </nav>
       <div className="stack stack-sm">
-        <h1>Medical guidance for {country}</h1>
+        <h1>
+          {view.destination ? `Medical guidance for ${view.destination.country}` : 'Medical guidance'}
+        </h1>
         <p className="text-muted">
           Based on each traveller's residence, citizenship and health details.
         </p>
       </div>
-      <div className="stack stack-lg" aria-live="polite">
-        {rows.map((row) => (
-          <TravellerCard key={row.traveller_id ?? 'owner'} row={row} />
-        ))}
-      </div>
+      <DestinationGate tripId={trip.id} destination={view.destination} status={view.status}>
+        <div className="stack stack-lg" aria-live="polite">
+          {view.travellers.map((row) => (
+            <TravellerCard key={row.traveller_id ?? 'owner'} row={row} />
+          ))}
+        </div>
+      </DestinationGate>
       <p>
         <Link to="/account">Update health details in your profile</Link>
       </p>

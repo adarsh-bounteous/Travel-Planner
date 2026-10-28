@@ -31,6 +31,8 @@ test('compares Lisbon restaurants, then removes one from the shortlist', async (
     route.fulfill({
       json: {
         place: 'Lisbon',
+        destination: { country: 'Portugal', place: 'Lisbon', label: 'Lisbon, Portugal' },
+        status: 'ready',
         home_cuisine: '',
         options: ENTRIES.map((e) => e.restaurant),
         filters_applied: { profile: [], trip: [] },

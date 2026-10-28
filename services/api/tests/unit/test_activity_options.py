@@ -15,7 +15,8 @@ def trip(interests=(), budget=None, traveller_count=None, currency="EUR"):
     return Trip(
         id="t1",
         name="Trip",
-        destination="Lisbon",
+        country="Portugal",
+        place="Lisbon",
         interests=list(interests),
         budget=budget,
         traveller_count=traveller_count,

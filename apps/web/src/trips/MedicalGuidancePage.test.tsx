@@ -53,15 +53,37 @@ const tom = {
   advisories: ['General health advisory for Portugal'],
 }
 
-const open = (rows: unknown[]) => {
+const LISBON = { country: 'Portugal', place: 'Lisbon', label: 'Lisbon, Portugal' }
+
+const open = (rows: unknown[], over = {}) => {
   stubApi({
     'GET /trips/t1': { status: 200, body: trip },
-    'GET /trips/t1/medical-guidance': { status: 200, body: rows },
+    'GET /trips/t1/medical-guidance': {
+      status: 200,
+      body: { destination: LISBON, status: 'ready', travellers: rows, ...over },
+    },
   })
   renderAt('/trips/t1/medical-guidance')
 }
 
 describe('Medical guidance', () => {
+  it('shows the chosen destination label (AC3, AC5)', async () => {
+    open([maya])
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
+  })
+
+  it('asks to choose a destination when there is none (AC6)', async () => {
+    open([maya], { destination: null, status: 'no_destination' })
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+    expect(screen.queryByText('Maya Chen')).not.toBeInTheDocument()
+  })
+
+  it('says there is no information for a country with no data (AC7)', async () => {
+    open([maya], { status: 'no_country_data' })
+    expect(await screen.findByText('No information available for this country')).toBeInTheDocument()
+    expect(screen.queryByText('Maya Chen')).not.toBeInTheDocument()
+  })
+
   it('shows each traveller under their own name with the confirm note (AC1, AC5, AC11)', async () => {
     open([maya, tom])
     expect(await screen.findByRole('heading', { name: 'Maya Chen', level: 2 })).toBeInTheDocument()

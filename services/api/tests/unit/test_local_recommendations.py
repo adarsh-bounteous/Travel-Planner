@@ -7,6 +7,8 @@ from app.main import app
 from app.routers import deps
 from app.routers.deps import get_recommendations
 from app.trips.recommendations import InMemoryRecommendations, Recommendation
+from app.trips.destination_match import best_match
+from tests.trip_body import choose_destination
 from tests.unit.test_local_trips_invites_share import BODY, demo, local  # noqa: F401
 
 
@@ -18,9 +20,10 @@ def client(local):  # noqa: F811
 def get_for(client, destination, interests=None):
     body = {**BODY, "destination": destination, "interests": interests or []}
     tid = client.post("/trips", json=body).json()["id"]
+    choose_destination(tid, *(best_match(destination) or (None, None)))
     r = client.get(f"/trips/{tid}/recommendations")
     assert r.status_code == 200
-    return r.json()
+    return r.json()["items"]
 
 
 def test_trip_with_destination_gets_recommendations(client):
@@ -52,10 +55,11 @@ def test_trip_without_interests_key_still_loads(client):
 
 
 def test_route_uses_the_injected_source(client):
-    fake = InMemoryRecommendations({"rome": [Recommendation(id="fake", name="Fake", detail="d")]})
+    fake = InMemoryRecommendations({"lisbon": [Recommendation(id="fake", name="Fake", detail="d")]})
     app.dependency_overrides[get_recommendations] = lambda: fake
     tid = client.post("/trips", json=BODY).json()["id"]
-    assert [r["id"] for r in client.get(f"/trips/{tid}/recommendations").json()] == ["fake"]
+    choose_destination(tid, "Portugal", "Lisbon")
+    assert [r["id"] for r in client.get(f"/trips/{tid}/recommendations").json()["items"]] == ["fake"]
 
 
 @pytest.mark.parametrize("mode,has_kyoto", [("on", True), ("off", False)])
@@ -69,16 +73,18 @@ def test_switch_picks_the_source(monkeypatch, mode, has_kyoto):
 
 def test_editing_a_trip_keeps_its_interests(client):
     tid = client.post("/trips", json={**BODY, "destination": "Lisbon", "interests": ["Culture"]}).json()["id"]
+    choose_destination(tid, "Portugal", "Lisbon")
     edit = {k: BODY[k] for k in ("name", "destination", "start_date", "end_date", "budget")}
     assert client.put(f"/trips/{tid}", json={**edit, "destination": "Lisbon", "name": "Renamed"}).status_code == 200
-    recs = client.get(f"/trips/{tid}/recommendations").json()
+    recs = client.get(f"/trips/{tid}/recommendations").json()["items"]
     assert recs and {r["interest"] for r in recs} == {"Culture"}
 
 
 def test_service_source_recommendations_match_interests_and_can_be_saved(client):
     app.dependency_overrides[get_recommendations] = deps._recommendations
     tid = client.post("/trips", json={**BODY, "destination": "Lisbon", "interests": ["Culture"]}).json()["id"]
-    recs = client.get(f"/trips/{tid}/recommendations").json()
+    choose_destination(tid, "Portugal", "Lisbon")
+    recs = client.get(f"/trips/{tid}/recommendations").json()["items"]
     assert recs and all(r["interest"] == "Culture" and r["place"]["id"] for r in recs)
 
 

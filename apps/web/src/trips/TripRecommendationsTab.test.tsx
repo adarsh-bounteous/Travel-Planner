@@ -111,4 +111,17 @@ describe('TripRecommendationsTab', () => {
       expect.stringMatching(/^PUT \/saved-places\//),
     )
   })
+
+  it('requests no outside image in local mode, and none before the mode is known', async () => {
+    open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode: true } } })
+    expect(screen.queryAllByRole('img')).toHaveLength(0)
+    const imgs = await screen.findAllByRole('img')
+    expect(imgs.every((i) => i.getAttribute('src')!.startsWith('/'))).toBe(true)
+  })
+
+  it('keeps the original image outside local mode', async () => {
+    open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode: false } } })
+    const imgs = await screen.findAllByRole('img')
+    expect(imgs[0]).toHaveAttribute('src', 'https://img.example/tom.jpg')
+  })
 })

@@ -261,6 +261,23 @@ legend { padding: 0; }
 .answer-link { flex: none; min-height: var(--size-control-md); display: inline-flex; align-items: center; padding: 0 var(--space-1); background: none; border: 0; font: inherit; font-weight: var(--font-weight-medium); color: var(--color-primary-hover); text-decoration: underline; cursor: pointer; }
 .chipset { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
+/* Insurance details */
+.checklist { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-1); }
+.checklist li { display: flex; align-items: center; gap: var(--space-2); color: var(--color-fg-muted); font-size: var(--font-size-sm); }
+.checklist li.is-done { color: var(--color-success); }
+.checklist .icon { width: 1em; height: 1em; }
+.fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.fieldset legend { padding: 0; }
+.activity-grid { display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); }
+.activity { min-height: var(--size-control-lg); padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); }
+.activity:has(.checkbox:checked) { border-color: var(--color-primary); background: var(--color-primary-subtle); }
+.activity .check { width: 100%; min-height: var(--size-control-md); }
+.row-end { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.input-row { display: flex; gap: var(--space-2); align-items: flex-start; }
+.input-row .field { flex: 1; min-width: 0; }
+.input-row .btn-companion { margin-top: calc(var(--font-size-sm) * var(--line-height-body) + var(--space-1)); }
+.list-plain { list-style: none; margin: 0; padding: 0; }
+
 /* Stay options */
 .select { width: 100%; min-height: var(--size-control-md); padding: var(--space-1) var(--space-2); font: inherit; color: var(--color-fg); background: var(--color-bg); border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-md); }
 .check { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }

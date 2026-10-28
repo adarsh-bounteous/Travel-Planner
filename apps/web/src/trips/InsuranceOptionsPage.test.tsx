@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { InsuranceOptions, Trip } from './api'
 import { PLANS, options, pick } from './insuranceFixtures'
@@ -120,10 +120,94 @@ describe('insurance options page', () => {
     expect(screen.getByText('Insurance: not yet picked')).toBeInTheDocument()
   })
 
-  it('asks for missing details instead of showing plans', async () => {
+  it('asks for the details it can collect in a form instead of showing plans', async () => {
     open(options([], { missing: ['risky activities answer', 'age of Marco'], risky_activities: null }))
-    expect(await screen.findByText(/risky activities answer, age of Marco/)).toBeInTheDocument()
+    expect(await screen.findByLabelText('Owner age')).toBeInTheDocument()
+    expect(screen.queryByText(/We need a few more details/)).toBeNull()
     expect(screen.queryByText('No plans suit this trip.')).toBeNull()
+  })
+
+  it('asks for a missing destination and trip dates on the trip', async () => {
+    open(options([], { missing: ['destination', 'trip dates', 'your age'] }))
+    expect(await screen.findByText(/Add destination, trip dates to this trip/)).toBeInTheDocument()
+  })
+
+  const fillForm = async () => {
+    fireEvent.change(await screen.findByLabelText('Owner age'), { target: { value: '34' } })
+    fireEvent.change(screen.getByLabelText('Companion ages'), { target: { value: '61' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add companion' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Skiing' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Compare plans' }))
+  }
+  const openWithoutDetails = (put: { status: number; body: unknown } = { status: 200, body: trip }) => {
+    const withTrip = { ...trip, destination: 'Japan', start_date: '2026-05-01', end_date: '2026-05-10', budget: 900 }
+    const stub = stubApi({
+      'GET /trips/t1': { status: 200, body: withTrip },
+      'PUT /trips/t1': put,
+      'POST /trips/t1/travellers': { status: 200, body: withTrip },
+      'GET /trips/t1/insurance-options': {
+        status: 200,
+        body: options([], { missing: ['risky activities answer', 'your age'] }),
+      },
+    })
+    // The first options call has no plans; once the details are saved, the next one does.
+    const firstAnswer = stub.getMockImplementation()!
+    let optionCalls = 0
+    stub.mockImplementation(async (path, init) =>
+      path === '/trips/t1/insurance-options' && optionCalls++ > 0
+        ? new Response(JSON.stringify(options(PLANS)), { status: 200 })
+        : firstAnswer(path, init),
+    )
+    renderAt('/trips/t1/insurance-options')
+    return stub
+  }
+
+  it('saves the details and shows the comparison (AC4)', async () => {
+    const stub = openWithoutDetails()
+    await fillForm()
+    expect(await screen.findByRole('link', { name: 'Compare plans' })).toHaveAttribute(
+      'href',
+      '/trips/t1/insurance-options/compare',
+    )
+    expect(calls(stub)).toEqual(
+      expect.arrayContaining(['PUT /trips/t1', 'POST /trips/t1/travellers', 'GET /trips/t1/insurance-options']),
+    )
+    const put = stub.mock.calls.find(([, i]) => (i as RequestInit)?.method === 'PUT')
+    expect(JSON.parse((put?.[1] as RequestInit).body as string)).toMatchObject({
+      name: 'Japan',
+      destination: 'Japan',
+      owner_age: 34,
+      risky_activities: true,
+    })
+    const post = stub.mock.calls.find(([, i]) => (i as RequestInit)?.method === 'POST')
+    expect(JSON.parse((post?.[1] as RequestInit).body as string)).toEqual({ name: 'Companion 1', age: 61 })
+  })
+
+  it('never removes a traveller the form does not show', async () => {
+    const withTrip = {
+      ...trip,
+      destination: 'Japan',
+      start_date: '2026-05-01',
+      end_date: '2026-05-10',
+      travellers: [{ id: 'x1', name: 'Marco', citizenship: 'Italy' }],
+    }
+    const stub = stubApi({
+      'GET /trips/t1': { status: 200, body: withTrip },
+      'PUT /trips/t1': { status: 200, body: withTrip },
+      'POST /trips/t1/travellers': { status: 200, body: withTrip },
+      'GET /trips/t1/insurance-options': { status: 200, body: options([], { missing: ['your age'] }) },
+    })
+    renderAt('/trips/t1/insurance-options')
+    await fillForm()
+    await waitFor(() => expect(calls(stub)).toContain('POST /trips/t1/travellers'))
+    expect(calls(stub).some((c) => c.startsWith('DELETE'))).toBe(false)
+  })
+
+  it('says when the details cannot be saved and shows no plans', async () => {
+    openWithoutDetails({ status: 500, body: {} })
+    await fillForm()
+    expect(await screen.findByText("We couldn't save your details.")).toBeInTheDocument()
+    expect(screen.queryByRole('article')).toBeNull()
   })
 
   it('says when the options cannot be loaded', async () => {

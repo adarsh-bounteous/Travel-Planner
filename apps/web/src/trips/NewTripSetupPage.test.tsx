@@ -6,7 +6,7 @@ afterEach(() => vi.unstubAllGlobals())
 const created = {
   id: 'new-id',
   name: 'Lisbon long weekend',
-  destination: 'Lisbon',
+  destination: 'Lisbon, Portugal',
   start_date: '2027-03-12',
   end_date: '2027-03-15',
   budget: 1800,
@@ -41,13 +41,25 @@ const replies = {
   'POST /trips': { status: 201, body: created },
   'GET /trips/new-id': { status: 200, body: created },
   'GET /trips': { status: 200, body: [] },
+  'GET /starter-destinations': {
+    status: 200,
+    body: [
+      { name: 'Japan', places: ['Tokyo', 'Kyoto', 'Osaka'] },
+      { name: 'Portugal', places: ['Lisbon', 'Porto', 'Lagos'] },
+    ],
+  },
 }
 
 const type = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
+const pickDestination = () => {
+  type('Country', 'Portugal')
+  type('Place', 'Lisbon')
+}
+
 function fillAll() {
-  type('Destination', 'Lisbon')
+  pickDestination()
   type('Start date', '2027-03-12')
   type('End date', '2027-03-15')
   type('Number of travellers', '2')
@@ -79,7 +91,7 @@ describe('New trip set-up', () => {
     const post = fetchMock.mock.calls.find(([p, init]) => p === '/trips' && init?.method === 'POST')
     expect(JSON.parse(post![1]!.body as string)).toEqual({
       name: 'Lisbon long weekend',
-      destination: 'Lisbon',
+      destination: 'Lisbon, Portugal',
       start_date: '2027-03-12',
       end_date: '2027-03-15',
       traveller_count: 2,
@@ -89,6 +101,29 @@ describe('New trip set-up', () => {
     expect(screen.getByText(/Lisbon long weekend is ready/)).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Places' })).toHaveAttribute('aria-selected', 'true')
     expect(await screen.findByText('Trip created. Here are your shortlists.')).toBeInTheDocument()
+  })
+
+  it('offers the destination as a dropdown, not a free-text field (AC1)', async () => {
+    stubApi(replies)
+    renderAt('/trips/new')
+    await toDetails()
+    expect(screen.getByRole('button', { name: /destination/i })).toHaveAttribute(
+      'aria-haspopup',
+      'listbox',
+    )
+    expect(screen.queryByPlaceholderText('Where are you going?')).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Destination' })).not.toBeInTheDocument()
+  })
+
+  it('does not save when nothing is chosen (AC11)', async () => {
+    const fetchMock = stubApi(replies)
+    renderAt('/trips/new')
+    await toDetails()
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    expect(
+      await screen.findByText(/Destination: Choose a country and a place\./),
+    ).toBeInTheDocument()
+    expect(posts(fetchMock)).toHaveLength(0)
   })
 
   it('opens with no trip currency chosen (AC8)', async () => {
@@ -110,7 +145,7 @@ describe('New trip set-up', () => {
   })
 
   it.each([
-    ['Destination', 'Enter a destination, like Lisbon.'],
+    ['Destination', 'Choose a country and a place.'],
     ['Start date', 'Enter a start and end date.'],
     ['Number of travellers', 'Enter the number of travellers.'],
     ['Budget', 'Enter a budget.'],
@@ -121,7 +156,8 @@ describe('New trip set-up', () => {
     renderAt('/trips/new')
     await toDetails()
     fillAll()
-    type(label, '')
+    if (label === 'Destination') type('Country', '')
+    else type(label, '')
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     const field = screen.getByLabelText(label)
     const error = await screen.findByText(message)
@@ -150,7 +186,7 @@ describe('New trip set-up', () => {
     fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByText("We couldn't save this trip. Try again.")).toBeInTheDocument()
-    expect(screen.getByLabelText('Destination')).toHaveValue('Lisbon')
+    expect(screen.getByLabelText('Place')).toHaveValue('Lisbon')
     expect(screen.getByRole('button', { name: 'Finish' })).toBeEnabled()
   })
 
@@ -158,7 +194,7 @@ describe('New trip set-up', () => {
     const fetchMock = stubApi({ ...replies, 'POST /trips': { status: 500 } })
     renderAt('/trips/new')
     await toDetails()
-    type('Destination', 'Lisbon')
+    pickDestination()
     fireEvent.click(screen.getByRole('button', { name: 'Back' }))
     const dialog = await screen.findByRole('dialog', { name: 'Leave set-up?' })
     expect(within(dialog).getByText('Your trip is not saved until you finish set-up.')).toBeInTheDocument()
@@ -172,7 +208,7 @@ describe('New trip set-up', () => {
     stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    type('Destination', 'Lisbon')
+    pickDestination()
     fireEvent.click(screen.getByRole('button', { name: 'Back' }))
     fireEvent.click(
       within(await screen.findByRole('dialog', { name: 'Leave set-up?' })).getByRole('button', {
@@ -180,7 +216,7 @@ describe('New trip set-up', () => {
       }),
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(screen.getByLabelText('Destination')).toHaveValue('Lisbon')
+    expect(screen.getByLabelText('Place')).toHaveValue('Lisbon')
   })
 })
 

@@ -24,6 +24,7 @@ const costFor = (t: Trip): CostSummary => ({
 const baseTrip = (overrides: Partial<Trip> = {}): Trip => ({
   id: 't1',
   name: 'Lisbon',
+  destination: 'Lisbon, Portugal',
   start_date: '2027-03-03',
   end_date: '2027-03-05',
   budget: 1500,
@@ -41,8 +42,19 @@ const baseTrip = (overrides: Partial<Trip> = {}): Trip => ({
   ...overrides,
 })
 
+const CATALOGUE = {
+  'GET /starter-destinations': {
+    status: 200,
+    body: [
+      { name: 'Japan', places: ['Tokyo', 'Kyoto', 'Osaka'] },
+      { name: 'Portugal', places: ['Lisbon', 'Porto', 'Lagos'] },
+    ],
+  },
+}
+
 const open = (t: Trip = trip()) => {
   const fetchMock = stubApi({
+    ...CATALOGUE,
     'GET /trips/t1': { status: 200, body: t },
     'GET /trips': { status: 200, body: [] },
   })
@@ -151,6 +163,7 @@ describe('TripDetailPage owner edits', () => {
   it('renames the trip and changes the budget from the drawer (AC5, AC7)', async () => {
     const fetchMock = stubApi({
       'GET /trips/t1': { status: 200, body: trip() },
+      ...CATALOGUE,
       'PUT /trips/t1': { status: 200, body: trip({ name: 'Lisbon Spring', budget: 2000 }) },
     })
     renderAt('/trips/t1')
@@ -168,6 +181,41 @@ describe('TripDetailPage owner edits', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Trip saved')
     const body = JSON.parse(sent(fetchMock, 'PUT')[0][1]!.body as string)
     expect(body).toMatchObject({ name: 'Lisbon Spring', budget: 2000 })
+  })
+
+  it('shows the destination as a dropdown with no free-text field (AC2)', async () => {
+    open()
+    const drawer = await openSettings()
+    const trigger = await within(drawer).findByRole('button', { name: /destination/i })
+    expect(trigger).toHaveTextContent('Lisbon, Portugal')
+    expect(within(drawer).queryByRole('textbox', { name: 'Destination' })).not.toBeInTheDocument()
+  })
+
+  it('saves a changed country and place as the destination (AC8)', async () => {
+    const fetchMock = stubApi({
+      ...CATALOGUE,
+      'GET /trips/t1': { status: 200, body: trip() },
+      'PUT /trips/t1': { status: 200, body: trip({ destination: 'Kyoto, Japan', name: 'Kyoto' }) },
+    })
+    renderAt('/trips/t1')
+    const drawer = await openSettings()
+    fireEvent.change(await within(drawer).findByLabelText('Country'), { target: { value: 'Japan' } })
+    fireEvent.change(within(drawer).getByLabelText('Place'), { target: { value: 'Kyoto' } })
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Kyoto' })).toBeInTheDocument()
+    const body = JSON.parse(sent(fetchMock, 'PUT')[0][1]!.body as string)
+    expect(body).toMatchObject({ destination: 'Kyoto, Japan' })
+  })
+
+  it('does not save when no country and place are chosen (AC11)', async () => {
+    const fetchMock = open()
+    const drawer = await openSettings()
+    fireEvent.change(await within(drawer).findByLabelText('Country'), { target: { value: '' } })
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+    expect(await within(drawer).findByRole('alert')).toHaveTextContent(
+      'Choose a country and a place.',
+    )
+    expect(sent(fetchMock, 'PUT')).toHaveLength(0)
   })
 
   it('renames a day (AC6)', async () => {
@@ -239,6 +287,7 @@ describe('TripDetailPage owner edits', () => {
   it('shows a message when the server refuses the save (422)', async () => {
     stubApi({
       'GET /trips/t1': { status: 200, body: trip() },
+      ...CATALOGUE,
       'PUT /trips/t1': { status: 422, body: { code: 'invalid_dates' } },
     })
     renderAt('/trips/t1')
@@ -266,6 +315,7 @@ describe('TripDetailPage delete', () => {
   it('deletes on confirm and lands on Trips with a toast (AC10)', async () => {
     const fetchMock = stubApi({
       'GET /trips/t1': { status: 200, body: trip() },
+      ...CATALOGUE,
       'DELETE /trips/t1': { status: 204 },
       'GET /trips': { status: 200, body: [] },
     })

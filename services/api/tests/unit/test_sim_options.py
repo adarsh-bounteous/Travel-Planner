@@ -96,6 +96,11 @@ def test_no_destination_or_dates_gives_no_options():
     assert gather_sims(SEEDED, trip(start=None, end=None), LABELS, None, RATES).options == []
 
 
+def test_seeded_options_cover_any_trip_dates_but_not_undated_trips():
+    assert gather_sims(SEEDED, trip(start=date(2028, 3, 12), end=date(2028, 3, 20)), LABELS, None, RATES).options != []
+    assert gather_sims(SEEDED, trip(start=None, end=None), LABELS, None, RATES).options == []
+
+
 def test_data_and_price_are_on_every_option():
     out = gather_sims([Stub("w", "web_search", [sim(data_gb=10, price="14.50")])], trip(), LABELS, None, RATES)
     assert out.options[0].data_gb == Decimal(10) and out.options[0].price == Decimal("14.50")

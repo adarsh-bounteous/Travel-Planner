@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon, SearchIcon } from '../auth/icons'
-import { chooseInsurance, clearInsurance, fetchInsuranceOptions, fetchTrip } from './api'
-import type { InsuranceOptions } from './api'
+import {
+  addTraveller,
+  chooseInsurance,
+  clearInsurance,
+  fetchInsuranceOptions,
+  fetchTrip,
+  removeTraveller,
+  saveInsuranceDetails,
+} from './api'
+import type { InsuranceOptions, Trip } from './api'
+import { InsuranceDetailsForm } from './InsuranceDetailsForm'
+import type { InsuranceDetails } from './InsuranceDetailsForm'
 import { InsuranceDisclaimer, ProviderUnavailable } from './InsuranceNotices'
 import { InsurancePlanCard } from './InsurancePlanCard'
 import { openProviderSite } from './providerSite'
@@ -21,14 +31,20 @@ export function InsuranceOptionsPage() {
   const tripHref = `/trips/${encodeURIComponent(tripId)}`
   const [result, setResult] = useState<Load>({ state: 'loading' })
   const [pickedId, setPickedId] = useState<string | null>(null)
+  const [trip, setTrip] = useState<Trip | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveFailed, setSaveFailed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [siteFailed, setSiteFailed] = useState<string | null>(null)
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null)
 
   useEffect(() => {
     fetchTrip(tripId)
-      .then((trip) => setPickedId(trip.insurance?.plan_id ?? null))
-      .catch(() => undefined)
+      .then((loaded) => {
+        setTrip(loaded)
+        setPickedId(loaded.insurance?.plan_id ?? null)
+      })
+      .catch(() => setResult({ state: 'failed' }))
     fetchInsuranceOptions(tripId)
       .then((options) => setResult({ state: 'ready', options }))
       .catch(() => setResult({ state: 'failed' }))
@@ -53,7 +69,38 @@ export function InsuranceOptionsPage() {
     }
   }
 
+  /** Saves the details, matches the companions to travellers, then asks again for plans. */
+  const compare = async ({ ownerAge, companionAges, activities }: InsuranceDetails) => {
+    if (!trip) return
+    setSaving(true)
+    setSaveFailed(false)
+    try {
+      await saveInsuranceDetails(trip, ownerAge, activities.length > 0)
+      // Only travellers the form shows (those with an age) are touched: keep those whose age is still
+      // wanted, remove the ones dropped from the form, then add what is left. The rest stay as they are.
+      const wanted = [...companionAges]
+      let latest = trip
+      for (const traveller of trip.travellers ?? []) {
+        if (traveller.age == null) continue
+        const at = wanted.indexOf(traveller.age)
+        if (at >= 0) wanted.splice(at, 1)
+        else latest = await removeTraveller(tripId, traveller.id)
+      }
+      const kept = (latest.travellers ?? []).length
+      for (const [i, age] of wanted.entries()) latest = await addTraveller(tripId, `Companion ${kept + i + 1}`, age)
+      setTrip({ ...latest, owner_age: ownerAge, risky_activities: activities.length > 0 })
+      setResult({ state: 'ready', options: await fetchInsuranceOptions(tripId) })
+    } catch {
+      setSaveFailed(true)
+      // A partial save may have changed travellers: resync so a retry compares against what is stored.
+      await fetchTrip(tripId).then(setTrip, () => undefined)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const options = result.state === 'ready' ? result.options : null
+  const needsOnTrip = options?.missing.filter((item) => item === 'destination' || item === 'trip dates') ?? []
   const plans = options?.plans ?? []
   return (
     <div className="stack stack-lg">
@@ -76,11 +123,20 @@ export function InsuranceOptionsPage() {
           ))}
         </div>
       )}
-      {options && options.missing.length > 0 && (
+      {needsOnTrip.length > 0 && (
         <div className="alert alert-warning" role="status">
-          <span className="alert-title">We need a few more details.</span> Add {options.missing.join(', ')} to this
-          trip, then check again.
+          <span className="alert-title">We need a few more details.</span> Add {needsOnTrip.join(', ')} to this trip,
+          then check again.
         </div>
+      )}
+      {options && trip && (
+        <InsuranceDetailsForm
+          initialOwnerAge={trip.owner_age ?? null}
+          initialCompanionAges={(trip.travellers ?? []).flatMap((t) => (t.age == null ? [] : [t.age]))}
+          busy={saving}
+          failed={saveFailed}
+          onCompare={compare}
+        />
       )}
       {options && options.missing.length === 0 && plans.length === 0 && (
         <>

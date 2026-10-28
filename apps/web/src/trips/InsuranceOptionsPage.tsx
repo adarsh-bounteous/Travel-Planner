@@ -44,7 +44,7 @@ export function InsuranceOptionsPage() {
         setTrip(loaded)
         setPickedId(loaded.insurance?.plan_id ?? null)
       })
-      .catch(() => undefined)
+      .catch(() => setResult({ state: 'failed' }))
     fetchInsuranceOptions(tripId)
       .then((options) => setResult({ state: 'ready', options }))
       .catch(() => setResult({ state: 'failed' }))
@@ -76,11 +76,13 @@ export function InsuranceOptionsPage() {
     setSaveFailed(false)
     try {
       await saveInsuranceDetails(trip, ownerAge, activities.length > 0)
-      // Keep stored travellers whose age is still wanted; remove the rest, then add what is left.
+      // Only travellers the form shows (those with an age) are touched: keep those whose age is still
+      // wanted, remove the ones dropped from the form, then add what is left. The rest stay as they are.
       const wanted = [...companionAges]
       let latest = trip
       for (const traveller of trip.travellers ?? []) {
-        const at = wanted.indexOf(traveller.age ?? -1)
+        if (traveller.age == null) continue
+        const at = wanted.indexOf(traveller.age)
         if (at >= 0) wanted.splice(at, 1)
         else latest = await removeTraveller(tripId, traveller.id)
       }
@@ -90,6 +92,8 @@ export function InsuranceOptionsPage() {
       setResult({ state: 'ready', options: await fetchInsuranceOptions(tripId) })
     } catch {
       setSaveFailed(true)
+      // A partial save may have changed travellers: resync so a retry compares against what is stored.
+      await fetchTrip(tripId).then(setTrip, () => undefined)
     } finally {
       setSaving(false)
     }

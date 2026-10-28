@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { InsuranceOptions, Trip } from './api'
 import { PLANS, options, pick } from './insuranceFixtures'
@@ -181,6 +181,26 @@ describe('insurance options page', () => {
     })
     const post = stub.mock.calls.find(([, i]) => (i as RequestInit)?.method === 'POST')
     expect(JSON.parse((post?.[1] as RequestInit).body as string)).toEqual({ name: 'Companion 1', age: 61 })
+  })
+
+  it('never removes a traveller the form does not show', async () => {
+    const withTrip = {
+      ...trip,
+      destination: 'Japan',
+      start_date: '2026-05-01',
+      end_date: '2026-05-10',
+      travellers: [{ id: 'x1', name: 'Marco', citizenship: 'Italy' }],
+    }
+    const stub = stubApi({
+      'GET /trips/t1': { status: 200, body: withTrip },
+      'PUT /trips/t1': { status: 200, body: withTrip },
+      'POST /trips/t1/travellers': { status: 200, body: withTrip },
+      'GET /trips/t1/insurance-options': { status: 200, body: options([], { missing: ['your age'] }) },
+    })
+    renderAt('/trips/t1/insurance-options')
+    await fillForm()
+    await waitFor(() => expect(calls(stub)).toContain('POST /trips/t1/travellers'))
+    expect(calls(stub).some((c) => c.startsWith('DELETE'))).toBe(false)
   })
 
   it('says when the details cannot be saved and shows no plans', async () => {

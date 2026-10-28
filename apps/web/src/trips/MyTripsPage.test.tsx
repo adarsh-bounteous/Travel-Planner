@@ -25,6 +25,31 @@ const oslo = {
   shared: true,
 }
 
+describe('MyTripsPage destination conversion', () => {
+  it('shows the Unmatched flag on a flagged trip in the list', async () => {
+    stubApi({
+      'GET /trips': {
+        status: 200,
+        body: [{ id: 't', name: 'Coast', destination: 'Sunny coast', destination_unmatched: true }],
+      },
+    })
+    renderAt('/')
+    expect(await screen.findByText('Unmatched')).toBeInTheDocument()
+  })
+
+  it('shows Country, Place for a converted trip and no flag', async () => {
+    stubApi({
+      'GET /trips': {
+        status: 200,
+        body: [{ id: 't', name: 'Lis', destination: 'Lisbon', country: 'Portugal', place: 'Lisbon' }],
+      },
+    })
+    renderAt('/')
+    expect(await screen.findByText('Portugal, Lisbon')).toBeInTheDocument()
+    expect(screen.queryByText('Unmatched')).not.toBeInTheDocument()
+  })
+})
+
 describe('MyTripsPage', () => {
   it('lists own and shared trips together with name, destination, dates (AC1, AC6)', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [lisbon, oslo] } })

@@ -30,7 +30,7 @@ class StarterCountry(BaseModel):
     places: list[StarterPlace]
 
 
-def _fold(text: str) -> str:
+def fold(text: str) -> str:
     """Lower-case without accents, like the places search."""
     decomposed = unicodedata.normalize("NFKD", text.strip().casefold())
     return "".join(c for c in decomposed if not unicodedata.combining(c))
@@ -306,7 +306,7 @@ def list_countries() -> list[str]:
 
 
 def _country(name: str) -> StarterCountry | None:
-    return next((c for c in STARTER_DESTINATIONS if _fold(c.name) == _fold(name)), None)
+    return next((c for c in STARTER_DESTINATIONS if fold(c.name) == fold(name)), None)
 
 
 def places_in(country: str) -> list[str] | None:
@@ -318,4 +318,4 @@ def content_for(country: str, place: str) -> StarterPlace | None:
     found = _country(country)
     if found is None:
         return None
-    return next((p for p in found.places if _fold(p.name) == _fold(place)), None)
+    return next((p for p in found.places if fold(p.name) == fold(place)), None)

@@ -25,6 +25,7 @@ import { TravelersTab } from './TravelersTab'
 import { TravelHelpersCard } from './TravelHelpersCard'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripRecommendationsTab } from './TripRecommendationsTab'
+import { UnmatchedBadge } from './UnmatchedBadge'
 import { TripTotalCard } from './TripTotalCard'
 import { VisaSummaryCard } from './VisaSummaryCard'
 
@@ -59,6 +60,13 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 /** A trip day by day. Only the owner sees the controls that change it. */
+const savedMessage = (before: Trip, after: Trip) => {
+  if (!before.destination_unmatched) return 'Trip saved'
+  return after.destination_unmatched
+    ? 'Destination saved. Still unmatched.'
+    : 'Destination saved. Unmatched flag removed.'
+}
+
 export function TripDetailPage({ tripId }: { tripId: string }) {
   const navigate = useNavigate()
   const [trip, setTrip] = useState<Trip | null>(null)
@@ -174,6 +182,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       <div className="stack stack-sm">
         <div className="title-row">
           <h1>{trip.name}</h1>
+          {trip.destination_unmatched && <UnmatchedBadge />}
           <div className="title-actions">
             <button
               className="btn btn-primary"
@@ -310,13 +319,41 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           <TravelHelpersCard trip={trip} />
         )}
       </div>
+      {(trip.destination_unmatched || (trip.country && trip.place)) && (
+        <section className="card stack" aria-labelledby="destination-heading">
+          <h2 id="destination-heading">Destination</h2>
+          <div className="field">
+            <label className="field-label" htmlFor="d-typed">
+              Destination (typed)
+            </label>
+            <input className="input" id="d-typed" value={trip.destination ?? ''} disabled readOnly />
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="d-country">
+              Country
+            </label>
+            <input className="input" id="d-country" value={trip.country ?? ''} disabled readOnly />
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="d-place">
+              Place
+            </label>
+            <input className="input" id="d-place" value={trip.place ?? ''} disabled readOnly />
+            {trip.destination_unmatched && (
+              <span className="field-hint">
+                We couldn't match this destination. Edit it to try again.
+              </span>
+            )}
+          </div>
+        </section>
+      )}
       {trip.is_owner && (panel.id === 'settings' || panel.id === 'delete') && (
         <TripSettingsDrawer
           trip={trip}
           covered={panel.id === 'delete'}
           onClose={close}
           onSaved={(updated) => {
-            if (!updated.stays?.some((s) => s.outside_trip)) return saved(updated, 'Trip saved')
+            if (!updated.stays?.some((s) => s.outside_trip)) return saved(updated, savedMessage(trip, updated))
             track(updated)
             setPanel({ id: 'stays-review' })
           }}

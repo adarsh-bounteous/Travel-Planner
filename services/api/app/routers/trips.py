@@ -20,6 +20,8 @@ from app.routers.deps import (
     get_trips,
     get_visa_rules,
 )
+from app.trips.destination_conversion import convert_trip
+from app.trips.destination_match import best_match
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
 from app.trips.medical import TravellerGuidance, guidance_for
@@ -156,6 +158,22 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
     )
 
 
+def _converted(trips: TripStore, owner_id: str, trip: Trip) -> Trip:
+    """The trip with its destination converted; saved once, the first time it is loaded."""
+    done = convert_trip(trip)
+    if done is not trip:
+        trips.save_trip(owner_id, done)
+    return done
+
+
+def _rematched(existing: Trip, destination: str | None) -> dict:
+    """A flagged trip whose destination now matches gets its country and place and loses the flag."""
+    match = best_match(destination) if existing.destination_unmatched else None
+    if match is None:
+        return {}
+    return {"country": match[0], "place": match[1], "destination_unmatched": False}
+
+
 def _load(
     trips: TripStore, identity: IdentityProvider, user_id: str, trip_id: str
 ) -> tuple[Trip, str, bool]:
@@ -165,14 +183,14 @@ def _load(
     """
     trip = trips.get_trip(user_id, trip_id)
     if trip is not None:
-        return trip, user_id, True
+        return _converted(trips, user_id, trip), user_id, True
     email = identity.email_for(user_id)
     for owner_id, shared_id in trips.shared_trips(email.strip().lower()):
         if shared_id != trip_id:
             continue
         shared = trips.get_trip(owner_id, trip_id)
         if shared is not None and can_edit_trip(shared, user_id, owner_id, email):
-            return shared, owner_id, False
+            return _converted(trips, owner_id, shared), owner_id, False
     raise NOT_FOUND
 
 
@@ -249,12 +267,13 @@ def list_trips(
     trips: TripStore = Depends(get_trips),
     identity: IdentityProvider = Depends(get_identity),
 ) -> list[TripListItem]:
-    mine = [TripListItem(**t.model_dump(exclude={"share_token"})) for t in trips.list_trips(user)]
+    mine = [TripListItem(**t.model_dump(exclude={"share_token"})) for t in (_converted(trips, user, t) for t in trips.list_trips(user))]
     email = identity.email_for(user).strip().lower()
     shared = []
     for owner_id, trip_id in trips.shared_trips(email):
         trip = trips.get_trip(owner_id, trip_id)
         if trip is not None and can_edit_trip(trip, user, owner_id, email):  # stale index rows are skipped
+            trip = _converted(trips, owner_id, trip)
             shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token"}), shared=True))
     return sorted([*mine, *shared], key=_updated_key, reverse=True)
 
@@ -267,7 +286,7 @@ def create_trip(
     rates: RateSource = Depends(get_rates),
     now: datetime = Depends(get_now),
 ) -> TripView:
-    trip = Trip(id=uuid.uuid4().hex, updated_at=now, **body.model_dump())
+    trip = Trip(id=uuid.uuid4().hex, updated_at=now, destination_converted=True, **body.model_dump())
     trip.days = _days(trip, trip.start_date, trip.end_date)
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
@@ -328,6 +347,7 @@ def update_trip(
             "updated_at": now,
             **({"insurance": None} if cleared else {}),
             **({"stays": flagged} if redated else {}),
+            **_rematched(existing, body.destination),
         }
     )
     trips.save_trip(owner, trip)

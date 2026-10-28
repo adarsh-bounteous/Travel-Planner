@@ -465,3 +465,29 @@ describe('TripDetailPage date change review', () => {
     expect(screen.queryByRole('dialog', { name: 'Stays after date change' })).not.toBeInTheDocument()
   })
 })
+
+describe('TripDetailPage unmatched destination', () => {
+  it('shows the Unmatched flag and the hint on the detail page', async () => {
+    open(trip({ destination: 'Atlantis', destination_unmatched: true }))
+    expect(await screen.findByText('Unmatched')).toBeInTheDocument()
+    expect(
+      screen.getByText("We couldn't match this destination. Edit it to try again."),
+    ).toBeInTheDocument()
+  })
+
+  it('drops the flag after a save that matches', async () => {
+    stubApi({
+      ...CATALOGUE,
+      'GET /trips/t1': { status: 200, body: trip({ destination: 'Atlantis', destination_unmatched: true }) },
+      'PUT /trips/t1': {
+        status: 200,
+        body: trip({ country: 'Portugal', place: 'Lisbon', destination_unmatched: false }),
+      },
+    })
+    renderAt('/trips/t1')
+    const drawer = await openSettings()
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Destination saved. Unmatched flag removed.')).toBeInTheDocument()
+    expect(screen.queryByText('Unmatched')).not.toBeInTheDocument()
+  })
+})

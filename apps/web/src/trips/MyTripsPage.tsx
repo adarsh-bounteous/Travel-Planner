@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
 import { Toast } from './Toast'
+import { UnmatchedBadge } from './UnmatchedBadge'
 
 /** Where the guided set-up lives; New trip and Plan your first trip both launch it. */
 export const GUIDED_SETUP_PATH = '/trips/new'
@@ -27,14 +28,17 @@ function formatDates(trip: Trip): string {
 function TripRow({ trip }: { trip: Trip }) {
   const dates = formatDates(trip)
   const stayCount = trip.stays?.length ?? 0
+  const destination =
+    trip.country && trip.place ? `${trip.country}, ${trip.place}` : trip.destination
   return (
     <li className="card trip-row">
       <div className="trip-info">
         <div className="trip-title">
           <h2>{trip.name}</h2>
           {trip.shared && <span className="badge">Shared</span>}
+          {trip.destination_unmatched && <UnmatchedBadge />}
         </div>
-        {trip.destination && <p>{trip.destination}</p>}
+        {destination && <p>{destination}</p>}
         {dates && <p className="text-sm text-muted">{dates}</p>}
         <p className="text-sm text-muted">
           {stayCount === 0 ? 'No stays yet' : `${stayCount} ${stayCount === 1 ? 'stay' : 'stays'}`}

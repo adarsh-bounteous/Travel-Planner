@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 
+from app.places.local_search import PLACEHOLDER_IMAGE
 from app.places.search import Place
 from app.routers.deps import get_current_user, get_saved_places
 from app.trips.saved_store import SavedPlaceStore
@@ -13,8 +14,12 @@ MAX_URL = 2048
 
 
 def _safe_image_url(url: str) -> bool:
-    """An https URL or a same-origin path; never another scheme or a protocol-relative URL."""
-    return url.startswith("https://") or (url.startswith("/") and not url.startswith("//"))
+    """The local placeholder, an https URL or a same-origin path; never another scheme."""
+    return (
+        url == PLACEHOLDER_IMAGE
+        or url.startswith("https://")
+        or (url.startswith("/") and not url.startswith("//"))
+    )
 
 
 @router.get("")

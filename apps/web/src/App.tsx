@@ -15,6 +15,8 @@ import { ExplorePage } from './explore/ExplorePage'
 import { LocalInboxPage } from './local/LocalInboxPage'
 import { AddPlaceNoTripsPage } from './places/AddPlaceNoTripsPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
+import { StarterPlaceContentPage } from './places/StarterPlaceContentPage'
+import { StarterPlannerPage } from './places/StarterPlannerPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
@@ -261,6 +263,22 @@ export default function App() {
             element={
               <RequireAuth>
                 <InsuranceComparePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/plan"
+            element={
+              <RequireAuth>
+                <StarterPlannerPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/plan/:country/:place"
+            element={
+              <RequireAuth>
+                <StarterPlaceContentPage />
               </RequireAuth>
             }
           />

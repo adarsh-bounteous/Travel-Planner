@@ -62,6 +62,7 @@ from app.trips.store import (
     TripStore,
     can_edit_trip,
     reconcile_days,
+    stay_outside_trip,
     visible_reminders,
 )
 
@@ -314,8 +315,20 @@ def update_trip(
     # A price quoted for other places, dates or ages must not stay in the total.
     priced = ("destination", "start_date", "end_date", "owner_age")
     cleared = any(k in fields and fields[k] != getattr(existing, k) for k in priced)
+    # Stays are flagged only at a date change: a name or budget edit leaves the flags as they are.
+    redated = (body.start_date, body.end_date) != (existing.start_date, existing.end_date)
+    flagged = [
+        s.model_copy(update={"outside_trip": stay_outside_trip(s, body.start_date, body.end_date)})
+        for s in existing.stays
+    ]
     trip = existing.model_copy(
-        update={**fields, "days": days, "updated_at": now, **({"insurance": None} if cleared else {})}
+        update={
+            **fields,
+            "days": days,
+            "updated_at": now,
+            **({"insurance": None} if cleared else {}),
+            **({"stays": flagged} if redated else {}),
+        }
     )
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
@@ -913,7 +926,9 @@ def change_stay(
     def revised(s: Stay) -> Stay:
         # The priced dates no longer apply once the place or dates move, so the choice goes with them.
         same = (s.place, s.start_date, s.end_date) == (body.place, body.start_date, body.end_date)
-        return Stay(id=stay_id, **body.model_dump(), chosen=s.chosen if same else None)
+        # Only an already-flagged stay is rechecked, so adjusting it inside the trip clears the flag.
+        outside = s.outside_trip and stay_outside_trip(body, trip.start_date, trip.end_date)
+        return Stay(id=stay_id, **body.model_dump(), chosen=s.chosen if same else None, outside_trip=outside)
 
     changed = [revised(s) if s.id == stay_id else s for s in trip.stays]
     return _save_stays(trips, rates, user, owner, trip, changed, now)

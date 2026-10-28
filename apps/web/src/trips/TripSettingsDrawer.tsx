@@ -3,13 +3,14 @@ import type { FormEvent, RefObject } from 'react'
 import { AlertIcon, TrashIcon } from '../auth/icons'
 import { updateTrip } from './api'
 import type { Trip } from './api'
+import { DestinationPicker } from './DestinationPicker'
 import { Overlay } from './Overlay'
 
 const MAX_DAYS = 60
 const MS_PER_DAY = 86_400_000
 const BUDGET_PATTERN = /^\d+(\.\d{1,2})?$/
 
-type Field = 'name' | 'dates' | 'budget'
+type Field = 'name' | 'destination' | 'dates' | 'budget'
 type Errors = Partial<Record<Field, string>>
 
 type TripSettingsDrawerProps = {
@@ -31,6 +32,7 @@ export function TripSettingsDrawer({
   onDelete,
 }: TripSettingsDrawerProps) {
   const [name, setName] = useState(trip.name)
+  const [destination, setDestination] = useState(trip.destination ?? '')
   const [start, setStart] = useState(trip.start_date ?? '')
   const [end, setEnd] = useState(trip.end_date ?? '')
   const [budget, setBudget] = useState(trip.budget == null ? '' : String(trip.budget))
@@ -52,6 +54,7 @@ export function TripSettingsDrawer({
       found.name = `Trip name can't be blank. Enter a name such as "Lisbon Spring".`
       focusOn.name = nameInput
     }
+    if (destination === '') found.destination = 'Choose a country and a place.'
     if (Boolean(start) !== Boolean(end)) {
       found.dates = 'Choose a start and an end date. Each date becomes a day.'
       focusOn.dates = start ? endInput : startInput
@@ -73,12 +76,13 @@ export function TripSettingsDrawer({
       first.current?.focus()
       return
     }
+    if (found.destination) return
     setPending(true)
     try {
       onSaved(
         await updateTrip(trip.id, {
           name: name.trim(),
-          destination: trip.destination ?? null,
+          destination,
           start_date: start || null,
           end_date: end || null,
           budget: rawBudget === '' ? null : Number(rawBudget),
@@ -125,6 +129,12 @@ export function TripSettingsDrawer({
           </span>
           {error('name')}
         </div>
+        <DestinationPicker
+          idPrefix="settings"
+          value={destination}
+          onChange={setDestination}
+          error={errors.destination}
+        />
         <div className={`field${invalid('dates')}`}>
           <label className="field-label" htmlFor="start-date-input">
             Start date

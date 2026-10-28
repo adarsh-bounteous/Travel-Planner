@@ -17,7 +17,7 @@ describe('validateTripBasics', () => {
   })
 
   it('asks for each missing basic (AC9)', () => {
-    expect(validateTripBasics({ ...ok, destination: ' ' }, today).destination).toBe('Enter a destination, like Lisbon.')
+    expect(validateTripBasics({ ...ok, destination: ' ' }, today).destination).toBe('Choose a country and a place.')
     expect(validateTripBasics({ ...ok, start: '' }, today).dates).toBe('Enter a start and end date.')
     expect(validateTripBasics({ ...ok, end: '' }, today).dates).toBe('Enter a start and end date.')
     expect(validateTripBasics({ ...ok, travellers: '' }, today).travellers).toBe('Enter the number of travellers.')

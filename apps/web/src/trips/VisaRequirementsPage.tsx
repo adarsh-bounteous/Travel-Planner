@@ -147,6 +147,24 @@ export function VisaRequirementsPage() {
                   <p>{row.message}</p>
                 </>
               )}
+              {row.guidance && (
+                <section className="stack stack-sm">
+                  <h4>Visa guidance for {row.guidance.country}</h4>
+                  <p className="text-sm">
+                    <span className="text-muted">Entry requirement:</span>{' '}
+                    {row.guidance.entry_requirement}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-muted">Maximum stay:</span> {row.guidance.max_stay}
+                  </p>
+                  <p className="text-sm text-muted">Required documents</p>
+                  <ul className="text-sm">
+                    {row.guidance.documents.map((doc) => (
+                      <li key={doc}>{doc}</li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               {row.confirm_note && (
                 <p className="confirm">
                   <InfoIcon />

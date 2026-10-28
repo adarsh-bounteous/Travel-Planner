@@ -60,14 +60,57 @@ class InMemoryVisaRules:
         self._published_on = on
 
 
-# Seeded default until a visa-rule provider is chosen: Japan is visa-free for these citizenships.
-_JAPAN_VISA_FREE = (
-    "Australia", "Canada", "France", "Germany", "Ireland", "Japan",
+class VisaGuidance(BaseModel):
+    country: str
+    entry_requirement: str
+    max_stay: str
+    documents: list[str]
+
+
+# Seeded guidance per destination country (every country the destination dropdown offers).
+# Seed facts are unverified: a human must check them against official sources before release.
+_GUIDANCE = {
+    "Japan": ("90 days", ["Passport valid for the whole stay", "Onward or return ticket"]),
+    "Portugal": ("90 days in any 180", ["Passport valid 3 months beyond departure", "Proof of accommodation", "Proof of funds"]),
+    "India": ("90 days", ["Passport valid 6 months beyond arrival", "Return ticket", "Passport photo"]),
+    "Thailand": ("60 days", ["Passport valid 6 months beyond arrival", "Proof of onward travel", "Proof of accommodation"]),
+    "Mexico": ("180 days", ["Valid passport", "Return ticket", "Proof of funds"]),
+    "Morocco": ("90 days", ["Passport valid 6 months beyond arrival", "Return ticket", "Proof of accommodation"]),
+    "Peru": ("183 days", ["Valid passport", "Return ticket", "Proof of accommodation"]),
+}
+
+
+def guidance_for(country: str, required: bool) -> VisaGuidance | None:
+    if country not in _GUIDANCE:
+        return None
+    max_stay, documents = _GUIDANCE[country]
+    entry = (
+        f"A visa must be obtained before travelling to {country}."
+        if required
+        else f"No visa is needed to enter {country} for a short visit."
+    )
+    return VisaGuidance(country=country, entry_requirement=entry, max_stay=max_stay, documents=documents)
+
+
+# Seeded default until a visa-rule provider is chosen: these citizenships get a rule per country.
+_SEEDED_CITIZENSHIPS = (
+    "Australia", "Canada", "France", "Germany", "India", "Ireland", "Japan",
     "Portugal", "United Kingdom", "United States",
 )
+# Citizenships that need a visa, per destination; every other seeded citizenship is visa-free.
+_VISA_REQUIRED = {
+    "Japan": {"India"},
+    "Portugal": {"India"},
+    "India": {c for c in _SEEDED_CITIZENSHIPS if c != "India"},
+    "Thailand": set(),
+    "Mexico": {"India"},
+    "Morocco": {"India"},
+    "Peru": {"India"},
+}
 SEED_VISA_RULES = {
-    **{("Japan", citizenship): VisaRule(required=False) for citizenship in _JAPAN_VISA_FREE},
-    ("Japan", "India"): VisaRule(required=True),
+    (country, citizenship): VisaRule(required=citizenship in required)
+    for country, required in _VISA_REQUIRED.items()
+    for citizenship in _SEEDED_CITIZENSHIPS
 }
 SEED_PUBLISHED_ON = date(2026, 10, 20)
 
@@ -92,6 +135,7 @@ class VisaResult(BaseModel):
     official_site_url: str | None  # only for no data; no destination advisory is ever carried
     marked_self_check: bool
     unresolved: bool  # marked "I'll check myself" and still no data
+    guidance: VisaGuidance | None = None  # only on a real answer: required or not needed
 
 
 def destination_country(destination: str | None) -> str:
@@ -142,4 +186,5 @@ def visa_result_for(
         official_site_url=None,
         marked_self_check=False,
         unresolved=False,
+        guidance=guidance_for(country, required),
     )

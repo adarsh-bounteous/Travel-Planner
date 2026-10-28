@@ -1,0 +1,49 @@
+import { matchPath } from 'react-router'
+
+// Every route declared in App.tsx (the catch-all excluded). A test keeps the two in step.
+export const APP_ROUTE_PATTERNS = [
+  '/',
+  '/destinations',
+  '/explore',
+  '/explore/travel',
+  '/explore/travel/booking',
+  '/account/local-mode',
+  '/saved',
+  '/account',
+  '/profile',
+  '/profile/transport',
+  '/transport',
+  '/trips/new',
+  '/trips/:tripId/currency',
+  '/trips/:tripId/weather',
+  '/trips/:tripId/medical-guidance',
+  '/trips/:tripId/requirements',
+  '/trips/:tripId/visa-requirements',
+  '/trips/:tripId/shortlists',
+  '/trips/:tripId/costs',
+  '/places/add',
+  '/trips/:tripId',
+  '/trips/:tripId/sim-options',
+  '/trips/:tripId/activity-options',
+  '/trips/:tripId/restaurant-options',
+  '/trips/:tripId/restaurant-options/:view',
+  '/trips/:tripId/insurance-options',
+  '/trips/:tripId/insurance-options/compare',
+  '/trips/plan',
+  '/trips/plan/:country/:place',
+  '/trips/:tripId/stays/:stayId/options',
+  '/trips/:tripId/stays/:stayId/shortlist',
+  '/trips/:tripId/flights',
+  '/trips/read-only/:token',
+  '/invite/:token',
+  '/local/inbox',
+  '/local/google-consent',
+  '/sign-in',
+  '/sign-up',
+  '/confirm-email',
+  '/confirm-email/:token',
+]
+
+export function isKnownAppPath(pathname: string): boolean {
+  return APP_ROUTE_PATTERNS.some((pattern) => matchPath(pattern, pathname) !== null)
+}

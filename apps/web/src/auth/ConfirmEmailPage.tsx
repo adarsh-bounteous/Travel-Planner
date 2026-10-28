@@ -1,7 +1,19 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { fetchLocalMode } from './api'
 import { BellIcon } from './icons'
 
 export function ConfirmEmailPage() {
+  const [localMode, setLocalMode] = useState(false)
+
+  useEffect(() => {
+    let current = true
+    void fetchLocalMode().then((on) => current && setLocalMode(on))
+    return () => {
+      current = false
+    }
+  }, [])
+
   return (
     <div className="auth stack">
       <div className="card stack center">
@@ -13,6 +25,11 @@ export function ConfirmEmailPage() {
         <Link className="btn btn-secondary" to="/sign-in">
           Back to sign in
         </Link>
+        {localMode && (
+          <p className="text-sm text-muted">
+            Testing locally? <Link to="/local/inbox">Local inbox</Link>
+          </p>
+        )}
       </div>
     </div>
   )

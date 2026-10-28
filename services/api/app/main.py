@@ -29,6 +29,7 @@ from app.routers import (
     shared,
     sim_options,
     startup_status,
+    starter_destinations,
     stay_options,
     transport,
     transport_picks,
@@ -74,6 +75,7 @@ app.include_router(local_mode.router)
 app.include_router(travel_search.router)
 app.include_router(profile.router)
 app.include_router(places.router)
+app.include_router(starter_destinations.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
 app.include_router(trip_helpers.router)

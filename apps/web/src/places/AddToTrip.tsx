@@ -6,7 +6,15 @@ import { Toast } from '../trips/Toast'
 import type { Place } from './api'
 import { TripChoiceDrawer } from './TripChoiceDrawer'
 
-type Message = 'failed' | 'already' | null
+type AddToast =
+  | { key: number; kind: 'added'; tripId: string }
+  | { key: number; kind: 'failed' | 'already' }
+
+const ERROR_TOAST_MS = 6000
+const ERROR_COPY = {
+  failed: "We couldn't add that place. Try again.",
+  already: 'That place is already on this trip.',
+}
 
 /**
  * Adds a place to a trip: straight away with one trip, after a choice with several, after a
@@ -18,8 +26,7 @@ export function useAddToTrip() {
   const [place, setPlace] = useState<Place | null>(null)
   const [choice, setChoice] = useState<Trip[] | null>(null)
   const [pending, setPending] = useState(false)
-  const [message, setMessage] = useState<Message>(null)
-  const [toast, setToast] = useState<{ key: number; tripId: string } | null>(null)
+  const [toast, setToast] = useState<AddToast | null>(null)
 
   const finish = () => {
     setChoice(null)
@@ -35,15 +42,17 @@ export function useAddToTrip() {
         name: target.name,
         image_url: target.image_url,
       })
-      setToast({ key: Date.now(), tripId })
+      setToast({ key: Date.now(), kind: 'added', tripId })
     } catch (error) {
-      setMessage(error instanceof AlreadyOnTripError ? 'already' : 'failed')
+      setToast({
+        key: Date.now(),
+        kind: error instanceof AlreadyOnTripError ? 'already' : 'failed',
+      })
     }
     finish()
   }
 
   const onAdd = async (target: Place) => {
-    setMessage(null)
     setToast(null)
     setPlace(target)
     setPending(true)
@@ -51,7 +60,7 @@ export function useAddToTrip() {
     try {
       trips = await fetchTrips()
     } catch {
-      setMessage('failed')
+      setToast({ key: Date.now(), kind: 'failed' })
       finish()
       return
     }
@@ -65,21 +74,21 @@ export function useAddToTrip() {
 
   const panel = (
     <>
-      {message === 'failed' && (
-        <p role="alert" className="alert alert-danger">
-          We couldn't add that place. Try again.
-        </p>
-      )}
-      {message === 'already' && (
-        <p role="alert" className="alert alert-warning">
-          That place is already on this trip.
-        </p>
-      )}
-      {toast && (
+      {toast?.kind === 'added' && (
         <Toast
           key={toast.key}
           message="Place added"
+          dismissible
           action={{ label: 'Open trip', onAction: () => navigate(`/trips/${toast.tripId}`) }}
+        />
+      )}
+      {toast && toast.kind !== 'added' && (
+        <Toast
+          key={toast.key}
+          tone="error"
+          dismissible
+          ms={ERROR_TOAST_MS}
+          message={ERROR_COPY[toast.kind]}
         />
       )}
       {place && choice && (

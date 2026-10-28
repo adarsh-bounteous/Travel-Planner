@@ -74,3 +74,12 @@ describe('stored format', () => {
     expect(parseDestination(null, CATALOGUE)).toBeNull()
   })
 })
+
+describe('agreement with the server matcher (services/api test_destination_match.py)', () => {
+  it('resolves the same cases', () => {
+    expect(parseDestination('Lisbon, Portugal', CATALOGUE)).toEqual({ country: 'Portugal', place: 'Lisbon' })
+    expect(evaluateDestination('Lisbon', CATALOGUE).kind).toBe('place')
+    expect(evaluateDestination('Lisbn', CATALOGUE).kind).toBe('near')
+    expect(evaluateDestination('Portugal', CATALOGUE).kind).toBe('country')
+  })
+})

@@ -326,6 +326,10 @@ class Trip(TripFields):
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
     share_token: str | None = None  # server-owned: changed only through the share-link routes
     dining_needs: list[str] = []  # server-owned: extra dining needs for this trip only, changed only through the dining-needs route
+    country: str | None = None  # server-owned: set by the destination conversion or a matching destination edit
+    place: str | None = None  # server-owned: with country
+    destination_unmatched: bool = False  # server-owned: the typed destination could not be matched
+    destination_converted: bool = False  # server-owned: False only on trips saved before the conversion existed
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:

@@ -341,6 +341,9 @@ export type Trip = {
   unresolved_visas?: string[]
   name: string
   destination?: string | null
+  country?: string | null
+  place?: string | null
+  destination_unmatched?: boolean
   start_date?: string | null
   end_date?: string | null
   budget?: number | null

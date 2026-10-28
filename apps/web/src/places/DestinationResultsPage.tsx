@@ -15,7 +15,9 @@ import type { PlacesView } from './ViewToggle'
 export function DestinationResultsPage() {
   const [params, setParams] = useSearchParams()
   const query = (params.get('q') ?? '').trim()
-  const typeParam = params.get('type')
+  const destination = (params.get('destination') ?? '').trim()
+  const area = destination || query
+  const typeParam =params.get('type')
   const priceParam = params.get('price')
   const placeType =
     typeParam !== null && typeParam in PLACE_TYPE_LABELS
@@ -31,11 +33,14 @@ export function DestinationResultsPage() {
   const { savedIds, toggle, pendingIds, panel: savedPanel } = useSavedPlaces()
 
   useEffect(() => {
-    if (!query) return
+    if (!area) return
     setPlaces(null)
     setFailed(false)
-    searchPlaces(query, undefined, { placeType, price }).then(setPlaces, () => setFailed(true))
-  }, [query, placeType, price])
+    searchPlaces(area, destination ? query || undefined : undefined, { placeType, price }).then(
+      setPlaces,
+      () => setFailed(true),
+    )
+  }, [area, destination, query, placeType, price])
 
   useEffect(() => {
     let current = true
@@ -45,7 +50,7 @@ export function DestinationResultsPage() {
     }
   }, [])
 
-  if (!query) return <Navigate to="/" replace />
+  if (!area) return <Navigate to="/" replace />
 
   const modeNotice =
     localMode === null ? null : localMode ? (
@@ -119,7 +124,7 @@ export function DestinationResultsPage() {
     <div className="stack">
       {back}
       {modeNotice}
-      <h1>Places in {query}</h1>
+      <h1>Places in {area}</h1>
       {panel}
       {savedPanel}
       <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
@@ -171,7 +176,7 @@ export function DestinationResultsPage() {
           <InfoIcon />
           <span>
             {places.length} {places.length === 1 ? 'place' : 'places'} generated locally for{' '}
-            {query}.
+            {area}.
           </span>
         </p>
       )}

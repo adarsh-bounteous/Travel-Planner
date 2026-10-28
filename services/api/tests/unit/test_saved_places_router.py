@@ -67,3 +67,13 @@ def test_signed_out_is_rejected_and_mismatched_id_is_422(sign_in_as):
     a = sign_in_as("a@example.com")
     assert TestClient(app).get("/saved-places").status_code == 401
     assert a.put("/saved-places/other", json=PLACE.model_dump()).status_code == 422
+
+
+def test_local_placeholder_image_can_be_saved(sign_in_as):
+    from app.places.local_search import PLACEHOLDER_IMAGE
+
+    a = sign_in_as("a@example.com")
+    body = {**PLACE.model_dump(), "image_url": PLACEHOLDER_IMAGE}
+    assert a.put("/saved-places/alfama", json=body).status_code == 200
+    other = {**body, "image_url": "data:text/html,<script>1</script>"}
+    assert a.put("/saved-places/alfama", json=other).status_code == 422

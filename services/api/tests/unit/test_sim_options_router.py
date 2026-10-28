@@ -65,14 +65,52 @@ def test_delete_clears_the_pick_and_the_total(sign_in_as):
 
 def test_pick_stays_but_flags_when_dates_change(sign_in_as):
     a = sign_in_as("a@example.com")
-    tid = _trip(a)
-    a.put(f"/trips/{tid}/sim", json={"option_id": "roamly-europe-10"})
+    tid = _dated(a, "2027-03-02", "2027-03-09")
+    a.put(f"/trips/{tid}/sim", json={"option_id": "roamly-europe-3"})
     moved = trip_body(destination="Lisbon, Portugal", start_date="2027-04-02", end_date="2027-04-09")
     assert a.put(f"/trips/{tid}", json=moved).status_code == 200
     out = a.get(f"/trips/{tid}/sim-options").json()
-    assert out["options"] == []
-    assert out["picked"]["option_id"] == "roamly-europe-10" and out["picked"]["covers_dates"] is False
-    assert a.get(f"/trips/{tid}").json()["sim"]["option_id"] == "roamly-europe-10"
+    assert out["options"] != []
+    assert out["picked"]["option_id"] == "roamly-europe-3" and out["picked"]["covers_dates"] is False
+    assert a.get(f"/trips/{tid}").json()["sim"]["option_id"] == "roamly-europe-3"
+
+
+def _dated(client, start, end, destination="Lisbon, Portugal"):
+    body = trip_body(destination=destination, start_date=start, end_date=end)
+    return client.post("/trips", json=body).json()["id"]
+
+
+def test_april_2027_trip_shows_sim_options(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _dated(a, "2027-04-02", "2027-04-09")
+    assert a.get(f"/trips/{tid}/sim-options").json()["options"] != []
+
+
+def test_march_2028_trip_shows_sim_options(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _dated(a, "2028-03-12", "2028-03-20")
+    assert a.get(f"/trips/{tid}/sim-options").json()["options"] != []
+
+
+def test_march_2027_trip_shows_sim_options(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _dated(a, "2027-03-12", "2027-03-20")
+    assert a.get(f"/trips/{tid}/sim-options").json()["options"] != []
+
+
+def test_april_shortlist_matches_march_shortlist(sign_in_as):
+    a = sign_in_as("a@example.com")
+
+    def ids(s, e):
+        return [o["id"] for o in a.get(f"/trips/{_dated(a, s, e)}/sim-options").json()["options"]]
+
+    assert ids("2027-04-02", "2027-04-09") == ids("2027-03-12", "2027-03-20") != []
+
+
+def test_trip_spanning_march_and_april_shows_sim_options(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _dated(a, "2027-03-28", "2027-04-04")
+    assert a.get(f"/trips/{tid}/sim-options").json()["options"] != []
 
 
 def test_no_match_gives_no_options_and_no_pick(sign_in_as):

@@ -25,6 +25,10 @@ EUROPE = [
 ]
 
 
+SEED_VALID_FROM = date(2000, 1, 1)
+SEED_VALID_TO = date(2099, 12, 31)
+
+
 def _sim(
     slug: str,
     name: str,
@@ -32,8 +36,8 @@ def _sim(
     countries: list[str],
     data_gb: int,
     price: str,
-    valid_from: date = date(2027, 3, 1),
-    valid_to: date = date(2027, 3, 31),
+    valid_from: date = SEED_VALID_FROM,
+    valid_to: date = SEED_VALID_TO,
 ) -> ProviderSim:
     return ProviderSim(
         id=slug,

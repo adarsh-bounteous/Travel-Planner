@@ -62,6 +62,13 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
                 Account
               </Link>
             </li>
+            {localMode && (
+              <li>
+                <Link className="menu-item between" to="/local/inbox" onClick={onClose}>
+                  Local inbox <span className="badge badge-neutral">Testing</span>
+                </Link>
+              </li>
+            )}
             <li>
               <button className="menu-item" type="button" onClick={handleSignOut}>
                 Sign out

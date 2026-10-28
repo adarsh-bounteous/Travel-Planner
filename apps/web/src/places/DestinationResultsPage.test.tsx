@@ -296,6 +296,86 @@ describe('Saving places', () => {
   })
 })
 
+describe('Saving feedback and destination scope', () => {
+  beforeEach(() => sessionStorage.clear())
+
+  it('Save sends the place and confirms it (AC1, AC3)', async () => {
+    const fetchMock = stubApi({
+      ...lisbon,
+      'GET /saved-places': { status: 200, body: [] },
+      'PUT /saved-places/p1': { status: 200, body: alfama },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    expect(await screen.findByText('Alfama saved to your account.')).toBeInTheDocument()
+    const put = fetchMock.mock.calls.find(([, i]) => i?.method === 'PUT')!
+    expect(JSON.parse(String(put[1]!.body))).toEqual(alfama)
+  })
+
+  it('a failed save alerts and shows no confirmation (AC4)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /saved-places': { status: 200, body: [] },
+      'PUT /saved-places/p1': { status: 500 },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
+    expect(screen.queryByText('Alfama saved to your account.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save Alfama' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('a destination param scopes the search and q filters within it (AC6)', async () => {
+    const fetchMock = stubApi({
+      'GET /places?destination=Lisbon&q=Alfama': { status: 200, body: [alfama] },
+      'GET /trips': { status: 200, body: [] },
+    })
+    renderAt('/destinations?destination=Lisbon&q=Alfama')
+    expect(await screen.findByRole('heading', { name: 'Places in Lisbon' })).toBeInTheDocument()
+    expect(fetchMock.mock.calls.some(([p]) => String(p) === '/places?destination=Alfama')).toBe(
+      false,
+    )
+  })
+
+  it('a pending save of an already saved place shows a notice and no PUT (AC7, AC8)', async () => {
+    const fetchMock = stubApi(
+      {
+        ...lisbon,
+        'POST /auth/sign-in': { status: 200 },
+        'GET /saved-places': { status: 200, body: [alfama] },
+      },
+      { signedOut: true },
+    )
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    fireEvent.change(await screen.findByLabelText('Email'), {
+      target: { value: 'maya@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByText('Alfama is already saved.')).toBeInTheDocument()
+    expect(putCalls(fetchMock)).toEqual([])
+  })
+
+  it('Save, Unsave, Save again shows no already-saved notice', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /saved-places': { status: 200, body: [] },
+      'PUT /saved-places/p1': { status: 200, body: alfama },
+      'DELETE /saved-places/p1': { status: 204 },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
+    await screen.findByRole('button', { name: 'Unsave Alfama' })
+    expect(screen.queryByText('Alfama is already saved.')).not.toBeInTheDocument()
+  })
+})
+
 describe('Destination results in local mode', () => {
   const kyotoPlace = { ...alfama, id: 'kyoto-bamboo', name: 'Bamboo Path Walk' }
   const local = {

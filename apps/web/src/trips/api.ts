@@ -264,6 +264,7 @@ export type Traveller = {
   citizenship?: string
   residence?: string
   health_status?: string
+  age?: number | null
 }
 
 export type CompanionDetailsInput = { citizenship: string; residence: string; health_status: string }
@@ -336,6 +337,8 @@ export type Trip = {
   start_date?: string | null
   end_date?: string | null
   budget?: number | null
+  owner_age?: number | null
+  risky_activities?: boolean | null
   currency?: string
   traveller_count?: number | null
   interests?: string[]
@@ -362,7 +365,8 @@ export type Trip = {
   dining_needs?: string[]
 }
 
-export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'>
+export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'> &
+  Pick<Trip, 'owner_age' | 'risky_activities'>
 
 /** Everything New trip set-up collects; the API refuses a create without any of them. */
 export type TripCreateInput = {
@@ -673,8 +677,20 @@ export const setVisaSelfCheck = (tripId: string, key: string, checked: boolean) 
 export const fetchMedicalGuidance = (tripId: string) =>
   call<TravellerGuidance[]>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
 
-export const addTraveller = (tripId: string, name: string) =>
-  call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', { name })
+export const addTraveller = (tripId: string, name: string, age?: number) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', age === undefined ? { name } : { name, age })
+
+/** Saves the owner's age and the risky-activities answer; the trip's own fields are resent so none is reset. */
+export const saveInsuranceDetails = (trip: Trip, ownerAge: number, risky: boolean) =>
+  updateTrip(trip.id, {
+    name: trip.name,
+    destination: trip.destination,
+    start_date: trip.start_date,
+    end_date: trip.end_date,
+    budget: trip.budget,
+    owner_age: ownerAge,
+    risky_activities: risky,
+  })
 
 export const inviteEditor = (tripId: string, email: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/editors`, 'POST', { email })

@@ -13,6 +13,8 @@ export const API_PREFIXES = [
   '/travel-search',
   '/startup-status',
   '/health',
+  '/rates',
+  '/availability',
 ]
 
 // Several API prefixes are also client-side routes, so a page load must get the app.

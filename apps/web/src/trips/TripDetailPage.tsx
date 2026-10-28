@@ -123,7 +123,12 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
   const options = trip.options ?? []
-  const bookable = options.length > 0 || Boolean(trip.sim) || Boolean(trip.insurance)
+  const bookable =
+    options.length > 0 ||
+    Boolean(trip.sim) ||
+    Boolean(trip.insurance) ||
+    (trip.stays ?? []).some((s) => s.chosen) ||
+    (trip.transport ?? []).length > 0
   const close = () => setPanel({ id: 'none' })
   /** Opens the "pick cleared" dialog when a user's own change removed the insurance pick. */
   const track = (updated: Trip) => {

@@ -354,6 +354,39 @@ describe('TripDetailPage book trip', () => {
     expect(book).toHaveAccessibleDescription('Choose an option to enable booking.')
   })
 
+  it('enables Book trip with only a local-mode stay chosen', async () => {
+    const chosen = {
+      property_id: 'p1',
+      name: 'Casa Alfama',
+      provider: 'Local stays',
+      url: 'local://booking/stay-lisbon-1',
+      total: '100',
+      currency: 'EUR',
+    }
+    const stay = { id: 's1', place: 'Lisbon', start_date: '2027-03-03', end_date: '2027-03-05', chosen }
+    open(trip({ options: [], stays: [stay] }))
+    expect(await bookButton()).toBeEnabled()
+  })
+
+  it('enables Book trip with only a local-mode transport pick', async () => {
+    const pick = {
+      leg: 'destination' as const,
+      option_id: 'f1',
+      mode: 'flight' as const,
+      provider: 'Local flights',
+      origin: 'Porto',
+      destination: 'Lisbon',
+      date: '2027-03-03',
+      estimate: false,
+      fare: '80',
+      picked_fare: '80',
+      currency: 'EUR',
+      url: 'local://booking/flight-lisbon-1',
+    }
+    open(trip({ options: [], transport: [pick] }))
+    expect(await bookButton()).toBeEnabled()
+  })
+
   it('enables Book trip with one chosen option (AC2)', async () => {
     open(trip({ options: [booked('Tram pass', 'o1')] }))
     const book = await bookButton()

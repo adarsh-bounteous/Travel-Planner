@@ -40,7 +40,8 @@ from app.trips.recommendations import (
 )
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
-from app.trips.invites import InMemoryInviteSender, InviteSender, NoInviteSender, SesInviteSender
+from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
+from app.trips.local_inbox_store import INBOX_FILE_NAME, PersistentInviteSender
 from app.trips.forecast import DayForecast, ForecastSource, ForecastUnavailable, LocalForecast
 from app.trips.rates import SEED_RATES, InMemoryRates, LastKnownRates, LocalRates, RateSource
 from app.trips.visa import SEED_PUBLISHED_ON, SEED_VISA_RULES, InMemoryVisaRules, VisaRuleSource
@@ -230,9 +231,9 @@ def _invite_sender() -> InviteSender:
 
 
 @lru_cache
-def _local_invite_sender() -> InMemoryInviteSender:
-    """Local mode's email stand-in: every invite is kept in memory and shown on the local inbox page."""
-    return InMemoryInviteSender()
+def _local_invite_sender() -> PersistentInviteSender:
+    """Local mode's email stand-in: every invite is kept in `inbox.json` and shown on the local inbox page."""
+    return PersistentInviteSender(LocalDataFile(get_settings().local_data_dir / INBOX_FILE_NAME))
 
 
 def require_local_mode() -> None:
@@ -240,7 +241,7 @@ def require_local_mode() -> None:
         raise ApiError(404, "not_found")
 
 
-def get_local_inbox() -> InMemoryInviteSender:
+def get_local_inbox() -> PersistentInviteSender:
     require_local_mode()
     return _local_invite_sender()
 

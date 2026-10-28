@@ -27,11 +27,16 @@ class InMemoryInviteSender:
 
     def send(self, email: str, trip_name: str, link: str) -> None:
         self._record(email, trip_name, link)
+        self._recorded()
 
     def send_confirmation(self, email: str, link: str, kind: str = "confirmation") -> None:
         """An empty trip name marks a confirmation rather than an invite; `kind` says which."""
         self._record(email, "", link)
         self.kinds[link] = kind
+        self._recorded()
+
+    def _recorded(self) -> None:
+        """Called once a send is fully recorded; subclasses persist here."""
 
 
 class NoInviteSender:

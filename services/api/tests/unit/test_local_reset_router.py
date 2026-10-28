@@ -53,3 +53,12 @@ def test_reset_also_clears_profiles(real_local):  # noqa: F811
         deps._local_profiles().save_profile(user_id, Profile(display_name="Maya"))
         assert client.post("/local/reset", headers=RESET).status_code == 204
         assert deps._local_profiles().get_profile(user_id) is None
+
+
+def test_reset_leaves_the_inbox_empty_after_a_restart(real_local):  # noqa: F811
+    with TestClient(app) as client:
+        deps._local_invite_sender().send("a@b.co", "Trip", "http://x")
+        assert client.post("/local/reset", headers=RESET).status_code == 204
+        assert client.get("/local/inbox").json() == []
+        deps._local_invite_sender.cache_clear()
+        assert client.get("/local/inbox").json() == []

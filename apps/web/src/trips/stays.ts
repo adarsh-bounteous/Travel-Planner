@@ -59,7 +59,7 @@ export function outsideReason(stay: Stay, tripStart: string, tripEnd: string): s
   return `Ends ${plural(daysBetween(tripEnd, stay.end_date))} after your trip.`
 }
 
-export const nights =(stay: Stay) => daysBetween(stay.start_date, stay.end_date)
+export const nights = (stay: Stay) => daysBetween(stay.start_date, stay.end_date)
 
 const part = (iso: string) => {
   const date = new Date(`${iso}T00:00:00Z`)

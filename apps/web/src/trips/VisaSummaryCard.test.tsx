@@ -16,6 +16,7 @@ const row = (name: string, status: string, unresolved = false) => ({
   official_site_url: null,
   marked_self_check: unresolved,
   unresolved,
+  guidance: null,
 })
 
 const show = (travellers: unknown[], unresolved: string[] = []) => {

@@ -297,6 +297,12 @@ export type TravellerGuidance = {
 
 
 export type VisaStatus = 'required' | 'not_needed' | 'no_data'
+export type VisaGuidance = {
+  country: string
+  entry_requirement: string
+  max_stay: string
+  documents: string[]
+}
 export type VisaResult = {
   traveller_id: string | null
   name: string
@@ -308,6 +314,7 @@ export type VisaResult = {
   official_site_url: string | null
   marked_self_check: boolean
   unresolved: boolean
+  guidance: VisaGuidance | null
 }
 export type VisaView = { destination: string; published_on: string; travellers: VisaResult[] }
 /** An editor as the owner sees them; `invite_url` is a path on this site. */

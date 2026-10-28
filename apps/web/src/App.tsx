@@ -17,6 +17,7 @@ import { AddPlaceNoTripsPage } from './places/AddPlaceNoTripsPage'
 import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { StarterPlaceContentPage } from './places/StarterPlaceContentPage'
 import { StarterPlannerPage } from './places/StarterPlannerPage'
+import { NotFoundPage } from './NotFoundPage'
 import { ProfilePage } from './profile/ProfilePage'
 import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
@@ -41,7 +42,9 @@ import { TripRequirementsPage } from './trips/TripRequirementsPage'
 import { VisaRequirementsPage } from './trips/VisaRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
-// Every page other than the auth pages must be wrapped in <RequireAuth>, except five:
+// Every page other than the auth pages must be wrapped in <RequireAuth>, except six: the
+// not-found catch-all, which tells a signed-out visitor the page does not exist instead of
+// sending them to sign in;
 // the invite page names the email to sign in with while signed out, and the server checks the
 // session on accept; the read-only trip page is for people with no account, and its link is the
 // credential; Destination results browses the read-only catalogue, and a signed-out visitor who
@@ -314,6 +317,7 @@ export default function App() {
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/confirm-email" element={<ConfirmEmailPage />} />
           <Route path="/confirm-email/:token" element={<ConfirmLinkPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </>

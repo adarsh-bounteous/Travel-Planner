@@ -483,3 +483,10 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
 .suggestion { background: var(--color-primary-subtle); display: flex; flex-direction: column; gap: var(--space-2); }
 .suggestion p { margin: 0; }
 .no-match { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; }
+
+.nf { max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-5) var(--space-3); }
+.nf .empty-state { max-width: 36rem; margin: 0 auto; padding: var(--space-6) var(--space-3); border-style: solid; border-color: var(--color-border); }
+.nf-icon { display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-lg); height: var(--size-control-lg); border-radius: var(--radius-full); background: var(--color-surface); color: var(--color-fg-muted); }
+.nf-icon .icon { width: var(--size-check); height: var(--size-check); }
+.nf-path { max-width: 100%; padding: var(--space-1) var(--space-2); background: var(--color-surface); border-radius: var(--radius-sm); overflow-wrap: anywhere; font-family: var(--font-family-mono); font-size: var(--font-size-sm); }
+.nf .btn { min-height: var(--size-control-lg); }

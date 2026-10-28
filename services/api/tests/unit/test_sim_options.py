@@ -15,7 +15,8 @@ def trip(dest="Lisbon, Portugal", start=date(2027, 3, 12), end=date(2027, 3, 20)
     return Trip(
         id="t1",
         name="Trip",
-        destination=dest,
+        country=dest.rsplit(",", 1)[-1].strip() if dest else None,
+        place=dest.split(",")[0].strip() if dest else None,
         start_date=start,
         end_date=end,
         traveller_count=traveller_count,
@@ -89,6 +90,17 @@ def test_covers_trip_boundaries():
     assert covers_trip(date(2027, 3, 12), date(2027, 3, 20), t)
     assert not covers_trip(date(2027, 3, 13), date(2027, 3, 20), t)
     assert not covers_trip(date(2027, 3, 12), date(2027, 3, 19), t)
+
+
+def test_dates_outside_every_sim_stay_ready_with_no_options():
+    late = Stub("w", "web_search", [sim(valid_from=date(2030, 1, 1), valid_to=date(2030, 1, 31))])
+    out = gather_sims([late], trip(), LABELS, None, RATES)
+    assert out.status == "ready" and out.options == []
+
+
+def test_country_no_provider_covers_has_no_country_data():
+    out = gather_sims([Stub("w", "web_search", [sim(countries=("Spain",))])], trip(), LABELS, None, RATES)
+    assert out.status == "no_country_data" and out.destination.label == "Lisbon, Portugal"
 
 
 def test_no_destination_or_dates_gives_no_options():

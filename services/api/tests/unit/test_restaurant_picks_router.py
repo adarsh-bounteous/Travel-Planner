@@ -7,12 +7,11 @@ from app.dining.providers import InMemoryRestaurantProvider
 from app.main import app
 from app.routers import deps
 from app.trips.store import DynamoTripStore
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip
 
 
 def _trip(client, **changes):
-    body = trip_body(name="Trip", start_date="2026-05-01", end_date="2026-05-03", destination="Lisbon", **changes)
-    return client.post("/trips", json=body).json()["id"]
+    return create_trip(client, name="Trip", start_date="2026-05-01", end_date="2026-05-03", destination="Lisbon", **changes)
 
 
 def _pick(client, tid, name="Casa Lima", **extra):

@@ -43,19 +43,48 @@ const noData = row('Chen', 'no_data', {
   official_site_url: 'https://example.test/japan',
 })
 
-const open = (travellers: unknown[], extra: Record<string, { status: number; body?: unknown }> = {}) => {
+const dest = (country: string, place: string) => ({ country, place, label: `${place}, ${country}` })
+const KYOTO = dest('Japan', 'Kyoto')
+
+const view = (travellers: unknown[], over = {}) => ({
+  destination: KYOTO,
+  status: 'ready',
+  published_on: '2026-10-20',
+  travellers,
+  ...over,
+})
+
+const open = (
+  travellers: unknown[],
+  extra: Record<string, { status: number; body?: unknown }> = {},
+  over = {},
+) => {
   stubApi({
     'GET /trips/t1': { status: 200, body: trip },
-    'GET /trips/t1/visa': {
-      status: 200,
-      body: { destination: 'Japan', published_on: '2026-10-20', travellers },
-    },
+    'GET /trips/t1/visa': { status: 200, body: view(travellers, over) },
     ...extra,
   })
   renderAt('/trips/t1/visa-requirements')
 }
 
 describe('Visa requirements', () => {
+  it('shows the chosen destination label (AC1, AC5)', async () => {
+    open([required], {}, { destination: dest('Portugal', 'Lisbon') })
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
+  })
+
+  it('asks to choose a destination when there is none (AC6)', async () => {
+    open([required], {}, { destination: null, status: 'no_destination' })
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+    expect(screen.queryByText('Visa required')).not.toBeInTheDocument()
+  })
+
+  it('says there is no information for a country with no data (AC7)', async () => {
+    open([required], {}, { status: 'no_country_data' })
+    expect(await screen.findByText('No information available for this country')).toBeInTheDocument()
+    expect(screen.queryByText('Visa required')).not.toBeInTheDocument()
+  })
+
   it('shows each traveller verdict with the confirm note', async () => {
     open([required, notNeeded])
     expect(await screen.findByText('Visa required')).toBeInTheDocument()
@@ -83,11 +112,9 @@ describe('Visa requirements', () => {
       'GET /trips/t1': { status: 200, body: trip },
       'GET /trips/t1/visa': {
         status: 200,
-        body: {
-          destination: 'Peru',
-          published_on: '2026-10-20',
-          travellers: [{ ...noData, official_site_url: 'https://example.test/search?q=Peru' }],
-        },
+        body: view([{ ...noData, official_site_url: 'https://example.test/search?q=Peru' }], {
+          destination: dest('Peru', 'Lima'),
+        }),
       },
     })
     renderAt('/trips/t1/visa-requirements')
@@ -102,7 +129,7 @@ describe('Visa requirements', () => {
     open([noData], {
       'PUT /trips/t1/visa/chen/self-check': {
         status: 200,
-        body: { destination: 'Japan', published_on: '2026-10-20', travellers: [marked] },
+        body: view([marked]),
       },
     })
     fireEvent.click(await screen.findByRole('button', { name: "I'll check myself" }))

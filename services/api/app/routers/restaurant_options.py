@@ -19,6 +19,7 @@ from app.dining.shortlist import RestaurantShortlist, build_shortlist
 from app.routers.auth import get_identity, get_now
 from app.routers.deps import get_current_user, get_profiles, get_restaurant_providers, get_trips
 from app.routers.trips import _load, _owned_trip
+from app.trips.destination import ChosenDestination, DestinationStatus
 from app.trips.profile_store import Profile, ProfileStore
 from app.trips.store import Trip, TripStore
 
@@ -38,6 +39,8 @@ class FiltersApplied(BaseModel):
 
 
 class RestaurantOptionsResponse(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
     place: str
     home_cuisine: str
     options: list[RestaurantOption]
@@ -106,6 +109,8 @@ def restaurant_options(
 ) -> RestaurantOptionsResponse:
     trip, profile, filters, found = _matches(trips, identity, profiles, providers, user, trip_id)
     return RestaurantOptionsResponse(
+        destination=found.destination,
+        status=found.status,
         place=found.place,
         home_cuisine=filters.home_cuisine,
         options=found.options,

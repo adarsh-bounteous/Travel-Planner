@@ -1,3 +1,5 @@
+import type { DestinationRef, DestinationStatus } from './destination'
+
 export type Day = { date: string; name: string }
 export type ChosenOption = {
   id: string
@@ -76,6 +78,8 @@ export type SimOption = {
   url: string
 }
 export type SimOptions = {
+  destination: DestinationRef | null
+  status: DestinationStatus
   place: string
   start_date: string | null
   end_date: string | null
@@ -182,7 +186,13 @@ export type ActivityOption = {
   offer: string | null
   prices: ActivityPrice[]
 }
-export type ActivityOptions = { place: string; travellers: number; options: ActivityOption[] }
+export type ActivityOptions = {
+  destination: DestinationRef | null
+  status: DestinationStatus
+  place: string
+  travellers: number
+  options: ActivityOption[]
+}
 export type RestaurantOption = {
   name: string
   city: string
@@ -195,6 +205,8 @@ export type RestaurantOption = {
   url: string | null
 }
 export type RestaurantOptions = {
+  destination: DestinationRef | null
+  status: DestinationStatus
   place: string
   home_cuisine: string
   options: RestaurantOption[]
@@ -252,6 +264,11 @@ export type Recommendation = {
   detail: string
   interest?: string | null
   place?: Place | null
+}
+export type TripRecommendations = {
+  destination: DestinationRef | null
+  status: DestinationStatus
+  items: Recommendation[]
 }
 
 /** A place from Destination results kept on a trip; it has no day until it is scheduled. */
@@ -316,7 +333,17 @@ export type VisaResult = {
   unresolved: boolean
   guidance: VisaGuidance | null
 }
-export type VisaView = { destination: string; published_on: string; travellers: VisaResult[] }
+export type VisaView = {
+  destination: DestinationRef | null
+  status: DestinationStatus
+  published_on: string
+  travellers: VisaResult[]
+}
+export type MedicalGuidanceView = {
+  destination: DestinationRef | null
+  status: DestinationStatus
+  travellers: TravellerGuidance[]
+}
 /** An editor as the owner sees them; `invite_url` is a path on this site. */
 export type Editor = { email: string; accepted: boolean; invite_url?: string }
 export type Invite = { email: string; trip_name: string }
@@ -485,7 +512,7 @@ export const fetchRecommendations = (tripId: string, date: string) =>
   call<Recommendation[]>(`/trips/${encodeURIComponent(tripId)}/days/${date}/recommendations`)
 
 export const fetchTripRecommendations = (tripId: string) =>
-  call<Recommendation[]>(`/trips/${encodeURIComponent(tripId)}/recommendations`)
+  call<TripRecommendations>(`/trips/${encodeURIComponent(tripId)}/recommendations`)
 
 export const addActivity = (tripId: string, input: ActivityInput) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/activities`, 'POST', input)
@@ -685,7 +712,7 @@ export const setVisaSelfCheck = (tripId: string, key: string, checked: boolean) 
   )
 
 export const fetchMedicalGuidance = (tripId: string) =>
-  call<TravellerGuidance[]>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
+  call<MedicalGuidanceView>(`/trips/${encodeURIComponent(tripId)}/medical-guidance`)
 
 export const addTraveller = (tripId: string, name: string, age?: number) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/travellers`, 'POST', age === undefined ? { name } : { name, age })

@@ -5,7 +5,7 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel
 
-from app.trips.destination_info import country_for
+from app.trips.destination import ChosenDestination, DestinationStatus, chosen_destination, destination_status
 from app.trips.rates import RateSource
 from app.trips.store import Trip
 
@@ -63,12 +63,25 @@ class SimOption(BaseModel):
 
 
 class SimOptions(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
     place: str
     start_date: date | None
     end_date: date | None
     travellers: list[str]
     preference: SimType | None
     options: list[SimOption]
+
+
+def country_covered(providers: list[SimProvider], country: str) -> bool:
+    """True when any provider lists a SIM covering the country, whatever its dates."""
+    for provider in providers:
+        try:
+            if any(country in x.countries for x in provider.fetch(country)):
+                return True
+        except Exception:
+            logger.exception("SIM provider %s failed", provider.name)
+    return False
 
 
 def covers_trip(sim_from: date, sim_to: date, trip: Trip) -> bool:
@@ -92,8 +105,11 @@ def gather_sims(
 
     The SIM type only reorders when the profile sets a preference. Every traveller pays the same price.
     """
-    place = trip.destination or ""
-    country = country_for(place)
+    chosen = chosen_destination(trip)
+    country = chosen.country if chosen else ""
+    status = destination_status(
+        chosen, needs_place=False, country_has_data=bool(country) and country_covered(providers, country)
+    )
     found: list[tuple[SimProvider, ProviderSim]] = []
     for provider in providers if country and trip.start_date and trip.end_date else []:
         try:
@@ -136,7 +152,9 @@ def gather_sims(
 
     options.sort(key=sort_key)
     return SimOptions(
-        place=place,
+        destination=chosen,
+        status=status,
+        place=chosen.label if chosen else "",
         start_date=trip.start_date,
         end_date=trip.end_date,
         travellers=travellers,

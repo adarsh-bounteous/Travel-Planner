@@ -7,6 +7,13 @@ from typing import Literal, Protocol
 from pydantic import BaseModel
 
 from app.trips.rates import RateSource
+from app.trips.destination import (
+    ChosenDestination,
+    DestinationStatus,
+    chosen_destination,
+    country_has_any_place,
+    destination_status,
+)
 from app.trips.store import Trip
 
 logger = logging.getLogger(__name__)
@@ -70,6 +77,8 @@ class ActivityOption(BaseModel):
 
 
 class ActivityOptions(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
     place: str
     travellers: int
     options: list[ActivityOption]
@@ -90,17 +99,30 @@ def gather_activities(providers: list[ActivityProvider], trip: Trip, rates: Rate
     The trip holds only a traveller count, so every traveller is priced as an adult.
     """
     travellers = trip.traveller_count or 1
-    place = trip.destination or ""
-    grouped: dict[str, list[tuple[ActivityProvider, ProviderActivity]]] = {}
-    for provider in providers if place else []:
-        try:
-            fetched = provider.fetch(place)
-        except Exception:
-            logger.exception("activity provider %s failed", provider.name)
-            continue
-        for x in fetched:
-            if x.kind in BOOKABLE_KINDS:
-                grouped.setdefault(_fold(x.title), []).append((provider, x))
+    chosen = chosen_destination(trip)
+    place = chosen.place if chosen and chosen.place else ""
+
+    def listed_at(where: str) -> dict[str, list[tuple[ActivityProvider, ProviderActivity]]]:
+        grouped: dict[str, list[tuple[ActivityProvider, ProviderActivity]]] = {}
+        for provider in providers if where else []:
+            try:
+                fetched = provider.fetch(where)
+            except Exception:
+                logger.exception("activity provider %s failed", provider.name)
+                continue
+            for x in fetched:
+                if x.kind in BOOKABLE_KINDS:
+                    grouped.setdefault(_fold(x.title), []).append((provider, x))
+        return grouped
+
+    # Place data is measured before the interest and budget filters, so a filter that empties the list is not "no information".
+    grouped = listed_at(place)
+    status = destination_status(
+        chosen,
+        needs_place=True,
+        country_has_data=bool(chosen) and country_has_any_place(chosen.country, lambda p: bool(listed_at(p))),
+        place_has_data=bool(grouped),
+    )
 
     wanted = {_fold(i) for i in trip.interests}
     options = []
@@ -143,4 +165,4 @@ def gather_activities(providers: list[ActivityProvider], trip: Trip, rates: Rate
                 prices=prices,
             )
         )
-    return ActivityOptions(place=place, travellers=travellers, options=options)
+    return ActivityOptions(destination=chosen, status=status, place=place, travellers=travellers, options=options)

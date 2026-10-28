@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { fetchLocalMode } from '../auth/api'
 import { AlertIcon, InfoIcon } from '../auth/icons'
+import { fetchTrip } from '../trips/api'
+import type { Trip } from '../trips/api'
+import { destinationLabel } from '../trips/destination'
+import type { DestinationRef, DestinationStatus } from '../trips/destination'
+import { DestinationGate } from '../trips/DestinationGate'
 import { PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from './api'
 import type { Place, PlaceFilters as Filters } from './api'
+import { fetchStarterDestinations } from './starterApi'
 import { useAddToTrip } from './AddToTrip'
 import { PlaceCard } from './PlaceCard'
 import { PlaceFilters } from './PlaceFilters'
@@ -16,7 +23,10 @@ export function DestinationResultsPage() {
   const [params, setParams] = useSearchParams()
   const query = (params.get('q') ?? '').trim()
   const destination = (params.get('destination') ?? '').trim()
-  const area = destination || query
+  const tripId = params.get('trip')
+  const [trip, setTrip] = useState<Trip | null>(null)
+  const [countries, setCountries] = useState<string[] | null>(null)
+  const area = destination || query || (tripId ? (trip?.place ?? '') : '')
   const typeParam =params.get('type')
   const priceParam = params.get('price')
   const placeType =
@@ -43,6 +53,22 @@ export function DestinationResultsPage() {
   }, [area, destination, query, placeType, price])
 
   useEffect(() => {
+    if (!tripId) return
+    let current = true
+    Promise.all([fetchTrip(tripId), fetchStarterDestinations()]).then(
+      ([loaded, starter]) => {
+        if (!current) return
+        setTrip(loaded)
+        setCountries(starter.map((c) => c.name))
+      },
+      () => current && setFailed(true),
+    )
+    return () => {
+      current = false
+    }
+  }, [tripId])
+
+  useEffect(() => {
     let current = true
     void fetchLocalMode().then((on) => current && setLocalMode(on))
     return () => {
@@ -50,7 +76,32 @@ export function DestinationResultsPage() {
     }
   }, [])
 
-  if (!area) return <Navigate to="/" replace />
+  if (!area && !tripId) return <Navigate to="/" replace />
+
+  const tripReady = tripId !== null && trip !== null && countries !== null
+  const chosen: DestinationRef | null =
+    tripReady && trip.country
+      ? {
+          country: trip.country,
+          place: trip.place ?? null,
+          label: destinationLabel(trip.country, trip.place ?? null),
+        }
+      : null
+  let gateStatus: DestinationStatus = 'ready'
+  if (tripReady) {
+    if (!chosen || !chosen.place) gateStatus = 'no_destination'
+    else if (!countries.includes(chosen.country)) gateStatus = 'no_country_data'
+    else if (places !== null && places.length === 0 && !(placeType !== undefined || price !== undefined))
+      gateStatus = 'no_place_data'
+  }
+  const gated = (content: ReactNode) =>
+    tripId && tripReady ? (
+      <DestinationGate tripId={tripId} destination={chosen} status={gateStatus}>
+        {content}
+      </DestinationGate>
+    ) : (
+      content
+    )
 
   const modeNotice =
     localMode === null ? null : localMode ? (
@@ -105,7 +156,15 @@ export function DestinationResultsPage() {
       </div>
     )
 
-  if (places !== null && places.length === 0 && !filtered)
+  if (tripId && !tripReady)
+    return (
+      <div className="stack">
+        {back}
+        <p role="status">Loading destination…</p>
+      </div>
+    )
+
+  if (places !== null && places.length === 0 && !filtered && !tripId)
     return (
       <div className="stack">
         {back}
@@ -124,7 +183,9 @@ export function DestinationResultsPage() {
     <div className="stack">
       {back}
       {modeNotice}
-      <h1>Places in {area}</h1>
+      <h1>{tripId ? 'Places' : `Places in ${area}`}</h1>
+      {gated(
+        <>
       {panel}
       {savedPanel}
       <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
@@ -179,6 +240,8 @@ export function DestinationResultsPage() {
             {area}.
           </span>
         </p>
+      )}
+        </>,
       )}
     </div>
   )

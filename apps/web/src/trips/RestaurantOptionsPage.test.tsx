@@ -21,6 +21,8 @@ const restaurant = (name: string, over: Partial<RestaurantOption> = {}): Restaur
 
 const body = (options: RestaurantOption[], over: Partial<RestaurantOptions> = {}): RestaurantOptions => ({
   place: 'Lisbon',
+  destination: { country: 'Portugal', place: 'Lisbon', label: 'Lisbon, Portugal' },
+  status: 'ready',
   home_cuisine: 'Portuguese',
   options,
   filters_applied: { profile: ['Vegetarian', 'Budget: $$'], trip: ['Halal'] },
@@ -41,7 +43,8 @@ const open = (options: RestaurantOptions, tripBody: Trip = trip, extra = {}) => 
 describe('restaurant options page', () => {
   it('shows cards, the home cuisine note and separate filter chip groups', async () => {
     open(body([restaurant('Casa Lima'), restaurant('Zaytoon', { cuisine: 'Lebanese', url: null })]))
-    expect(await screen.findByRole('heading', { name: 'Restaurants in Lisbon' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Restaurants' })).toBeInTheDocument()
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
     const card = screen.getByRole('article', { name: 'Casa Lima' })
     expect(within(card).getByText(/Portuguese cuisine, casual dining. Typically €22 per person./)).toBeInTheDocument()
     expect(within(card).getByRole('link', { name: /View listing/ })).toBeInTheDocument()
@@ -52,6 +55,18 @@ describe('restaurant options page', () => {
     expect(within(filters).getByText('Vegetarian')).toBeInTheDocument()
     expect(within(filters).getByText('Halal').closest('.chip-trip')).not.toBeNull()
     expect(within(filters).getByText('Vegetarian').closest('.chip-trip')).toBeNull()
+  })
+
+  it('asks to choose a destination when there is none (AC6, AC8)', async () => {
+    open(body([], { destination: null, status: 'no_destination' }))
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+    expect(screen.queryByText('No restaurants match your filters.')).not.toBeInTheDocument()
+  })
+
+  it('says there is no information for a place with no data (AC9)', async () => {
+    open(body([], { status: 'no_place_data' }))
+    expect(await screen.findByText('No information available for this place')).toBeInTheDocument()
+    expect(screen.queryByText('No restaurants match your filters.')).not.toBeInTheDocument()
   })
 
   it('says nothing matches and suggests relaxing a filter (AC13, AC14)', async () => {

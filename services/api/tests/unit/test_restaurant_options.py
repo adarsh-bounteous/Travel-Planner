@@ -7,7 +7,7 @@ PROVIDERS = [InMemoryRestaurantProvider(name, catalogue) for name, catalogue in 
 
 
 def _trip(destination="Lisbon"):
-    return Trip(id="t1", name="Trip", destination=destination)
+    return Trip(id="t1", name="Trip", country="Portugal", place=destination)
 
 
 def _names(filters, destination="Lisbon"):

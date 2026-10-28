@@ -45,6 +45,10 @@ _UNSUITABLE_IN_PREGNANCY = {"MMR booster"}
 _PREGNANCY_ONLY_ADVISORIES = [PREGNANCY_ADVISORY]
 
 
+def has_data(country: str) -> bool:
+    return country in _ROUTES
+
+
 def _official_site(country: str) -> str:
     """The seeded official site, else a search for the country's official government travel site."""
     known = _OFFICIAL_SITES.get(country)

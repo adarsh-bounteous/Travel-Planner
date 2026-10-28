@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { AlertIcon } from '../auth/icons'
 import { fetchActivityOptions, fetchTrip } from './api'
 import type { ActivityOption, ActivityOptions } from './api'
+import { DestinationGate } from './DestinationGate'
 import { formatFetched, formatMoney } from './stayOptions'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; options: ActivityOptions }
@@ -58,7 +59,7 @@ export function ActivityOptionsPage() {
           <li aria-current="page">Activities</li>
         </ol>
       </nav>
-      <h1>{result.state === 'ready' ? `Activities in ${result.options.place}` : 'Activities'}</h1>
+      <h1>Activities</h1>
       {result.state === 'loading' && <p role="status">Loading activities…</p>}
       {result.state === 'failed' && (
         <div className="alert alert-danger" role="alert">
@@ -66,13 +67,19 @@ export function ActivityOptionsPage() {
           We couldn't load activities. Check your connection and try again.
         </div>
       )}
-      {result.state === 'ready' && result.options.options.length === 0 && (
-        <div className="alert alert-warning" role="status">
-          <span className="alert-title">Nothing matches your interests and budget.</span> Try to change your
-          interests or budget.
-        </div>
+      {result.state === 'ready' && (
+        <DestinationGate tripId={tripId} destination={result.options.destination} status={result.options.status}>
+          {result.options.options.length === 0 && (
+            <div className="alert alert-warning" role="status">
+              <span className="alert-title">Nothing matches your interests and budget.</span> Try to change your
+              interests or budget.
+            </div>
+          )}
+          {result.options.options.map((o) => (
+            <ActivityCard key={o.id} option={o} />
+          ))}
+        </DestinationGate>
       )}
-      {result.state === 'ready' && result.options.options.map((o) => <ActivityCard key={o.id} option={o} />)}
     </div>
   )
 }

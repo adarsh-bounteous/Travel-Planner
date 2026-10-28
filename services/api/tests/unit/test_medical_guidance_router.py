@@ -1,8 +1,8 @@
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip
 
 
 def _trip(owner):
-    tid = owner.post("/trips", json=trip_body(destination="Lisbon, Portugal")).json()["id"]
+    tid = create_trip(owner, destination="Lisbon, Portugal")
     for name, cit in (("Ana", "Canada"), ("Ben", "India")):
         t = owner.post(f"/trips/{tid}/travellers", json={"name": name}).json()["travellers"][-1]
         owner.put(
@@ -14,7 +14,7 @@ def _trip(owner):
 
 def test_each_traveller_has_guidance_under_their_own_name(sign_in_as):
     a = sign_in_as("a@example.com")
-    rows = a.get(f"/trips/{_trip(a)}/medical-guidance").json()
+    rows = a.get(f"/trips/{_trip(a)}/medical-guidance").json()["travellers"]
     assert [r["name"] for r in rows] == ["You", "Ana", "Ben"]
     assert rows[1]["tests"] != rows[2]["tests"]
     assert all(r["confirm_note"] == "Confirm with official sources before you travel." for r in rows)

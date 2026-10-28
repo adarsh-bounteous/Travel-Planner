@@ -303,7 +303,6 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         ) : tab === 'recommendations' ? (
           <TripRecommendationsTab
             tripId={tripId}
-            destination={trip.destination}
             interests={trip.interests ?? []}
             onBack={() => setTab('itinerary')}
           />

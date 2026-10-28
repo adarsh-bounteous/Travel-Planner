@@ -43,6 +43,8 @@ const chosen: ChosenSim = {
 
 const data = (over: Partial<SimOptions> = {}): SimOptions => ({
   place: 'Lisbon, Portugal',
+  destination: { country: 'Portugal', place: 'Lisbon', label: 'Lisbon, Portugal' },
+  status: 'ready',
   start_date: '2027-03-12',
   end_date: '2027-03-20',
   travellers: ['Ana', 'Marco'],
@@ -62,6 +64,24 @@ const open = (body: SimOptions, extra: Parameters<typeof stubApi>[0] = {}) => {
 }
 
 describe('SIM options page', () => {
+  it('shows the chosen destination label and its country (AC2, AC5)', async () => {
+    open(data())
+    expect(await screen.findByText('Destination: Lisbon, Portugal')).toBeInTheDocument()
+    expect(screen.getByText(/Showing options that cover Portugal/)).toBeInTheDocument()
+  })
+
+  it('asks to choose a destination when there is none (AC6)', async () => {
+    open(data({ destination: null, status: 'no_destination', options: [] }))
+    expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()
+    expect(screen.queryByText(/No SIM options match/)).not.toBeInTheDocument()
+  })
+
+  it('says there is no information for a country with no data (AC7)', async () => {
+    open(data({ status: 'no_country_data', options: [] }))
+    expect(await screen.findByText('No information available for this country')).toBeInTheDocument()
+    expect(screen.queryByText(/No SIM options match/)).not.toBeInTheDocument()
+  })
+
   it('shows data, price, source and each traveller with the group total (AC5, 6, 18, 19)', async () => {
     open(data())
     expect(await screen.findByText('Data: 10 GB')).toBeInTheDocument()

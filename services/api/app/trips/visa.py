@@ -80,6 +80,10 @@ _GUIDANCE = {
 }
 
 
+def has_guidance(country: str) -> bool:
+    return country in _GUIDANCE
+
+
 def guidance_for(country: str, required: bool) -> VisaGuidance | None:
     if country not in _GUIDANCE:
         return None

@@ -2,12 +2,11 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.routers import deps
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip
 
 
 def _trip(client, **extra):
-    body = trip_body(name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination="Lisbon", **extra)
-    return client.post("/trips", json=body).json()["id"]
+    return create_trip(client, name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination="Lisbon", **extra)
 
 
 def test_owner_gets_options_from_two_source_kinds(sign_in_as):

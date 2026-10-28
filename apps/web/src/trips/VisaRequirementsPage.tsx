@@ -4,6 +4,7 @@ import { AlertIcon, InfoIcon } from '../auth/icons'
 import { fetchTrip, fetchVisa, setVisaSelfCheck } from './api'
 import type { Trip, VisaResult, VisaView } from './api'
 import { CompanionDetailsDrawer } from './CompanionDetailsDrawer'
+import { DestinationGate } from './DestinationGate'
 import { Toast } from './Toast'
 import { VisaStatusBadge } from './VisaStatusBadge'
 
@@ -89,7 +90,6 @@ export function VisaRequirementsPage() {
       </nav>
       <h1>Visa requirements</h1>
       <div className="page-head">
-        <p>{loaded && `Destination: ${loaded.view.destination}`}</p>
         <span className="cluster text-sm text-muted">
           <span>
             {loaded && `Rules published by provider on ${formatDate(loaded.view.published_on)}`}
@@ -110,6 +110,7 @@ export function VisaRequirementsPage() {
           ))}
         </div>
       ) : (
+        <DestinationGate tripId={tripId} destination={loaded.view.destination} status={loaded.view.status}>
         <div className="grid">
           {loaded.view.travellers.map((row) => (
             <article className="card traveller-card stack stack-sm" key={keyOf(row)}>
@@ -176,7 +177,7 @@ export function VisaRequirementsPage() {
                   {row.official_site_url && (
                     <p>
                       <a href={row.official_site_url} target="_blank" rel="noopener noreferrer">
-                        {loaded.view.destination || 'Destination'} official government site
+                        {loaded.view.destination?.country ?? 'Destination'} official government site
                       </a>
                     </p>
                   )}
@@ -200,6 +201,7 @@ export function VisaRequirementsPage() {
             </article>
           ))}
         </div>
+        </DestinationGate>
       )}
       {loaded && editingTraveller && (
         <CompanionDetailsDrawer

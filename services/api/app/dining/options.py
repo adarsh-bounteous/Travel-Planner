@@ -4,6 +4,13 @@ from typing import Protocol
 
 from pydantic import BaseModel
 
+from app.trips.destination import (
+    ChosenDestination,
+    DestinationStatus,
+    chosen_destination,
+    country_has_any_place,
+    destination_status,
+)
 from app.trips.store import Trip
 
 logger = logging.getLogger(__name__)
@@ -63,6 +70,8 @@ class RestaurantOption(ProviderRestaurant):
 
 
 class RestaurantOptions(BaseModel):
+    destination: ChosenDestination | None
+    status: DestinationStatus
     place: str
     options: list[RestaurantOption]
 
@@ -82,23 +91,35 @@ def gather_restaurants(providers: list[RestaurantProvider], trip: Trip, filters:
 
     A required tag missing from `suits` means unknown or unverified, so the restaurant is hidden.
     """
-    place = trip.destination or ""
-    found: list[ProviderRestaurant] = []
-    for provider in providers if place else []:
-        try:
-            found.extend(provider.fetch(place))
-        except Exception:
-            logger.exception("restaurant provider %s failed", provider.name)
+    chosen = chosen_destination(trip)
+    place = chosen.place if chosen and chosen.place else ""
+
+    def listed_at(where: str) -> list[ProviderRestaurant]:
+        found: list[ProviderRestaurant] = []
+        for provider in providers if where else []:
+            try:
+                found.extend(r for r in provider.fetch(where) if _fold(r.city) == _fold(where))
+            except Exception:
+                logger.exception("restaurant provider %s failed", provider.name)
+        return found
+
+    # Place data is measured before the filters, so a filter that empties the list is not "no information".
+    found = listed_at(place)
+    status = destination_status(
+        chosen,
+        needs_place=True,
+        country_has_data=bool(chosen) and country_has_any_place(chosen.country, lambda p: bool(listed_at(p))),
+        place_has_data=bool(found),
+    )
 
     needed = required_tags(filters)
     kept = [
         r
         for r in found
-        if _fold(r.city) == _fold(place)
-        and (not filters.dining_style or _fold(r.dining_style) == _fold(filters.dining_style))
+        if (not filters.dining_style or _fold(r.dining_style) == _fold(filters.dining_style))
         and (filters.price_level is None or r.price_level <= filters.price_level)
         and all(tag in r.suits for tag in needed)
     ]
     home = _fold(filters.home_cuisine)
     kept.sort(key=lambda r: not (home and _fold(r.cuisine) == home))  # stable: others keep their order
-    return RestaurantOptions(place=place, options=[RestaurantOption(**r.model_dump()) for r in kept])
+    return RestaurantOptions(destination=chosen, status=status, place=place, options=[RestaurantOption(**r.model_dump()) for r in kept])

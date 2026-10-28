@@ -32,10 +32,37 @@ class InMemoryRecommendations:
 
 
 
-def _local(slug: str, name: str, detail: str, interest: str, place_type, price, lat: float, lng: float) -> Recommendation:
+PLACEHOLDER_IMAGE_PATH = "/rec/placeholder.svg"
+# Slugs with a shipped image in apps/web/public/rec/, served by the web app itself.
+LOCAL_IMAGE_SLUGS = frozenset(
+    {
+        "time-out-market",
+        "pastel-de-belem",
+        "tile-museum-local",
+        "fado-alfama",
+        "cabo-da-roca",
+        "fushimi-inari",
+        "nishiki-market",
+        "arashiyama-bamboo",
+        "philosophers-path",
+    }
+)
+
+
+def local_image_url(slug: str) -> str:
+    return f"/rec/{slug}.svg" if slug in LOCAL_IMAGE_SLUGS else PLACEHOLDER_IMAGE_PATH
+
+
+def _remote(slug: str, name: str, detail: str, interest: str, place_type, price, lat: float, lng: float) -> Recommendation:
     return Recommendation(
         id=slug, name=name, detail=detail, interest=interest, place=_place(slug, name, place_type, price, lat, lng)
     )
+
+
+def _local(slug: str, name: str, detail: str, interest: str, place_type, price, lat: float, lng: float) -> Recommendation:
+    rec = _remote(slug, name, detail, interest, place_type, price, lat, lng)
+    rec.place = rec.place.model_copy(update={"image_url": local_image_url(slug)})
+    return rec
 
 
 # Local mode's stand-in for the recommendation service: tagged by interest, no shared ids between destinations.
@@ -59,8 +86,8 @@ SEED_LOCAL_RECOMMENDATIONS = {
 # Seeded default until a recommendations provider is chosen.
 SEED_RECOMMENDATIONS = {
     "lisbon": [
-        _local("tile-museum", "Tile Museum", "Museum, about 2 hours", "Culture", "museum", "budget", 38.7249, -9.1136),
-        _local("alfama-tour", "Alfama walking tour", "Guided walk, about 3 hours", "Culture", "landmark", "free", 38.7110, -9.1300),
-        _local("sintra", "Sintra day trip", "Day trip, about 8 hours", "Outdoors", "park", "moderate", 38.7979, -9.3880),
+        _remote("tile-museum", "Tile Museum", "Museum, about 2 hours", "Culture", "museum", "budget", 38.7249, -9.1136),
+        _remote("alfama-tour", "Alfama walking tour", "Guided walk, about 3 hours", "Culture", "landmark", "free", 38.7110, -9.1300),
+        _remote("sintra", "Sintra day trip", "Day trip, about 8 hours", "Outdoors", "park", "moderate", 38.7979, -9.3880),
     ],
 }

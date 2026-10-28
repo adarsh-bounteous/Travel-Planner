@@ -11,10 +11,11 @@ from app.flights.options import FlightOption
 from app.stays.options import ProviderListing
 from app.transport.options import TransportOption
 from app.trips.profile_store import Mode
+from app.trips.store import LOCAL_BOOKING_PREFIX
 
 Kind = Literal["stay", "flight", "transport"]
 
-BOOKING_PREFIX = "local://booking/"
+BOOKING_PREFIX = LOCAL_BOOKING_PREFIX
 CURRENCY = "EUR"
 OPTIONS_PER_SEARCH = 3
 

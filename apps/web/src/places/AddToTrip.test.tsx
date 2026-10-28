@@ -55,7 +55,8 @@ describe('Add a place to a trip', () => {
     })
     renderAt('/destinations?q=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
-    expect(await screen.findByText('Place added')).toBeInTheDocument()
+    const toast = await screen.findByRole('status')
+    expect(within(toast).getByText('Place added')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     const [post] = placesPosts(fetchMock)
     expect(JSON.parse(String(post[1]?.body))).toEqual({
@@ -64,6 +65,22 @@ describe('Add a place to a trip', () => {
       image_url: '/a.jpg',
     })
     expect(screen.getByRole('heading', { name: 'Places in Lisbon' })).toBeInTheDocument()
+  })
+
+  it('shows an error toast, not Place added, when the add fails', async () => {
+    stubApi({
+      ...base,
+      'GET /trips': { status: 200, body: [lisbonTrip] },
+      'POST /trips/t1/places': { status: 500 },
+    })
+    renderAt('/destinations?q=Lisbon')
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
+    const toast = await screen.findByRole('alert')
+    expect(toast.querySelector('.toast-error')).not.toBeNull()
+    expect(toast).toHaveTextContent("We couldn't add that place. Try again.")
+    expect(within(toast).getByRole('button', { name: 'Dismiss' })).toBeInTheDocument()
+    expect(screen.queryByText('Place added')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open trip' })).not.toBeInTheDocument()
   })
 
   it('asks which trip when there are several (AC3, 4)', async () => {

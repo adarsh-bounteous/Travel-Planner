@@ -111,3 +111,79 @@ def test_the_51st_stay_is_refused(sign_in_as):
         assert _add(a, tid, "Lisbon", S, E).status_code == 201
     r = _add(a, tid, "Lisbon", S, E)
     assert (r.status_code, r.json()) == (422, {"code": "invalid_stay"})
+
+
+def _redate(client, tid, start, end, name="Trip"):
+    body = trip_body(name=name, start_date=start, end_date=end, destination="Lisbon")
+    return client.put(f"/trips/{tid}", json=body)
+
+
+def test_date_change_flags_stay_entirely_outside(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    _add(a, tid, "Lisbon", "2027-01-02", "2027-01-04")
+    r = _redate(a, tid, "2027-01-08", "2027-01-12")
+    assert r.json()["stays"][0]["outside_trip"] is True
+    assert a.get(f"/trips/{tid}").json()["stays"][0]["outside_trip"] is True
+
+
+def test_date_change_leaves_inside_stay_unflagged(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    _add(a, tid, "Lisbon", "2027-01-03", "2027-01-05")
+    assert _redate(a, tid, "2027-01-02", "2027-01-10").json()["stays"][0]["outside_trip"] is False
+
+
+def test_stay_added_after_date_change_is_not_flagged(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    _redate(a, tid, "2027-01-01", "2027-01-05")
+    stays = _add(a, tid, "Porto", "2027-02-01", "2027-02-03").json()["stays"]
+    assert stays[0]["outside_trip"] is False
+
+
+def test_date_change_flags_stay_extending_beyond(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    _add(a, tid, "Lisbon", "2027-01-04", "2027-01-10")
+    assert _redate(a, tid, "2027-01-01", "2027-01-06").json()["stays"][0]["outside_trip"] is True
+
+
+def test_stored_stay_without_flag_loads_unflagged():
+    stay = {"id": "s", "place": "x", "start_date": "2027-01-01", "end_date": "2027-01-02"}
+    assert Trip.model_validate({"id": "t1", "name": "Old", "stays": [stay]}).stays[0].outside_trip is False
+
+
+def test_name_only_edit_keeps_flags(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    _add(a, tid, "Lisbon", "2027-01-02", "2027-01-04")
+    _redate(a, tid, "2027-01-08", "2027-01-12")
+    r = _redate(a, tid, "2027-01-08", "2027-01-12", name="Renamed")
+    assert r.json()["stays"][0]["outside_trip"] is True
+
+
+def test_client_cannot_set_the_flag(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    body = {"place": "Lisbon", "start_date": S, "end_date": E, "outside_trip": True}
+    assert a.post(f"/trips/{tid}/stays", json=body).json()["stays"][0]["outside_trip"] is False
+
+
+def test_adjusting_flagged_stay_inside_clears_flag(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    sid = _add(a, tid, "Lisbon", "2027-01-02", "2027-01-04").json()["stays"][0]["id"]
+    _redate(a, tid, "2027-01-08", "2027-01-12")
+    still = {"place": "Lisbon", "start_date": "2027-01-03", "end_date": "2027-01-05"}
+    assert a.put(f"/trips/{tid}/stays/{sid}", json=still).json()["stays"][0]["outside_trip"] is True
+    inside = {"place": "Lisbon", "start_date": "2027-01-09", "end_date": "2027-01-11"}
+    assert a.put(f"/trips/{tid}/stays/{sid}", json=inside).json()["stays"][0]["outside_trip"] is False
+
+
+def test_editing_unflagged_stay_never_flags_it(sign_in_as):
+    a = sign_in_as("a@example.com")
+    tid = _trip(a)
+    sid = _add(a, tid, "Lisbon", S, E).json()["stays"][0]["id"]
+    outside = {"place": "Lisbon", "start_date": "2027-03-01", "end_date": "2027-03-02"}
+    assert a.put(f"/trips/{tid}/stays/{sid}", json=outside).json()["stays"][0]["outside_trip"] is False

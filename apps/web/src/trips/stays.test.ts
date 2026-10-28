@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Stay } from './api'
-import { formatRange, nights, sortStays, validateStay, warningFor } from './stays'
+import { formatRange, nights, outsideReason, sortStays, validateStay, warningFor } from './stays'
 
 const lisbon: Stay = { id: 's1', place: 'Lisbon', start_date: '2027-01-01', end_date: '2027-01-05' }
 const porto = (start_date: string, end_date: string): Stay => ({ id: 's2', place: 'Porto', start_date, end_date })
@@ -66,5 +66,27 @@ describe('formatting', () => {
     expect(formatRange('2027-01-30', '2027-02-02')).toBe('30 January to 2 February')
     expect(nights(lisbon)).toBe(4)
     expect(sortStays([porto('2027-01-10', '2027-01-12'), lisbon]).map((s) => s.id)).toEqual(['s1', 's2'])
+  })
+})
+
+describe('outsideReason', () => {
+  const stay = (start_date: string, end_date: string): Stay => ({ id: 's', place: 'X', start_date, end_date })
+  it('says how many days the stay starts before the trip', () => {
+    expect(outsideReason(stay('2027-03-04', '2027-03-12'), '2027-03-10', '2027-03-20')).toBe(
+      'Starts 6 days before your trip.',
+    )
+    expect(outsideReason(stay('2027-03-09', '2027-03-12'), '2027-03-10', '2027-03-20')).toBe(
+      'Starts 1 day before your trip.',
+    )
+  })
+  it('says how many days the stay ends after the trip', () => {
+    expect(outsideReason(stay('2027-03-12', '2027-03-22'), '2027-03-10', '2027-03-20')).toBe(
+      'Ends 2 days after your trip.',
+    )
+  })
+  it('says entirely outside when no day is shared', () => {
+    expect(outsideReason(stay('2027-04-01', '2027-04-03'), '2027-03-10', '2027-03-20')).toBe(
+      'Entirely outside your trip.',
+    )
   })
 })

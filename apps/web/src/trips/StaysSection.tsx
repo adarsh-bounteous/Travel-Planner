@@ -1,11 +1,13 @@
 import { Link } from 'react-router'
 import { AlertIcon, HomeIcon, PlusIcon, SearchIcon } from '../auth/icons'
 import type { Stay } from './api'
-import { formatRange, nights, sortStays, warningFor } from './stays'
+import { formatRange, nights, outsideReason, sortStays, warningFor } from './stays'
 
 type StaysSectionProps = {
   tripId: string
   stays: Stay[]
+  tripStart?: string | null
+  tripEnd?: string | null
   canEdit: boolean
   onAdd: () => void
   onEdit: (stay: Stay) => void
@@ -13,7 +15,7 @@ type StaysSectionProps = {
 }
 
 /** The trip's stays in date order, each with its dates; a stay that overlaps or leaves a gap carries a badge. */
-export function StaysSection({ tripId, stays, canEdit, onAdd, onEdit, onRemove }: StaysSectionProps) {
+export function StaysSection({ tripId, stays, tripStart, tripEnd, canEdit, onAdd, onEdit, onRemove }: StaysSectionProps) {
   return (
     <section className="stack" aria-labelledby="stays-heading">
       <div className="title-row">
@@ -35,7 +37,7 @@ export function StaysSection({ tripId, stays, canEdit, onAdd, onEdit, onRemove }
           const warning = warningFor(stay, stays)
           const count = nights(stay)
           return (
-            <div key={stay.id} className="card">
+            <div key={stay.id} className={`card${stay.outside_trip ? ' stay-flagged' : ''}`}>
               <div className="row-between">
                 <div>
                   <div className="stay-place">{stay.place}</div>
@@ -43,13 +45,24 @@ export function StaysSection({ tripId, stays, canEdit, onAdd, onEdit, onRemove }
                     {formatRange(stay.start_date, stay.end_date)}{' '}
                     <span className="text-sm">{`(${count} ${count === 1 ? 'night' : 'nights'})`}</span>
                   </div>
-                  {warning && (
+                  {(warning || stay.outside_trip) && (
                     <div className="stay-flags">
-                      <span className="badge badge-warning">
-                        <AlertIcon />
-                        {warning.kind === 'overlap' ? `Overlaps ${warning.other.place}` : 'Gap next to this stay'}
-                      </span>
+                      {warning && (
+                        <span className="badge badge-warning">
+                          <AlertIcon />
+                          {warning.kind === 'overlap' ? `Overlaps ${warning.other.place}` : 'Gap next to this stay'}
+                        </span>
+                      )}
+                      {stay.outside_trip && (
+                        <span className="badge badge-warning">
+                          <AlertIcon />
+                          Outside trip
+                        </span>
+                      )}
                     </div>
+                  )}
+                  {stay.outside_trip && tripStart && tripEnd && (
+                    <div className="text-sm text-muted">{outsideReason(stay, tripStart, tripEnd)}</div>
                   )}
                 </div>
                 <div className="cluster">

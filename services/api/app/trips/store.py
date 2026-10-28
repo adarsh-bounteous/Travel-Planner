@@ -189,6 +189,14 @@ class InsurancePick(BaseModel):
 class Stay(StayFields):
     id: str
     chosen: ChosenStay | None = None  # server-owned: changed only through the chosen-stay routes
+    outside_trip: bool = False  # server-owned: set when the trip dates change, never by a client
+
+
+def stay_outside_trip(stay: StayFields, start: date | None, end: date | None) -> bool:
+    """True when any part of the stay lies outside the trip dates. A trip without both dates flags nothing."""
+    if start is None or end is None:
+        return False
+    return stay.start_date < start or stay.end_date > end
 
 
 TransportLeg = Literal["destination", "between_cities", "local_taxi"]

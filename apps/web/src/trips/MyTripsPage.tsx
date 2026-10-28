@@ -90,11 +90,16 @@ export function MyTripsPage() {
     <div className="stack stack-lg">
       <div className="page-head">
         <h1>My trips</h1>
-        {trips && trips.length > 0 && (
-          <Link className="btn btn-primary" to={GUIDED_SETUP_PATH}>
-            New trip
+        <div className="cluster">
+          <Link className="btn btn-secondary" to="/trips/plan">
+            Plan from a starter destination
           </Link>
-        )}
+          {trips && trips.length > 0 && (
+            <Link className="btn btn-primary" to={GUIDED_SETUP_PATH}>
+              New trip
+            </Link>
+          )}
+        </div>
       </div>
       {load.status === 'loading' && (
         <div className="stack" role="status" aria-label="Loading trips">

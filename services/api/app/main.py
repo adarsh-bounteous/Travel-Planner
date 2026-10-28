@@ -29,6 +29,7 @@ from app.routers import (
     shared,
     sim_options,
     startup_status,
+    starter_destinations,
     stay_options,
     transport,
     transport_picks,
@@ -46,6 +47,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     if settings.local_mode:
         deps._local_trips()  # build now, so an unreadable data file stops startup, not the first request
         deps._local_profiles()
+        deps._local_invite_sender()
         run_first_start_seed(deps.get_local_seed_target(), date.today())
     yield
 
@@ -74,6 +76,7 @@ app.include_router(local_mode.router)
 app.include_router(travel_search.router)
 app.include_router(profile.router)
 app.include_router(places.router)
+app.include_router(starter_destinations.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
 app.include_router(trip_helpers.router)

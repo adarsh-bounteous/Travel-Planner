@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -78,3 +80,47 @@ def test_service_source_recommendations_match_interests_and_can_be_saved(client)
     tid = client.post("/trips", json={**BODY, "destination": "Lisbon", "interests": ["Culture"]}).json()["id"]
     recs = client.get(f"/trips/{tid}/recommendations").json()
     assert recs and all(r["interest"] == "Culture" and r["place"]["id"] for r in recs)
+
+
+PUBLIC = Path(__file__).resolve().parents[4] / "apps" / "web" / "public"
+
+
+@pytest.mark.parametrize("dest", ["Lisbon", "Kyoto"])
+def test_local_recommendation_images_are_app_paths(client, dest):
+    recs = get_for(client, dest)
+    assert recs
+    for r in recs:
+        url = r["place"]["image_url"]
+        assert url.startswith("/rec/") and not url.startswith("//")
+        assert "picsum" not in url and not url.startswith("http")
+
+
+def test_every_local_image_file_exists():
+    from app.trips.recommendations import SEED_LOCAL_RECOMMENDATIONS
+
+    urls = {r.place.image_url for recs in SEED_LOCAL_RECOMMENDATIONS.values() for r in recs}
+    assert urls and all((PUBLIC / u.lstrip("/")).is_file() for u in urls)
+
+
+def test_places_catalogue_image_is_unchanged():
+    from app.places.search import _place
+
+    assert _place("x", "X", "park", "free", 1, 2).image_url == "https://picsum.photos/seed/x/400/300"
+
+
+def test_non_local_recommendations_keep_their_image():
+    from app.trips.recommendations import SEED_RECOMMENDATIONS
+
+    assert all(r.place.image_url.startswith("https://") for r in SEED_RECOMMENDATIONS["lisbon"])
+
+
+def test_image_is_stable_across_visits(client):
+    first = {r["id"]: r["place"]["image_url"] for r in get_for(client, "Lisbon")}
+    second = {r["id"]: r["place"]["image_url"] for r in get_for(client, "Lisbon")}
+    assert first == second
+
+
+def test_unknown_slug_gets_placeholder():
+    from app.trips.recommendations import local_image_url
+
+    assert local_image_url("no-such-recommendation") == "/rec/placeholder.svg"

@@ -4,6 +4,7 @@ import { fetchLocalMode } from '../auth/api'
 import { AlertIcon, HeartIcon, InfoIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
+import { RecommendationImage } from './RecommendationImage'
 import type { Recommendation } from './api'
 
 type Props = {
@@ -19,11 +20,19 @@ export function TripRecommendationsTab({ tripId, destination, interests, onBack 
   const { savedIds, toggle, pendingIds, panel } = useSavedPlaces()
   const [recs, setRecs] = useState<Recommendation[] | null>(null)
   const [local, setLocal] = useState(false)
+  const [localKnown, setLocalKnown] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set(interests))
 
   useEffect(() => {
     let current = true
-    void fetchLocalMode().then((on) => current && setLocal(on))
+    // The mode gates which images may load, so the grid waits for it (a failed check reads as not local).
+    void fetchLocalMode()
+      .catch(() => false)
+      .then((on) => {
+        if (!current) return
+        setLocal(on)
+        setLocalKnown(true)
+      })
     // A failed or missing route reads as no recommendations: the empty message says what to do.
     void fetchTripRecommendations(tripId)
       .catch(() => [] as Recommendation[])
@@ -70,7 +79,7 @@ export function TripRecommendationsTab({ tripId, destination, interests, onBack 
           ))}
         </div>
       )}
-      {recs === null ? (
+      {recs === null || !localKnown ? (
         <div className="grid" role="status" aria-label="Loading recommendations">
           {[0, 1, 2].map((n) => (
             <span key={n} className="skeleton card" style={{ aspectRatio: '4 / 3', height: 'auto' }} />
@@ -95,14 +104,7 @@ export function TripRecommendationsTab({ tripId, destination, interests, onBack 
             const saved = !!r.place && savedIds.has(r.place.id)
             return (
               <li key={r.id} className="card stack">
-                {r.place && (
-                  <img
-                    src={r.place.image_url}
-                    alt=""
-                    loading="lazy"
-                    style={{ aspectRatio: '4 / 3', width: '100%', objectFit: 'cover' }}
-                  />
-                )}
+                <RecommendationImage src={r.place?.image_url} name={r.name} appOnly={local} />
                 <h3>{r.name}</h3>
                 {r.interest && <span className="badge badge-neutral">{r.interest}</span>}
                 <p className="text-sm text-muted">{r.detail}</p>

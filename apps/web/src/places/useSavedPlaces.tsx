@@ -28,24 +28,30 @@ export function useSavedPlaces() {
   const [saved, setSaved] = useState<Place[] | null>(null)
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
   const [failed, setFailed] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const [toast, setToast] = useState<{ key: number; message: string } | null>(null)
   const here = location.pathname + location.search
   const busy = useRef(new Set<string>())
 
-  const add = useCallback(
-    async (place: Place): Promise<boolean> => {
-      setSaved((current) => [...(current ?? []).filter((p) => p.id !== place.id), place])
-      try {
-        await savePlace(place)
-        return true
-      } catch {
-        setSaved((current) => (current ?? []).filter((p) => p.id !== place.id))
-        setFailed(true)
-        return false
-      }
-    },
-    [],
-  )
+  const savedRef = useRef<Place[] | null>(null)
+  savedRef.current = saved
+
+  const add = useCallback(async (place: Place): Promise<boolean> => {
+    if ((savedRef.current ?? []).some((p) => p.id === place.id)) {
+      setNotice(`${place.name} is already saved.`)
+      return false
+    }
+    setSaved((current) => [...(current ?? []).filter((p) => p.id !== place.id), place])
+    try {
+      await savePlace(place)
+      setToast({ key: Date.now(), message: `${place.name} saved to your account.` })
+      return true
+    } catch {
+      setSaved((current) => (current ?? []).filter((p) => p.id !== place.id))
+      setFailed(true)
+      return false
+    }
+  }, [])
 
   useEffect(() => {
     if (status === 'signedOut') setSaved([])
@@ -55,13 +61,16 @@ export function useSavedPlaces() {
       // If they can't be loaded the cards show as not saved; only a failed change alerts.
       const list = await fetchSavedPlaces().catch(() => [] as Place[])
       if (cancelled) return
+      savedRef.current = list // `add` below runs before the next render
       setSaved(list)
       const pending = readPending()
       if (!pending) return
       sessionStorage.removeItem(PENDING_KEY)
       takeReturnTo()
-      if (await add(pending))
-        setToast({ key: Date.now(), message: `${pending.name} saved to your account.` })
+      setNotice(null)
+      setFailed(false)
+      setToast(null)
+      await add(pending)
     })()
     return () => {
       cancelled = true
@@ -83,6 +92,7 @@ export function useSavedPlaces() {
     busy.current.add(place.id)
     setPendingIds(new Set(busy.current))
     setFailed(false)
+    setNotice(null)
     setToast(null)
     if (savedIds.has(place.id)) {
       setSaved((current) => (current ?? []).filter((p) => p.id !== place.id))
@@ -106,6 +116,11 @@ export function useSavedPlaces() {
       {failed && (
         <p role="alert" className="alert alert-danger">
           We couldn't update your saved places. Try again.
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="alert alert-info">
+          {notice}
         </p>
       )}
       {toast && <Toast key={toast.key} message={toast.message} />}

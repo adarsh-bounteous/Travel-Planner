@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from app.main import app
 from app.routers import deps
+from app.travel.local import LocalStayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from tests.trip_body import trip_body
 
@@ -76,3 +77,17 @@ def test_changing_a_stay_keeps_the_choice_only_while_place_and_dates_match(sign_
     assert a.put(f"/trips/{tid}/stays/{sid}", json=same).json()["stays"][0]["chosen"] is not None
     moved = {**same, "end_date": "2027-01-06"}
     assert a.put(f"/trips/{tid}/stays/{sid}", json=moved).json()["stays"][0]["chosen"] is None
+
+
+def test_choosing_a_local_mode_stay_is_saved(sign_in_as):
+    a = sign_in_as("a@example.com")
+    app.dependency_overrides[deps.get_stay_providers] = lambda: [LocalStayProvider()]
+    body = trip_body(name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination="Lisbon")
+    tid = a.post("/trips", json=body).json()["id"]
+    stay = {"place": "Lisbon", "start_date": "2027-01-01", "end_date": "2027-01-05"}
+    sid = a.post(f"/trips/{tid}/stays", json=stay).json()["stays"][0]["id"]
+    ranked = a.get(f"/trips/{tid}/stays/{sid}/shortlist?{CRITERIA}").json()["stays"]
+    r = a.put(_url(tid, sid), json={"property_id": ranked[0]["property"]["id"]})
+    assert r.status_code == 200
+    assert r.json()["stays"][0]["chosen"]["url"].startswith("local://booking/")
+    assert a.get(f"/trips/{tid}").json()["stays"][0]["chosen"]["property_id"] == ranked[0]["property"]["id"]

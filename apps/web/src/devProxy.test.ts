@@ -15,6 +15,8 @@ describe('devProxy', () => {
       '/local',
       '/travel-search',
       '/startup-status',
+      '/rates',
+      '/availability',
     ]) {
       expect(proxy[p].target).toBe('http://127.0.0.1:9100')
     }
@@ -28,6 +30,15 @@ describe('devProxy', () => {
 
   it('proxies data requests', () => {
     expect(pageRequestBypass({ url: '/trips', headers: { accept: '*/*' } })).toBeUndefined()
+  })
+
+  it('proxies rate conversion data requests', () => {
+    expect(
+      pageRequestBypass({
+        url: '/rates/convert?amount=10&from=USD&to=EUR',
+        headers: { accept: '*/*' },
+      }),
+    ).toBeUndefined()
   })
 
   it('still sends auth navigations to the API', () => {

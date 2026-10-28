@@ -26,6 +26,7 @@ const row = (name: string, status: string | null, extra = {}) => ({
   official_site_url: null,
   marked_self_check: false,
   unresolved: false,
+  guidance: null,
   ...extra,
 })
 
@@ -120,6 +121,34 @@ describe('Visa requirements', () => {
     expect(
       await screen.findByText('Rules updated. Results use the latest published rules.'),
     ).toBeInTheDocument()
+  })
+
+  it('shows the guidance for the selected country', async () => {
+    open([
+      row('Ana', 'not_needed', {
+        message: 'No visa is needed for Peru.',
+        confirm_note: 'Confirm with official sources.',
+        guidance: {
+          country: 'Peru',
+          entry_requirement: 'No visa is needed to enter Peru for a short visit.',
+          max_stay: '183 days',
+          documents: ['Valid passport', 'Return ticket'],
+        },
+      }),
+    ])
+    expect(await screen.findByText(/Visa guidance for Peru/)).toBeInTheDocument()
+    expect(screen.getByText(/Entry requirement/i)).toBeInTheDocument()
+    expect(screen.getByText('183 days')).toBeInTheDocument()
+    expect(screen.getByText(/Maximum stay/i)).toBeInTheDocument()
+    expect(screen.getByText(/Required documents/i)).toBeInTheDocument()
+    expect(screen.getByText('Return ticket')).toBeInTheDocument()
+    expect(screen.queryByText(/We have no visa data/)).not.toBeInTheDocument()
+  })
+
+  it('shows no guidance headings on a no-data card', async () => {
+    open([noData])
+    expect(await screen.findByText(/We have no visa data/)).toBeInTheDocument()
+    expect(screen.queryByText(/Maximum stay/i)).not.toBeInTheDocument()
   })
 
   it('offers Enter details when citizenship is blank', async () => {

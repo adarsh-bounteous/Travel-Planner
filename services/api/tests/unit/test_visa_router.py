@@ -1,3 +1,4 @@
+import pytest
 from datetime import date
 
 from app.main import app
@@ -50,6 +51,7 @@ def test_each_traveller_sees_their_own_requirement(sign_in_as):
 
 
 def test_no_data_has_official_link_no_confirm_note_and_no_advisory(sign_in_as):
+    app.dependency_overrides[get_visa_rules] = lambda: InMemoryVisaRules({}, date(2026, 10, 20))
     a = sign_in_as("a@example.com")
     tid, _ = _trip(a, [("Ana", _d("Canada", "Canada"))], destination="Lisbon, Portugal")
     row = by_name(_rows(a, tid), "Ana")
@@ -59,6 +61,7 @@ def test_no_data_has_official_link_no_confirm_note_and_no_advisory(sign_in_as):
 
 
 def test_self_check_marks_and_leaves_the_plan_unresolved(sign_in_as):
+    app.dependency_overrides[get_visa_rules] = lambda: InMemoryVisaRules({}, date(2026, 10, 20))
     a = sign_in_as("a@example.com")
     tid, ids = _trip(a, [("Ben", _d("India", "Canada"))], destination="Lisbon, Portugal")
     r = a.put(f"/trips/{tid}/visa/{ids['Ben']}/self-check", json={"checked": True})
@@ -133,3 +136,20 @@ def test_editors_do_not_see_the_owners_visa_marks(sign_in_as):
     ed.post(f"/invites/{invite['invite_url'].rsplit('/', 1)[1]}/accept")
     body = ed.get(f"/trips/{tid}").json()
     assert body["visa_self_checks"] == [] and body["unresolved_visas"] == []
+
+
+@pytest.mark.parametrize(
+    "dest,country",
+    [
+        ("Tokyo, Japan", "Japan"), ("Lisbon, Portugal", "Portugal"), ("Delhi, India", "India"),
+        ("Bangkok, Thailand", "Thailand"), ("Oaxaca, Mexico", "Mexico"), ("Fez, Morocco", "Morocco"),
+        ("Cusco, Peru", "Peru"),
+    ],
+)
+def test_visa_guidance_names_the_selected_country(sign_in_as, dest, country):
+    a = sign_in_as("a@example.com")
+    tid, _ = _trip(a, [("Ana", _d("Canada", "Canada"))], destination=dest)
+    row = by_name(_rows(a, tid), "Ana")
+    assert row["status"] != "no_data"
+    assert row["guidance"]["country"] == country
+    assert country in row["message"]

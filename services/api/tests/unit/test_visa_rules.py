@@ -1,6 +1,17 @@
 from datetime import date
 
-from app.trips.visa import OFFICIAL_SITES, InMemoryVisaRules, Person, VisaRule, visa_result_for
+import pytest
+
+from app.trips.starter_destinations import list_countries
+from app.trips.visa import (
+    OFFICIAL_SITES,
+    SEED_PUBLISHED_ON,
+    SEED_VISA_RULES,
+    InMemoryVisaRules,
+    Person,
+    VisaRule,
+    visa_result_for,
+)
 
 
 def person(name, citizenship, residence):
@@ -20,16 +31,16 @@ def test_blank_details_have_no_status():
 
 def test_no_data_carries_the_official_link_and_no_confirm_note():
     source = InMemoryVisaRules({}, date(2026, 10, 20))
-    result = visa_result_for("Lisbon, Portugal", person("X", "India", "India"), source, [])
+    result = visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, [])
     assert (result.status, result.confirm_note) == ("no_data", None)
     assert result.official_site_url == OFFICIAL_SITES["Portugal"]
 
 
 def test_unresolved_needs_the_mark_and_no_data():
     source = InMemoryVisaRules({}, date(2026, 10, 20))
-    assert visa_result_for("Lisbon, Portugal", person("X", "India", "India"), source, ["t1"]).unresolved is True
-    source.publish({("Portugal", "India"): VisaRule(required=False)}, date(2026, 10, 27))
-    assert visa_result_for("Lisbon, Portugal", person("X", "India", "India"), source, ["t1"]).unresolved is False
+    assert visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, ["t1"]).unresolved is True
+    source.publish({("Portugal", "China"): VisaRule(required=False)}, date(2026, 10, 27))
+    assert visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, ["t1"]).unresolved is False
 
 
 def test_no_data_for_a_destination_outside_the_table_still_links_somewhere():
@@ -39,3 +50,34 @@ def test_no_data_for_a_destination_outside_the_table_still_links_somewhere():
     assert result.official_site_url.startswith("https://")
     assert "Peru" in result.official_site_url
     assert "advisory" not in result.official_site_url.lower()
+
+
+def _seeded(country, citizenship):
+    source = InMemoryVisaRules(SEED_VISA_RULES, SEED_PUBLISHED_ON)
+    return visa_result_for(f"Somewhere, {country}", person("X", citizenship, citizenship), source, [])
+
+
+@pytest.mark.parametrize("country", list_countries())
+def test_every_offered_country_has_visa_guidance(country):
+    result = _seeded(country, "Canada")
+    assert result.status in ("required", "not_needed")
+    assert result.guidance.country == country
+
+
+@pytest.mark.parametrize("country", list_countries())
+def test_unseeded_route_still_shows_no_data(country):
+    for source in (InMemoryVisaRules(SEED_VISA_RULES, SEED_PUBLISHED_ON), InMemoryVisaRules({}, SEED_PUBLISHED_ON)):
+        result = visa_result_for(f"Somewhere, {country}", person("X", "China", "China"), source, [])
+        assert result.status == "no_data"
+        assert result.guidance is None
+    assert _seeded("Portugal", "China").official_site_url == OFFICIAL_SITES["Portugal"]
+
+
+@pytest.mark.parametrize("citizenship", ["Canada", "India"])
+@pytest.mark.parametrize("country", list_countries())
+def test_guidance_has_entry_requirement_max_stay_and_documents(country, citizenship):
+    guidance = _seeded(country, citizenship).guidance
+    assert "visa" in guidance.entry_requirement.lower()
+    assert any(ch.isdigit() for ch in guidance.max_stay)
+    assert len(guidance.documents) >= 1
+    assert all(d.strip() for d in guidance.documents)

@@ -5,6 +5,7 @@ import { AlertIcon, ArrowLeftIcon, CheckIcon } from '../auth/icons'
 import type { Place } from '../places/api'
 import { addPlaceToTrip, createTrip, fetchProfile, saveProfile } from './api'
 import type { Profile } from './api'
+import { DestinationPicker } from './DestinationPicker'
 import { FieldError } from './FieldError'
 import { Overlay } from './Overlay'
 import { ProfileStep } from './ProfileStep'
@@ -182,26 +183,12 @@ export function NewTripSetupPage() {
       )}
       {step === 'details' && (
         <form className="stack stack-lg" noValidate onSubmit={finish}>
-          <div className="field">
-            <label className="field-label" htmlFor="setup-destination">
-              Destination
-            </label>
-            <input
-              className={`input ${errors.destination ? 'is-invalid' : ''}`}
-              aria-invalid={errors.destination ? true : undefined}
-              id="setup-destination"
-              placeholder="Where are you going?"
-              autoComplete="off"
-              maxLength={120}
-              aria-describedby={errors.destination ? 'setup-destination-e' : 'setup-destination-h'}
-              value={values.destination}
-              onChange={set('destination')}
-            />
-            <span className="field-hint" id="setup-destination-h">
-              A city or country, like Lisbon or Portugal.
-            </span>
-            <FieldError id="setup-destination-e" message={errors.destination} />
-          </div>
+          <DestinationPicker
+            idPrefix="setup"
+            value={values.destination}
+            onChange={(destination) => setValues((prev) => ({ ...prev, destination }))}
+            error={errors.destination}
+          />
           <div className="stack stack-sm">
             <div className="two">
               <div className="field">

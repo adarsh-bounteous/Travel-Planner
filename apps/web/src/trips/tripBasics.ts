@@ -56,7 +56,7 @@ function budgetError(budget: string, currency: string) {
 /** What stops Finish, keyed by field; empty when the basics are complete. `today` is an ISO date. */
 export function validateTripBasics(values: TripBasics, today: string): TripBasicsErrors {
   const errors: TripBasicsErrors = {
-    destination: values.destination.trim() ? undefined : 'Enter a destination, like Lisbon.',
+    destination: values.destination.trim() ? undefined : 'Choose a country and a place.',
     dates: datesError(values, today),
     travellers: travellersError(values.travellers.trim()),
     budget: budgetError(values.budget.trim(), values.currency),

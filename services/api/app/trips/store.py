@@ -2,9 +2,22 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal, Protocol
 
-from pydantic import BaseModel, Field, HttpUrl, StringConstraints, model_validator
+from pydantic import AfterValidator, BaseModel, Field, HttpUrl, StringConstraints, TypeAdapter, model_validator
 
 from app.trips.profile_store import Mode
+
+LOCAL_BOOKING_PREFIX = "local://booking/"
+_HTTP_URL = TypeAdapter(HttpUrl)
+
+
+def _booking_url(value: str) -> str:
+    """An http(s) page as before, or a local-mode booking reference. Anything else is refused."""
+    if value.startswith(LOCAL_BOOKING_PREFIX):
+        return value
+    return str(_HTTP_URL.validate_python(value))
+
+
+BookingUrl = Annotated[str, AfterValidator(_booking_url)]
 
 MAX_TRIP_DAYS = 60
 
@@ -108,7 +121,7 @@ class ChosenStay(BaseModel):
     property_id: str
     name: str
     provider: str
-    url: HttpUrl  # the offer's booking page on the provider's site
+    url: BookingUrl  # the offer's booking page on the provider's site
     total: Decimal
     currency: str  # the offer's currency; may differ from the trip currency
 
@@ -214,7 +227,7 @@ class TransportPick(BaseModel):
     fare: Decimal  # the current fare, refreshed from the provider
     picked_fare: Decimal  # the fare when it was picked
     currency: str  # may differ from the trip currency
-    url: HttpUrl  # the provider's booking page
+    url: BookingUrl  # the provider's booking page
 
 
 class TripPlaceFields(BaseModel):

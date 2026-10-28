@@ -357,3 +357,28 @@ describe('TripDetailPage share control', () => {
     expect(screen.queryByRole('button', { name: 'Share trip' })).not.toBeInTheDocument()
   })
 })
+
+describe('TripDetailPage date change review', () => {
+  const stay = { id: 's1', place: 'Lisbon', start_date: '2027-03-01', end_date: '2027-03-02' }
+  const redate = async (returned: Trip) => {
+    stubApi({
+      'GET /trips/t1': { status: 200, body: trip() },
+      'PUT /trips/t1': { status: 200, body: returned },
+    })
+    renderAt('/trips/t1')
+    const drawer = await openSettings()
+    fireEvent.change(within(drawer).getByLabelText('Start date'), { target: { value: '2027-03-04' } })
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+  }
+
+  it('opens the stays review when a saved date change flags a stay', async () => {
+    await redate(trip({ start_date: '2027-03-04', stays: [{ ...stay, outside_trip: true }] }))
+    expect(await screen.findByRole('dialog', { name: 'Stays after date change' })).toBeInTheDocument()
+  })
+
+  it('shows the Trip saved toast when no stay is flagged', async () => {
+    await redate(trip({ start_date: '2027-03-04', stays: [stay] }))
+    expect(await screen.findByText('Trip saved')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Stays after date change' })).not.toBeInTheDocument()
+  })
+})

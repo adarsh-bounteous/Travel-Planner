@@ -202,3 +202,14 @@ describe('refusals (AC10 to AC13)', () => {
     expect(screen.getByRole('button', { name: 'Save stay' })).toBeEnabled()
   })
 })
+
+describe('outside trip flag', () => {
+  it('shows the badge and reason on a flagged stay only', async () => {
+    const flagged: Stay = { ...lisbon, start_date: '2027-01-02', end_date: '2027-01-14', outside_trip: true }
+    await open(trip({ start_date: '2027-01-01', end_date: '2027-01-12', stays: [flagged, porto] }))
+    expect(await screen.findByText('Outside trip')).toBeInTheDocument()
+    expect(screen.getByText('Ends 2 days after your trip.')).toBeInTheDocument()
+    const insideCard = screen.getByText('Porto').closest('.card') as HTMLElement
+    expect(within(insideCard).queryByText('Outside trip')).not.toBeInTheDocument()
+  })
+})

@@ -16,6 +16,7 @@ import { RestaurantPickDialog } from './RestaurantPickDialog'
 import { RemoveStayModal } from './RemoveStayModal'
 import { ShareTripModal } from './ShareTripModal'
 import { StayDrawer } from './StayDrawer'
+import { StaysReviewDrawer } from './StaysReviewDrawer'
 import { StaysSection } from './StaysSection'
 import { formatRange } from './stays'
 import { Toast } from './Toast'
@@ -33,6 +34,7 @@ type Panel =
   | { id: 'none' }
   | { id: 'settings' }
   | { id: 'delete' }
+  | { id: 'stays-review' }
   | { id: 'book' }
   | { id: 'share' }
   | { id: 'rename'; day: Day; position: number }
@@ -275,6 +277,8 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           <StaysSection
             tripId={tripId}
             stays={trip.stays ?? []}
+            tripStart={trip.start_date}
+            tripEnd={trip.end_date}
             canEdit={canEdit}
             onAdd={() => setPanel({ id: 'add-stay' })}
             onEdit={(stay) => setPanel({ id: 'edit-stay', stay })}
@@ -306,9 +310,16 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           trip={trip}
           covered={panel.id === 'delete'}
           onClose={close}
-          onSaved={(updated) => saved(updated, 'Trip saved')}
+          onSaved={(updated) => {
+            if (!updated.stays?.some((s) => s.outside_trip)) return saved(updated, 'Trip saved')
+            track(updated)
+            setPanel({ id: 'stays-review' })
+          }}
           onDelete={() => setPanel({ id: 'delete' })}
         />
+      )}
+      {trip.is_owner && panel.id === 'stays-review' && (
+        <StaysReviewDrawer trip={trip} onSaved={track} onClose={close} />
       )}
       {trip.is_owner && panel.id === 'delete' && (
         <DeleteTripModal

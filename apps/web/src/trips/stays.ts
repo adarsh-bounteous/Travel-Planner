@@ -50,7 +50,16 @@ export function warningFor(stay: Stay, others: Stay[]): StayWarning | null {
 export const sortStays = (stays: Stay[]) =>
   [...stays].sort((a, b) => a.start_date.localeCompare(b.start_date))
 
-export const nights = (stay: Stay) => daysBetween(stay.start_date, stay.end_date)
+const plural = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`
+
+/** Why a flagged stay is outside the trip: no shared day, or how far it runs past the nearer edge. */
+export function outsideReason(stay: Stay, tripStart: string, tripEnd: string): string {
+  if (stay.end_date < tripStart || stay.start_date > tripEnd) return 'Entirely outside your trip.'
+  if (stay.start_date < tripStart) return `Starts ${plural(daysBetween(stay.start_date, tripStart))} before your trip.`
+  return `Ends ${plural(daysBetween(tripEnd, stay.end_date))} after your trip.`
+}
+
+export const nights =(stay: Stay) => daysBetween(stay.start_date, stay.end_date)
 
 const part = (iso: string) => {
   const date = new Date(`${iso}T00:00:00Z`)

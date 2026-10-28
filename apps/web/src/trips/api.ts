@@ -117,7 +117,15 @@ export type InsuranceOptions = {
   missing: string[]
   plans: InsurancePlan[]
 }
-export type Stay = { id: string; place: string; start_date: string; end_date: string; chosen?: ChosenStay | null }
+export type Stay = {
+  id: string
+  place: string
+  start_date: string
+  end_date: string
+  chosen?: ChosenStay | null
+  /** Set by the server when a trip date change leaves the stay not fully inside the trip. */
+  outside_trip?: boolean
+}
 export type StayInput = { place: string; start_date: string; end_date: string }
 export type PropertyType = 'hotel' | 'homestay' | 'other'
 export type Amenity = 'wifi' | 'breakfast' | 'parking' | 'pool' | 'ac'

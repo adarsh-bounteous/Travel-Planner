@@ -66,9 +66,20 @@ describe('Saved page', () => {
     })
     renderAt('/saved')
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
-    await waitFor(() => expect(screen.queryByRole('img', { name: 'Alfama' })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Unsave Alfama' })).not.toBeInTheDocument(),
+    )
     fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
-    expect(await screen.findByRole('img', { name: 'Alfama' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
+  })
+
+  it('lists each place on the same gradient card as Explore (AC9)', async () => {
+    stubApi(two)
+    renderAt('/saved')
+    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /to trip$/ })).not.toBeInTheDocument()
+    expect(document.querySelectorAll('img')).toHaveLength(0)
   })
 
   it('removing the last place shows the empty state', async () => {
@@ -89,7 +100,7 @@ describe('Saved page', () => {
     renderAt('/saved')
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
-    expect(screen.getByRole('img', { name: 'Alfama' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
   })
 })

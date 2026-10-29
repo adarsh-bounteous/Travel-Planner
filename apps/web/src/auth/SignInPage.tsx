@@ -69,6 +69,8 @@ export function SignInPage() {
   return (
     <>
       {localReset && <Toast message="Local data reset. Sign in with the demo user." />}
+      <div className="auth-split">
+      <aside className="auth-brand" aria-hidden="true" />
       <AuthForm
         mode="in"
         title="Sign in"
@@ -115,6 +117,7 @@ export function SignInPage() {
           </>
         )}
       />
+      </div>
       {notLinked && <GoogleNoAccountModal onSignUp={goToSignUp} onCancel={closeModal} />}
     </>
   )

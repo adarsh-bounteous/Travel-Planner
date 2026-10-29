@@ -7,6 +7,17 @@ const body = css.replace(/@media[^{]*\{/g, '{')
 const phoneStart = css.indexOf('@media (max-width: 47.99rem) {\n  .shell-nav')
 const phone = phoneStart === -1 ? '' : css.slice(phoneStart)
 
+describe('entry screens', () => {
+  it('has the sign-in split, trip cover, step and control rules', () => {
+    for (const sel of ['.auth-split', '.auth-brand', '.trip-cover', '.steps', '.step.is-current']) {
+      expect(css).toContain(sel)
+    }
+    expect(css).toMatch(/\.chip\[aria-pressed="true"\]\s*\{[^}]*var\(--color-primary-subtle\)/)
+    expect(css).toMatch(/\.radio\s*\{[^}]*width: var\(--size-check\)[^}]*accent-color: var\(--color-primary\)/)
+    expect(css).toMatch(/\.checkbox\s*\{[^}]*width: var\(--size-check\)[^}]*accent-color: var\(--color-primary\)/)
+  })
+})
+
 describe('design system stylesheet', () => {
   it('uses tokens, not colour literals', () => {
     expect(body).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/)

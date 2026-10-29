@@ -67,8 +67,8 @@ describe('Destination results filters and map', () => {
     renderAt('/destinations?q=Lisbon&type=museum&view=map')
     fireEvent.click(await screen.findByRole('tab', { name: 'List' }))
     expect(
-      screen.getAllByRole('listitem').map((li) => within(li).getByRole('img').getAttribute('alt')),
-    ).toEqual(['Belém Tower'])
+      screen.getAllByRole('button', { name: /^Save / }).map((b) => b.getAttribute('aria-label')),
+    ).toEqual(['Save Belém Tower'])
   })
 
   it('the List tab replaces the map with place cards (AC6)', async () => {
@@ -77,7 +77,7 @@ describe('Destination results filters and map', () => {
     expect(await screen.findByRole('img', { name: 'Map of places' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'List' }))
     expect(screen.queryByRole('img', { name: 'Map of places' })).not.toBeInTheDocument()
-    expect(await screen.findByRole('img', { name: 'Alfama' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Save Alfama' })).toBeInTheDocument()
   })
 
   it('filters with no match say so (AC7), prompt to change or clear (AC8), and Clear restores', async () => {
@@ -127,10 +127,11 @@ describe('Destination results', () => {
     expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
-  it('each card shows the image and name (AC4)', async () => {
+  it('each card shows a gradient cover, not a photo, and the name (AC4)', async () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon')
-    expect(await screen.findByRole('img', { name: 'Alfama' })).toHaveAttribute('src', '/a.jpg')
+    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
+    expect(document.querySelectorAll('img')).toHaveLength(0)
     expect(screen.getByText('Alfama')).toBeInTheDocument()
   })
 

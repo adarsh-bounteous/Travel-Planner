@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { HeartIcon } from '../auth/icons'
 import type { Place } from '../places/api'
+import { PlaceCard } from '../places/PlaceCard'
 import { PlacesMap } from '../places/PlacesMap'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { ViewToggle } from '../places/ViewToggle'
@@ -56,25 +57,13 @@ export function SavedPage() {
         </p>
         <ul className="grid">
           {saved.map((place) => (
-            <li key={place.id} className="card stack">
-              <img
-                src={place.image_url}
-                alt={place.name}
-                loading="lazy"
-                style={{ aspectRatio: '4 / 3', width: '100%', objectFit: 'cover' }}
-              />
-              <span>{place.name}</span>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                aria-label={`Unsave ${place.name}`}
-                disabled={pendingIds.has(place.id)}
-                onClick={() => unsave(place)}
-              >
-                <HeartIcon filled />
-                Unsave
-              </button>
-            </li>
+            <PlaceCard
+              key={place.id}
+              place={place}
+              saved
+              onToggleSave={unsave}
+              savePending={pendingIds.has(place.id)}
+            />
           ))}
         </ul>
       </>

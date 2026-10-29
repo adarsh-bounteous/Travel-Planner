@@ -142,6 +142,10 @@ export function NewTripSetupPage() {
           Back
         </button>
       </div>
+      <ol className="steps" aria-hidden="true">
+        <li className={step === 'profile' ? 'step is-current' : 'step is-done'} aria-current={step === 'profile' ? 'step' : undefined} />
+        <li className={step === 'details' ? 'step is-current' : 'step'} aria-current={step === 'details' ? 'step' : undefined} />
+      </ol>
       {step === 'profile' && saved === 'loading' && (
         <div className="stack" aria-busy="true" aria-label="Loading your profile">
           <span className="skeleton" />

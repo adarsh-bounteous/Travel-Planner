@@ -25,6 +25,23 @@ const oslo = {
   shared: true,
 }
 
+describe('MyTripsPage entry look', () => {
+  it('gives each card a gradient cover, a status badge and the same Open link', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [lisbon, { ...oslo, stays: [{ id: 's' }] }] } })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'Lisbon' })
+    const container = document.body
+    const cards = container.querySelectorAll('li.card')
+    expect(container.querySelectorAll('li.card .trip-cover')).toHaveLength(2)
+    for (const card of cards) {
+      expect(card.querySelector('.badge-success, .badge-neutral')).not.toBeNull()
+    }
+    expect(cards[0].querySelector('.badge-neutral')).toHaveTextContent('No stays yet')
+    expect(cards[1].querySelector('.badge-success')).toHaveTextContent('1 stay')
+    expect(screen.getByRole('link', { name: 'Open Lisbon' })).toHaveAttribute('href', '/trips/t1')
+  })
+})
+
 describe('MyTripsPage destination conversion', () => {
   it('shows the Unmatched flag on a flagged trip in the list', async () => {
     stubApi({

@@ -32,6 +32,7 @@ function TripRow({ trip }: { trip: Trip }) {
     trip.country && trip.place ? `${trip.country}, ${trip.place}` : trip.destination
   return (
     <li className="card trip-row">
+      <div className="trip-cover" aria-hidden="true" />
       <div className="trip-info">
         <div className="trip-title">
           <h2>{trip.name}</h2>
@@ -40,9 +41,9 @@ function TripRow({ trip }: { trip: Trip }) {
         </div>
         {destination && <p>{destination}</p>}
         {dates && <p className="text-sm text-muted">{dates}</p>}
-        <p className="text-sm text-muted">
+        <span className={stayCount === 0 ? 'badge badge-neutral' : 'badge badge-success'}>
           {stayCount === 0 ? 'No stays yet' : `${stayCount} ${stayCount === 1 ? 'stay' : 'stays'}`}
-        </p>
+        </span>
       </div>
       <Link className="btn btn-secondary" to={`/trips/${trip.id}`} aria-label={`Open ${trip.name}`}>
         Open
@@ -133,7 +134,7 @@ export function MyTripsPage() {
         </div>
       )}
       {trips && trips.length > 0 && (
-        <ul className="stack">
+        <ul className="grid">
           {trips.map((trip) => (
             <TripRow key={trip.id} trip={trip} />
           ))}

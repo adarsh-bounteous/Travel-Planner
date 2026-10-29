@@ -57,7 +57,7 @@ test('two trips list different local recommendations and say they are generated 
   expect(names[0]).not.toEqual(names[1])
 })
 
-test('local recommendation images load offline from the app and stay the same on reload', async ({
+test('recommendation covers are local gradients, request no photo and stay the same on reload', async ({
   page,
 }) => {
   const local = { ...rec('tile-museum-local', 'Tile Museum', 'Culture') }
@@ -90,18 +90,12 @@ test('local recommendation images load offline from the app and stay the same on
   })
   await page.goto('/trips/t1')
   await page.getByRole('tab', { name: 'Recommendations' }).click()
-  const first = page.getByRole('img', { name: 'Tile Museum photo' })
-  await expect(first).toBeVisible()
-  await expect(page.getByText('Photo not available')).toBeVisible()
-  const src = await first.getAttribute('src')
-
-  await page.context().setOffline(true)
-  for (const img of await page.getByRole('img').all())
-    expect(await img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true)
+  await expect(page.getByTestId('place-cover').first()).toBeVisible()
+  await expect(page.locator('img')).toHaveCount(0)
   expect(outside).toEqual([])
-  await page.context().setOffline(false)
+  const cover = await page.getByTestId('place-cover').first().getAttribute('class')
 
   await page.reload()
   await page.getByRole('tab', { name: 'Recommendations' }).click()
-  await expect(page.getByRole('img', { name: 'Tile Museum photo' })).toHaveAttribute('src', src!)
+  await expect(page.getByTestId('place-cover').first()).toHaveAttribute('class', cover!)
 })

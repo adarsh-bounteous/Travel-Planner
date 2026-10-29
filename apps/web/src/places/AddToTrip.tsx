@@ -21,7 +21,7 @@ const ERROR_COPY = {
  * guided New trip set-up with none (reached through the no-trips screen, which carries the place on).
  * `panel` holds the drawer, toast and messages to render.
  */
-export function useAddToTrip() {
+export function useAddToTrip({ onAdded }: { onAdded?: (place: Place) => void } = {}) {
   const navigate = useNavigate()
   const [place, setPlace] = useState<Place | null>(null)
   const [choice, setChoice] = useState<Trip[] | null>(null)
@@ -43,6 +43,7 @@ export function useAddToTrip() {
         image_url: target.image_url,
       })
       setToast({ key: Date.now(), kind: 'added', tripId })
+      onAdded?.(target)
     } catch (error) {
       setToast({
         key: Date.now(),

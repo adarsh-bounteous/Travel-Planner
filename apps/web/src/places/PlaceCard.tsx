@@ -1,9 +1,11 @@
 import { HeartIcon } from '../auth/icons'
 import type { Place } from './api'
+import { PlaceCover } from './PlaceCover'
 
 type PlaceCardProps = {
   place: Place
-  onAdd: (place: Place) => void
+  /** When omitted (e.g. on the Saved screen) the Add to trip button is not shown. */
+  onAdd?: (place: Place) => void
   pending?: boolean
   saved: boolean
   onToggleSave: (place: Place) => void
@@ -20,24 +22,14 @@ export function PlaceCard({
 }: PlaceCardProps) {
   return (
     <li className="card stack">
-      <div style={{ position: 'relative' }}>
-        <img
-          src={place.image_url}
-          alt={place.name}
-          loading="lazy"
-          style={{ aspectRatio: '4 / 3', width: '100%', objectFit: 'cover' }}
-        />
-        {saved && (
-          <span
-            className="badge"
-            style={{ position: 'absolute', top: 'var(--space-2)', left: 'var(--space-2)' }}
-          >
-            <HeartIcon filled />
-            Saved
-          </span>
-        )}
-      </div>
+      <PlaceCover seed={place.id} />
       <span>{place.name}</span>
+      {saved && (
+        <span className="badge">
+          <HeartIcon filled />
+          Saved
+        </span>
+      )}
       <button
         type="button"
         className={`btn ${saved ? 'btn-secondary' : 'btn-primary'}`}
@@ -49,15 +41,17 @@ export function PlaceCard({
         <HeartIcon filled={saved} />
         {saved ? 'Unsave' : 'Save'}
       </button>
-      <button
-        type="button"
-        className="btn btn-secondary"
-        aria-label={`Add ${place.name} to trip`}
-        disabled={pending}
-        onClick={() => onAdd(place)}
-      >
-        Add to trip
-      </button>
+      {onAdd && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          aria-label={`Add ${place.name} to trip`}
+          disabled={pending}
+          onClick={() => onAdd(place)}
+        >
+          Add to trip
+        </button>
+      )}
     </li>
   )
 }

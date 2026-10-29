@@ -131,16 +131,9 @@ describe('TripRecommendationsTab', () => {
     )
   })
 
-  it('requests no outside image in local mode, and none before the mode is known', async () => {
-    open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode: true } } })
-    expect(screen.queryAllByRole('img')).toHaveLength(0)
-    const imgs = await screen.findAllByRole('img')
-    expect(imgs.every((i) => i.getAttribute('src')!.startsWith('/'))).toBe(true)
-  })
-
-  it('keeps the original image outside local mode', async () => {
-    open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode: false } } })
-    const imgs = await screen.findAllByRole('img')
-    expect(imgs[0]).toHaveAttribute('src', 'https://img.example/tom.jpg')
+  it.each([true, false])('shows gradient covers and no photo (local mode %s)', async (local_mode) => {
+    open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode } } })
+    expect((await screen.findAllByTestId('place-cover')).length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('img')).toHaveLength(0)
   })
 })

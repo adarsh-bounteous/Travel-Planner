@@ -4,7 +4,7 @@ import { fetchLocalMode } from '../auth/api'
 import { AlertIcon, HeartIcon, InfoIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
-import { RecommendationImage } from './RecommendationImage'
+import { PlaceCover } from '../places/PlaceCover'
 import { DestinationGate } from './DestinationGate'
 import type { TripRecommendations } from './api'
 
@@ -105,7 +105,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             const saved = !!r.place && savedIds.has(r.place.id)
             return (
               <li key={r.id} className="card stack">
-                <RecommendationImage src={r.place?.image_url} name={r.name} appOnly={local} />
+                <PlaceCover seed={r.place?.id ?? r.id} />
                 <h3>{r.name}</h3>
                 {r.interest && <span className="badge badge-neutral">{r.interest}</span>}
                 <p className="text-sm text-muted">{r.detail}</p>

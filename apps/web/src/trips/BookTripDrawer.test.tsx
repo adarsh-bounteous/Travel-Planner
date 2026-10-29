@@ -79,6 +79,14 @@ it('lists options by date', () => {
   expect(titles).toEqual(['Earlier', 'Later'])
 })
 
+it('shows the sample drawer design: drawer, backdrop and a stack with the heading', () => {
+  show([hotel])
+  const drawer = screen.getByRole('dialog', { name: 'Book trip' })
+  expect(drawer).toHaveClass('drawer')
+  expect(drawer.querySelector(':scope > .stack h2')).toHaveTextContent('Book trip')
+  expect(document.querySelector('.backdrop')).toBeInTheDocument()
+})
+
 it('closes from the Close button', () => {
   const onClose = show([hotel])
   fireEvent.click(screen.getByRole('button', { name: 'Close' }))

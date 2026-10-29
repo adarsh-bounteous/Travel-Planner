@@ -33,7 +33,7 @@ export function TripTotalCard({
   return (
     <section className="card stack stack-sm" aria-label="Trip total">
       <div className="total-row">
-        <h1 aria-live="polite">{formatMoney(cost.total, currency)}</h1>
+        <h2 aria-live="polite">{formatMoney(cost.total, currency)}</h2>
         <span className="fx-rate">
           {cost.rates.length > 0
             ? cost.rates

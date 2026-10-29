@@ -55,6 +55,26 @@ describe('design system stylesheet', () => {
     expect(phone).toContain('min-height: var(--size-control-lg)')
   })
 
+  it('styles the trip hero with the on-primary token over the primary gradient', () => {
+    expect(css).toMatch(
+      /\.trip-hero\s*\{[^}]*linear-gradient\(var\(--color-primary\), var\(--color-primary-hover\)\)[^}]*color: var\(--color-on-primary\)/,
+    )
+  })
+
+  it('puts the cost summary in a right-hand column from 48rem', () => {
+    expect(css).toMatch(/\.trip-layout\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\)/)
+    expect(css).toMatch(
+      /@media \(min-width: 48rem\)\s*\{\s*\.trip-layout\s*\{[^}]*grid-template-columns: minmax\(0, 2fr\) minmax\(0, 1fr\)/,
+    )
+  })
+
+  it('keeps the trip page from scrolling sideways', () => {
+    expect(css).toMatch(/\.trip-layout > \*\s*\{[^}]*min-width: 0/)
+    expect(css).toMatch(/\.trip-hero\s*\{[^}]*overflow-wrap: anywhere/)
+    expect(css).toMatch(/\.tabs\s*\{[^}]*overflow-x: auto/)
+    expect(css).toMatch(/\.link-list > li\s*\{[^}]*min-width: 0/)
+  })
+
   it('has no third-party origins in index.html or stylesheets', () => {
     const html = readFileSync(resolve(__dirname, '../index.html'), 'utf8')
     expect(html).not.toMatch(/https?:\/\//)
@@ -86,6 +106,8 @@ describe('token contrast pairs', () => {
     ['color-primary', 'color-primary-subtle'],
     ['color-warning', 'color-warning-subtle'],
     ['color-bg', 'color-fg'],
+    ['color-on-primary', 'color-primary'],
+    ['color-on-primary', 'color-primary-hover'],
   ]
   it.each(pairs)('%s on %s is at least 4.5:1', (fg, bg) => {
     expect(ratio(t(fg), t(bg))).toBeGreaterThanOrEqual(4.5)

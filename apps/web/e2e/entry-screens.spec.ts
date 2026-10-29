@@ -7,8 +7,11 @@ async function stub(page: Page, signedIn: boolean) {
       ? route.fulfill({ json: { email: 'maya@example.com', method: 'email' } })
       : route.fulfill({ status: 401, json: {} }),
   )
+  // /trips is also the My trips page URL, so only API calls are stubbed, never the page load.
   await page.route('**/trips', (route) =>
-    route.fulfill({ json: [{ id: 't1', name: 'Lisbon', destination: 'Portugal' }] }),
+    route.request().resourceType() === 'document'
+      ? route.fallback()
+      : route.fulfill({ json: [{ id: 't1', name: 'Lisbon', destination: 'Portugal' }] }),
   )
 }
 

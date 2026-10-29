@@ -1,4 +1,5 @@
 import { AlertIcon, ArrowRightIcon, CheckIcon, InfoIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import { BookingLink, isLocalBooking } from '../travel/BookingLink'
 import type { SimOption } from './api'
 import { safeHref } from './safeHref'
@@ -32,34 +33,32 @@ export function SimOptionCard({ option, country, tripDates, picked, datesNotCove
   const covers = others > 0 ? `${country} and ${others} other ${others === 1 ? 'country' : 'countries'}` : `${country} only`
   const href = isLocalBooking(option.url) ? option.url : safeHref(option.url)
   return (
-    <article className={`card option${picked ? ' is-picked' : ''}`} aria-label={option.name}>
-      <div className="cluster">
-        {option.source && (
-          <span className="badge badge-neutral">{option.source === 'web_search' ? 'Web search' : 'Partner'}</span>
-        )}
-        <span className={`badge ${option.sim_type === 'esim' ? 'badge-success' : 'badge-neutral'}`}>
-          {option.sim_type === 'esim' ? 'eSIM' : 'Physical SIM'}
-        </span>
-        {picked && (
-          <span className="badge badge-success">
-            <CheckIcon />
-            Picked
+    <OptionCard
+      title={option.name}
+      picked={picked}
+      badges={
+        <>
+          {option.source && (
+            <span className="badge badge-neutral">{option.source === 'web_search' ? 'Web search' : 'Partner'}</span>
+          )}
+          <span className={`badge ${option.sim_type === 'esim' ? 'badge-success' : 'badge-neutral'}`}>
+            {option.sim_type === 'esim' ? 'eSIM' : 'Physical SIM'}
           </span>
-        )}
-        {datesNotCovered && (
-          <span className="badge badge-warning">
-            <AlertIcon />
-            Dates not covered
-          </span>
-        )}
-      </div>
-      <h3 className="text-lg">{option.name}</h3>
-      <div className="option-body">
-        <div className="option-facts">
-          <div>{`Covers ${covers}`}</div>
-          <div>{datesNotCovered ? `Valid ${validity} (${tripDates} for this trip)` : `Valid ${validity}`}</div>
-          <div className="text-bold">{`Data: ${Number(option.data_gb)} GB`}</div>
-        </div>
+          {picked && (
+            <span className="badge badge-success">
+              <CheckIcon />
+              Picked
+            </span>
+          )}
+          {datesNotCovered && (
+            <span className="badge badge-warning">
+              <AlertIcon />
+              Dates not covered
+            </span>
+          )}
+        </>
+      }
+      price={
         <dl className="option-price">
           {option.traveller_prices.map((t, i) => (
             <div key={`${t.label}-${i}`}>
@@ -72,30 +71,36 @@ export function SimOptionCard({ option, country, tripDates, picked, datesNotCove
             <dd>{formatSimMoney(option.group_total, option.currency)}</dd>
           </div>
         </dl>
-      </div>
-      <div className="option-actions">
-        {onToggle && (
-          <button
-            className={`btn ${picked ? 'btn-secondary' : 'btn-primary'}`}
-            type="button"
-            aria-pressed={picked}
-            disabled={busy}
-            onClick={onToggle}
-          >
-            {picked ? 'Remove pick' : 'Pick'}
-          </button>
-        )}
-        {href ? (
-          <BookingLink className="btn btn-ghost" url={href}>
-            Booking link
-            <ArrowRightIcon />
-          </BookingLink>
-        ) : (
-          <p className="text-sm">
-            <InfoIcon /> No booking link is available for this option.
-          </p>
-        )}
-      </div>
-    </article>
+      }
+      actions={
+        <>
+          {onToggle && (
+            <button
+              className={`btn ${picked ? 'btn-secondary' : 'btn-primary'}`}
+              type="button"
+              aria-pressed={picked}
+              disabled={busy}
+              onClick={onToggle}
+            >
+              {picked ? 'Remove pick' : 'Pick'}
+            </button>
+          )}
+          {href ? (
+            <BookingLink className="btn btn-ghost" url={href}>
+              Booking link
+              <ArrowRightIcon />
+            </BookingLink>
+          ) : (
+            <p className="text-sm">
+              <InfoIcon /> No booking link is available for this option.
+            </p>
+          )}
+        </>
+      }
+    >
+      <div>{`Covers ${covers}`}</div>
+      <div>{datesNotCovered ? `Valid ${validity} (${tripDates} for this trip)` : `Valid ${validity}`}</div>
+      <div className="text-bold">{`Data: ${Number(option.data_gb)} GB`}</div>
+    </OptionCard>
   )
 }

@@ -1,4 +1,5 @@
 import { CheckIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import type { InsurancePlan } from './api'
 import { formatMoney } from './TripTotalCard'
 
@@ -15,19 +16,22 @@ type InsurancePlanCardProps = {
 export function InsurancePlanCard({ plan, picked, busy, onPick, onRemove, onOpenSite }: InsurancePlanCardProps) {
   const money = (amount: string) => formatMoney(Number(amount), plan.currency)
   return (
-    <article className={`card plan-card${picked ? ' is-picked' : ''}`} aria-label={plan.name}>
-      <div className="cluster">
-        <span className="badge badge-neutral">{plan.rank === 1 ? 'Best fit' : `Place ${plan.rank}`}</span>
-        {picked && (
-          <span className="badge badge-success">
-            <CheckIcon /> Picked
-          </span>
-        )}
-        {plan.offer && <span className="badge badge-neutral">Offer: {plan.offer}</span>}
-      </div>
-      <h3 className="text-lg">{plan.name}</h3>
-      <div className="plan-body">
-        <p className="plan-facts">{plan.reason}</p>
+    <OptionCard
+      title={plan.name}
+      picked={picked}
+      badges={
+        <>
+          <span className="badge badge-neutral">{plan.rank === 1 ? 'Best fit' : `Place ${plan.rank}`}</span>
+          {picked && (
+            <span className="badge badge-success">
+              <CheckIcon /> Picked
+            </span>
+          )}
+          {plan.offer && <span className="badge badge-neutral">Offer: {plan.offer}</span>}
+        </>
+      }
+      meta={plan.reason}
+      price={
         <div>
           <table className="price-table">
             <thead className="sr-only">
@@ -50,21 +54,23 @@ export function InsurancePlanCard({ plan, picked, busy, onPick, onRemove, onOpen
             <span>{money(plan.group_total)}</span>
           </div>
         </div>
-      </div>
-      <div className="plan-actions">
-        <button
-          className={`btn ${picked ? 'btn-secondary' : 'btn-primary'}`}
-          type="button"
-          aria-pressed={picked}
-          disabled={busy}
-          onClick={picked ? onRemove : onPick}
-        >
-          {picked ? 'Remove pick' : 'Pick plan'}
-        </button>
-        <button className="btn btn-secondary" type="button" onClick={onOpenSite}>
-          Go to provider site
-        </button>
-      </div>
-    </article>
+      }
+      actions={
+        <>
+          <button
+            className={`btn ${picked ? 'btn-secondary' : 'btn-primary'}`}
+            type="button"
+            aria-pressed={picked}
+            disabled={busy}
+            onClick={picked ? onRemove : onPick}
+          >
+            {picked ? 'Remove pick' : 'Pick plan'}
+          </button>
+          <button className="btn btn-secondary" type="button" onClick={onOpenSite}>
+            Go to provider site
+          </button>
+        </>
+      }
+    />
   )
 }

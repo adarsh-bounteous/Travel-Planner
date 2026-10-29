@@ -63,6 +63,7 @@ describe('TransportSearchPage', () => {
     renderAt('/transport')
     await search()
     await findCards()
+    expect(document.querySelectorAll('li.option-card')).toHaveLength(1)
     for (const label of [/preferred mode/i, /cabin/i, /window/i, /stops/i, /provider/i])
       expect(screen.queryByLabelText(label)).not.toBeInTheDocument()
     const searched = fetchMock.mock.calls.map(([path]) => String(path)).find((p) => p.startsWith('/transport/options'))!

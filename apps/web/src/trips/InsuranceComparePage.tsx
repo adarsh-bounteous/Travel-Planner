@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import { AlertIcon, CheckIcon } from '../auth/icons'
+import { CompareTable } from '../components/CompareTable'
 import { fetchInsuranceOptions, fetchTrip } from './api'
 import type { InsurancePlan } from './api'
 import { InsuranceDisclaimer, ProviderUnavailable } from './InsuranceNotices'
@@ -53,58 +54,55 @@ export function InsuranceComparePage() {
       )}
       {siteFailed !== null && <ProviderUnavailable picked={siteFailed === pickedId} />}
       {plans.length > 0 && (
-        <table className="cmp">
-          <thead>
-            <tr>
-              <th scope="col">Plan</th>
-              <th scope="col">Reason</th>
-              <th scope="col">Traveller prices</th>
-              <th scope="col">Group total</th>
-              <th scope="col">Provider site</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plans.map((plan) => (
-              <tr key={plan.plan_id}>
-                <td data-label="Plan">
-                  <strong>{plan.name}</strong>
-                  {plan.plan_id === pickedId && (
-                    <>
-                      <br />
-                      <span className="badge badge-success">
-                        <CheckIcon /> Picked
-                      </span>
-                    </>
-                  )}
-                </td>
-                <td data-label="Reason">{plan.reason}</td>
-                <td data-label="Traveller prices">
-                  <ul>
-                    {plan.traveller_prices.map((t) => (
-                      <li key={t.label}>
-                        {t.label}: {formatMoney(Number(t.price), plan.currency)}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td data-label="Group total">
-                  <strong>{formatMoney(Number(plan.group_total), plan.currency)}</strong>
-                </td>
-                <td data-label="Provider site">
-                  <a
-                    href={plan.url}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      setSiteFailed(openProviderSite(plan.url) ? null : plan.plan_id)
-                    }}
-                  >
-                    Go to provider site
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <CompareTable
+          caption="Shortlisted insurance plans side by side"
+          rows={plans}
+          rowKey={(plan) => plan.plan_id}
+          title={(plan) => plan.name}
+          badges={(plan) =>
+            plan.plan_id === pickedId && (
+              <span className="badge badge-success">
+                <CheckIcon /> Picked
+              </span>
+            )
+          }
+          columns={[
+            { key: 'reason', header: 'Reason', render: (plan) => plan.reason },
+            {
+              key: 'prices',
+              header: 'Traveller prices',
+              render: (plan) => (
+                <ul>
+                  {plan.traveller_prices.map((t) => (
+                    <li key={t.label}>
+                      {t.label}: {formatMoney(Number(t.price), plan.currency)}
+                    </li>
+                  ))}
+                </ul>
+              ),
+            },
+            {
+              key: 'total',
+              header: 'Group total',
+              render: (plan) => <strong>{formatMoney(Number(plan.group_total), plan.currency)}</strong>,
+            },
+            {
+              key: 'site',
+              header: 'Provider site',
+              render: (plan) => (
+                <a
+                  href={plan.url}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    setSiteFailed(openProviderSite(plan.url) ? null : plan.plan_id)
+                  }}
+                >
+                  Go to provider site
+                </a>
+              ),
+            },
+          ]}
+        />
       )}
     </div>
   )

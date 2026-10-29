@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import { fetchActivityOptions, fetchTrip } from './api'
 import type { ActivityOption, ActivityOptions } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -11,15 +12,20 @@ type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; optio
 function ActivityCard({ option }: { option: ActivityOption }) {
   const { currency } = option
   return (
-    <article className="card stack" aria-label={option.title}>
-      <h3>{option.title}</h3>
-      <p>{option.provider}</p>
-      <p>
-        <span className="text-bold">Indicative group estimate</span> {formatMoney(option.group_estimate, currency)}
-      </p>
-      <p>Adult {formatMoney(option.adult_price, currency)}</p>
-      {option.child_price !== null && <p>Child {formatMoney(option.child_price, currency)}</p>}
-      {option.offer && <p className="badge">{option.offer}</p>}
+    <OptionCard
+      title={option.title}
+      badges={option.offer && <span className="badge">{option.offer}</span>}
+      meta={option.provider}
+      price={
+        <>
+          <p>
+            <span className="text-bold">Indicative group estimate</span> {formatMoney(option.group_estimate, currency)}
+          </p>
+          <p>Adult {formatMoney(option.adult_price, currency)}</p>
+          {option.child_price !== null && <p>Child {formatMoney(option.child_price, currency)}</p>}
+        </>
+      }
+    >
       <ul>
         {option.prices.map((p) => (
           <li key={p.provider} data-testid="price-entry">
@@ -30,7 +36,7 @@ function ActivityCard({ option }: { option: ActivityOption }) {
           </li>
         ))}
       </ul>
-    </article>
+    </OptionCard>
   )
 }
 

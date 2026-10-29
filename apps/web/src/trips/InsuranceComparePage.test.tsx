@@ -52,6 +52,11 @@ describe('insurance compare page', () => {
   it('goes back to the shortlist when fewer than two plans exist', async () => {
     open(PLANS.slice(0, 1))
     expect(await screen.findByRole('heading', { name: 'Insurance options' })).toBeInTheDocument()
-    expect(screen.queryByRole('table')).toBeNull()
+    expect(screen.queryByRole('table', { name: 'Shortlisted insurance plans side by side' })).toBeNull()
+  })
+
+  it('shows the plans in the shared compare table (AC2)', async () => {
+    open()
+    expect(await screen.findByRole('table')).toHaveClass('compare-table')
   })
 })

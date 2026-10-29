@@ -47,8 +47,8 @@ test('compares Lisbon restaurants, then removes one from the shortlist', async (
 
   await page.goto('/trips/t1/restaurant-options')
   await page.getByRole('link', { name: 'Compare matches' }).click()
-  await expect(page.getByRole('article')).toHaveCount(2)
-  await expect(page.getByText('Typical price per person:').first()).toBeVisible()
+  await expect(page.getByRole('row')).toHaveCount(3)
+  await expect(page.getByRole('columnheader', { name: 'Typical price per person' })).toBeVisible()
 
   await page.getByRole('tab', { name: 'Shortlist' }).click()
   await expect(page.getByRole('article', { name: 'Mesa Real' })).toContainText('Over budget')

@@ -111,6 +111,12 @@ export function useSavedPlaces() {
     return ok
   }
 
+  /** Saves the place unless it is already saved, so it never unsaves. Resolves to whether it is saved. */
+  const ensureSaved = (place: Place): Promise<boolean> => {
+    if ((savedRef.current ?? []).some((p) => p.id === place.id)) return Promise.resolve(true)
+    return status === 'signedIn' ? add(place) : Promise.resolve(false)
+  }
+
   const panel = (
     <>
       {failed && (
@@ -127,5 +133,5 @@ export function useSavedPlaces() {
     </>
   )
 
-  return { savedIds, saved, toggle, pendingIds, panel }
+  return { savedIds, saved, toggle, ensureSaved, pendingIds, panel }
 }

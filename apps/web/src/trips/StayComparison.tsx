@@ -1,3 +1,4 @@
+import { CompareTable } from '../components/CompareTable'
 import type { Shortlist } from './api'
 import { FitBar, OfferChips, OverBudget } from './StayShortlistCard'
 import { comparisonMarks, formatMoney, plural } from './stayOptions'
@@ -9,36 +10,51 @@ export function StayComparison({ shortlist }: { shortlist: Shortlist }) {
   const marks = comparisonMarks(shortlist.stays)
   const count = shortlist.stays.length
   return (
-    <div className="compare-grid">
-      {shortlist.stays.map((s) => {
-        const id = s.property.id
-        return (
-          <article className="card stay-card" key={id} aria-label={s.property.name}>
-            <div className="compare-head">
-              <span className="compare-key">{`Rank ${s.rank} of ${count}`}</span>
-              <h3>{s.property.name}</h3>
-              <span className="badges">
-                {s.fits_budget ? <Mark label="Within budget" /> : <OverBudget stay={s} />}
-              </span>
-            </div>
-            <div>
-              <div className="compare-key">Total price</div>
+    <CompareTable
+      caption="Shortlisted stays side by side"
+      rows={shortlist.stays}
+      rowKey={(s) => s.property.id}
+      title={(s) => s.property.name}
+      badges={(s) => (
+        <>
+          <span className="badge badge-neutral">{`Rank ${s.rank} of ${count}`}</span>
+          {s.fits_budget ? <Mark label="Within budget" /> : <OverBudget stay={s} />}
+        </>
+      )}
+      columns={[
+        {
+          key: 'total',
+          header: 'Total price',
+          render: (s) => (
+            <>
               <div className="stay-total">{formatMoney(s.total, s.currency)}</div>
               <div className="text-sm text-muted">{plural(shortlist.nights, 'night', 'nights')}</div>
-              {marks.lowestPrice.includes(id) && <Mark label="Lowest price" />}
-            </div>
-            <div>
+              {marks.lowestPrice.includes(s.property.id) && <Mark label="Lowest price" />}
+            </>
+          ),
+        },
+        {
+          key: 'fit',
+          header: 'Preference fit',
+          render: (s) => (
+            <>
               <FitBar fit={s.fit} />
-              {marks.bestFit.includes(id) && <Mark label="Best fit" />}
-            </div>
-            <div>
+              {marks.bestFit.includes(s.property.id) && <Mark label="Best fit" />}
+            </>
+          ),
+        },
+        {
+          key: 'offers',
+          header: 'Offers',
+          render: (s) => (
+            <>
               <div className="compare-key">{`Offers (${s.property.amenities.length})`}</div>
               <OfferChips stay={s} />
-              {marks.mostOffers.includes(id) && <Mark label="Most offers" />}
-            </div>
-          </article>
-        )
-      })}
-    </div>
+              {marks.mostOffers.includes(s.property.id) && <Mark label="Most offers" />}
+            </>
+          ),
+        },
+      ]}
+    />
   )
 }

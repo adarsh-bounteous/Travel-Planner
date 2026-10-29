@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { SearchIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import { ValidationError } from '../trips/api'
 import { formatMoney } from '../trips/stayOptions'
 import { BookingLink } from './BookingLink'
@@ -174,19 +175,22 @@ export function TravelSearchPage() {
           <>
             <div className="stack" aria-label="Options">
               {result.options.map((o) => (
-                <div key={o.id} className="card travel-option">
-                  <div className="travel-option-main">
-                    <h3>{o.name}</h3>
-                    <p className="text-muted text-sm">{o.detail}</p>
-                    <p className="travel-option-price">
+                <OptionCard
+                  key={o.id}
+                  title={o.name}
+                  meta={o.detail}
+                  price={
+                    <>
                       {formatMoney(o.price, o.currency)} <span className="text-sm text-muted">{o.unit}</span>
-                    </p>
-                  </div>
-                  <BookingLink className="btn btn-secondary" url={o.url}>
-                    <span aria-hidden="true">Book</span>
-                    <span className="sr-only">Book {o.name}</span>
-                  </BookingLink>
-                </div>
+                    </>
+                  }
+                  actions={
+                    <BookingLink className="btn btn-secondary" url={o.url}>
+                      <span aria-hidden="true">Book</span>
+                      <span className="sr-only">Book {o.name}</span>
+                    </BookingLink>
+                  }
+                />
               ))}
             </div>
             <div className="cluster">

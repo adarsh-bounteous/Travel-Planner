@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
+import { OptionCard } from '../components/OptionCard'
 import { fetchProfile } from '../trips/api'
 import type { TransportPreferences } from '../trips/api'
 import { formatMoney } from '../trips/stayOptions'
@@ -108,21 +109,28 @@ export function TransportSearchPage() {
       {result && (
         <ul className="stack" role="list" aria-label="Transport options">
           {result.options.map((o) => (
-            <li key={o.id} className="transport-option">
-              <div className="transport-option-head">
-                <span className="option-title">{o.title}</span>
-                <span className="badges">
+            <OptionCard
+              as="li"
+              key={o.id}
+              title={o.title}
+              badges={
+                <>
                   {o.preferred_provider && <span className="badge badge-success">Preferred provider</span>}
                   {o.estimate && <span className="badge badge-warning">Estimate</span>}
-                </span>
-              </div>
-              <p className="text-muted">{o.detail}</p>
-              <p className="transport-option-price">{formatMoney(o.price, o.currency)}</p>
-              <p className="text-sm">Why: {o.why}</p>
-              <BookingLink className="btn btn-secondary" url={o.url}>
-                View booking<span className="sr-only"> for {o.title} (opens in a new tab)</span>
-              </BookingLink>
-            </li>
+                </>
+              }
+              meta={
+                <>
+                  <span className="text-muted">{o.detail}</span> <span>Why: {o.why}</span>
+                </>
+              }
+              price={formatMoney(o.price, o.currency)}
+              actions={
+                <BookingLink className="btn btn-secondary" url={o.url}>
+                  View booking<span className="sr-only"> for {o.title} (opens in a new tab)</span>
+                </BookingLink>
+              }
+            />
           ))}
         </ul>
       )}

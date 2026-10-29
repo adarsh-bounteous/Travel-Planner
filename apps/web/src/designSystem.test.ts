@@ -37,6 +37,14 @@ describe('design system stylesheet', () => {
     expect(phone).toMatch(/\.shell-link\s*\{[^}]*flex: none/)
   })
 
+  it('styles the shared option card and compare table, stacking compare rows on phones', () => {
+    for (const sel of ['.option-card', '.option-card-head', '.option-card-title', '.option-card-badges', '.option-card-meta', '.option-card-body', '.option-card-price', '.option-card-actions', '.option-card.is-picked', '.compare-table']) {
+      expect(css).toContain(`${sel} {`)
+    }
+    expect(phone).toMatch(/\.compare-table tr\s*\{[^}]*display: block/)
+    expect(phone).toMatch(/\.compare-table td::before\s*\{[^}]*attr\(data-label\)/)
+  })
+
   it('gives phone controls a --size-control-lg touch target', () => {
     for (const sel of ['.btn', '.input', '.select', '.shell-link', '.tab', '.chip', '.answer-link', '.back', '.toast-close', '.chip-remove']) {
       expect(phone).toContain(sel)

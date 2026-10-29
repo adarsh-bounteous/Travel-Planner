@@ -7,25 +7,23 @@ import { DestinationGate } from './DestinationGate'
 import { DiningNeedsDrawer } from './DiningNeedsDrawer'
 import { RestaurantLink } from './RestaurantLink'
 import { formatMoney, plural } from './stayOptions'
+import { OptionCard } from '../components/OptionCard'
 import { Toast } from './Toast'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; options: RestaurantOptions }
 
 function RestaurantCard({ option, home }: { option: RestaurantOption; home: boolean }) {
   return (
-    <article className="card restaurant" aria-label={option.name}>
+    <OptionCard
+      title={option.name}
+      badges={<span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>}
+      meta={`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. ${option.typical_price === null ? 'Typical price not available.' : `Typically ${formatMoney(option.typical_price, option.currency)} per person.`}`}
+      actions={<RestaurantLink name={option.name} url={option.url} />}
+    >
       <div className="restaurant-photo" role="img" aria-label={`Photo placeholder for ${option.name}`}>
         <ImageIcon />
       </div>
-      <h3>{option.name}</h3>
-      <p className="text-muted">
-        {`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. ${option.typical_price === null ? 'Typical price not available.' : `Typically ${formatMoney(option.typical_price, option.currency)} per person.`}`}
-      </p>
-      <div className="restaurant-foot">
-        <span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>
-        <RestaurantLink name={option.name} url={option.url} />
-      </div>
-    </article>
+    </OptionCard>
   )
 }
 

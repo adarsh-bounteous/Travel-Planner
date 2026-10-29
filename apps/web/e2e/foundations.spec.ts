@@ -30,6 +30,7 @@ test.describe('phone width', () => {
         if (!(await el.isVisible())) continue
         const box = (await el.boundingBox())!
         expect(box.height).toBeGreaterThanOrEqual(44)
+        if ((await el.evaluate((e) => e.tagName)) !== 'A') expect(box.width).toBeGreaterThanOrEqual(44)
       }
       for (const el of await page.locator('header a, header button').all()) {
         const box = (await el.boundingBox())!
@@ -82,11 +83,11 @@ test('reduced motion disables every animation and transition', async ({ page }) 
   expect(offenders).toBe(0)
 })
 
-test('no request leaves the app origin', async ({ page }) => {
+test('no request leaves the app origin', async ({ page, baseURL }) => {
+  const appOrigin = new URL(baseURL!).origin
   const external: string[] = []
   page.on('request', (r) => {
-    if (/^https?:/.test(r.url()) && new URL(r.url()).origin !== new URL(page.url() || r.url()).origin)
-      external.push(r.url())
+    if (/^https?:/.test(r.url()) && new URL(r.url()).origin !== appOrigin) external.push(r.url())
   })
   await stub(page)
   await page.goto('/')

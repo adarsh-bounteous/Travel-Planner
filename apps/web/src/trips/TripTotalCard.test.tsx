@@ -41,7 +41,7 @@ describe('TripTotalCard insurance line', () => {
 describe('TripTotalCard', () => {
   it('shows the total with its currency code (AC7)', () => {
     show()
-    expect(screen.getByRole('heading', { level: 1, name: '200 EUR' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: '200 EUR' })).toBeInTheDocument()
     expect(screen.getByText('Budget 250 EUR')).toBeInTheDocument()
   })
 

@@ -179,9 +179,13 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           <li aria-current="page">{trip.name}</li>
         </ol>
       </nav>
+      <header className="trip-hero" aria-label="Trip">
+        <h1>{trip.name}</h1>
+        {trip.start_date && trip.end_date && <p>{formatRange(trip.start_date, trip.end_date)}</p>}
+        {trip.destination && <p>{trip.destination}</p>}
+      </header>
       <div className="stack stack-sm">
         <div className="title-row">
-          <h1>{trip.name}</h1>
           {trip.destination_unmatched && <UnmatchedBadge />}
           <div className="title-actions">
             <button
@@ -238,27 +242,6 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
-      <div className="insurance-row">
-        <p aria-live="polite">
-          {trip.insurance ? `Insurance: ${trip.insurance.name} picked` : 'Insurance: not yet picked'}
-        </p>
-        {canEdit && (
-          <Link
-            className="btn btn-secondary"
-            to={`/trips/${encodeURIComponent(trip.id)}/insurance-options`}
-          >
-            Insurance options
-          </Link>
-        )}
-      </div>
-      {trip.cost && (
-        <TripTotalCard
-          cost={trip.cost}
-          costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`}
-          insurance={trip.insurance}
-        />
-      )}
-      {trip.is_owner && <VisaSummaryCard tripId={trip.id} unresolved={trip.unresolved_visas ?? []} />}
       <div className="tabs" role="tablist" aria-label="Trip sections">
         {TABS.map(({ id, label }) => (
           <button
@@ -275,6 +258,22 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           </button>
         ))}
       </div>
+      <div className="trip-layout">
+      <div className="trip-main">
+      <div className="insurance-row card">
+        <p aria-live="polite">
+          {trip.insurance ? `Insurance: ${trip.insurance.name} picked` : 'Insurance: not yet picked'}
+        </p>
+        {canEdit && (
+          <Link
+            className="btn btn-secondary"
+            to={`/trips/${encodeURIComponent(trip.id)}/insurance-options`}
+          >
+            Insurance options
+          </Link>
+        )}
+      </div>
+      {trip.is_owner && <VisaSummaryCard tripId={trip.id} unresolved={trip.unresolved_visas ?? []} />}
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'itinerary' ? (
           <ItineraryTab
@@ -346,6 +345,17 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           </div>
         </section>
       )}
+      </div>
+      <aside className="trip-aside" aria-label="Cost summary">
+        {trip.cost && (
+          <TripTotalCard
+            cost={trip.cost}
+            costsHref={`/trips/${encodeURIComponent(trip.id)}/costs`}
+            insurance={trip.insurance}
+          />
+        )}
+      </aside>
+      </div>
       {trip.is_owner && (panel.id === 'settings' || panel.id === 'delete') && (
         <TripSettingsDrawer
           trip={trip}

@@ -107,7 +107,7 @@ describe('TripDetailPage itinerary', () => {
 
   it('shows the trip total with its currency code (AC7)', async () => {
     open(trip({ cost: { ...costFor(trip()), total: 200 } }))
-    expect(await screen.findByRole('heading', { level: 1, name: '200 EUR' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 2, name: '200 EUR' })).toBeInTheDocument()
   })
 
   it.each([
@@ -129,7 +129,7 @@ describe('TripDetailPage itinerary', () => {
       })
       vi.stubGlobal('fetch', fetchMock)
       renderAt('/trips/t1')
-      expect(await screen.findByRole('heading', { level: 1, name: '140 EUR' })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { level: 2, name: '140 EUR' })).toBeInTheDocument()
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
       await act(() => vi.advanceTimersByTimeAsync(30_000))
       expect(await screen.findByRole('alert')).toHaveTextContent('Over budget by 20 EUR')
@@ -489,5 +489,95 @@ describe('TripDetailPage unmatched destination', () => {
     fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('Destination saved. Unmatched flag removed.')).toBeInTheDocument()
     expect(screen.queryByText('Unmatched')).not.toBeInTheDocument()
+  })
+})
+
+// Recorded from the page before the restyle, for an owner of the default trip.
+const OWNER_CONTROLS = [
+  'Account',
+  'Add activity',
+  'Add activity',
+  'Add activity',
+  'Add reminder',
+  'Add reminder',
+  'Add reminder',
+  'Add restaurants',
+  'Book trip',
+  'Edit trip',
+  'Explore',
+  'Insurance options',
+  'Rename',
+  'Rename',
+  'Rename',
+  'SIM options',
+  'Saved',
+  'Share trip',
+  'Travel Planner',
+  'Trips',
+  'Trips',
+  'View costs in another currency',
+  'Visa requirements',
+]
+
+describe('TripDetailPage restyle', () => {
+  const controls = () =>
+    within(document.body)
+      .queryAllByRole('button')
+      .concat(within(document.body).queryAllByRole('link'))
+      .map((e) => e.textContent?.trim())
+      .sort()
+
+  it('has no new interactive control for an owner (AC12)', async () => {
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    expect(controls()).toEqual(OWNER_CONTROLS)
+  })
+
+  it('shows a hero with the trip name, dates and destination at the top (AC1, AC11)', async () => {
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const hero = document.querySelector('.trip-hero') as HTMLElement
+    expect(hero).toBeInTheDocument()
+    expect(within(hero).getByRole('heading', { level: 1, name: 'Lisbon' })).toBeInTheDocument()
+    expect(hero).toHaveTextContent('Lisbon, Portugal')
+    expect(within(hero).queryAllByRole('button')).toHaveLength(0)
+    expect(within(hero).queryAllByRole('link')).toHaveLength(0)
+    expect(hero.querySelectorAll('[style], [class]')).toHaveLength(0)
+  })
+
+  it('shows the tabs below the hero (AC2)', async () => {
+    open()
+    const tabs = await screen.findByRole('tablist', { name: 'Trip sections' })
+    const hero = document.querySelector('.trip-hero')!
+    expect(hero.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(tabs).getAllByRole('tab').map((t) => t.textContent)).toContain('Overview')
+  })
+
+  it('shows the details as cards (AC3)', async () => {
+    open()
+    fireEvent.click(await screen.findByRole('tab', { name: 'Overview' }))
+    const layout = document.querySelector('.trip-layout')!
+    expect(layout.querySelectorAll('.trip-main .card').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText(/Insurance: not yet picked/).closest('.card')).not.toBeNull()
+  })
+
+  it('puts the cost summary after the cards in the DOM (AC4, AC5)', async () => {
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const main = document.querySelector('.trip-main')!
+    const aside = document.querySelector('.trip-aside') as HTMLElement
+    expect(main.compareDocumentPosition(aside) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(aside).getByLabelText('Trip total')).toBeInTheDocument()
+  })
+
+  it('shows each day as a card holding its activities (AC6, AC7)', async () => {
+    open(trip({ activities: [{ id: 'a1', name: 'Oceanarium', date: '2027-03-03' }] }))
+    const day = await screen.findByRole('region', { name: /3 March/ })
+    expect(day).toHaveClass('card')
+    expect(within(day).getByText('Oceanarium')).toBeInTheDocument()
+    const dayCards = screen
+      .getAllByRole('region')
+      .filter((r) => r.classList.contains('card') && /March/.test(r.textContent ?? ''))
+    expect(dayCards.length).toBeGreaterThanOrEqual(3)
   })
 })

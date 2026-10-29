@@ -1,4 +1,5 @@
 import { InfoIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import { BookingLink } from '../travel/BookingLink'
 import type { StayProperty } from './api'
 import { amenityLabel, formatFetched, formatMoney, plural, starsLabel, typeLabel } from './stayOptions'
@@ -10,18 +11,21 @@ export function PropertyCard({ property: p, nights }: PropertyCardProps) {
   const count = p.offers.length
   const rating = p.stars > 0 ? `, ${starsLabel(p.stars)}` : ''
   return (
-    <article className="card property" aria-label={p.name}>
-      <div className="prop-head">
-        <h3>{p.name}</h3>
+    <OptionCard
+      title={p.name}
+      badges={
         <span className={`badge ${count > 1 ? 'badge-success' : 'badge-neutral'}`}>
           {`Offered by ${plural(count, 'provider', 'providers')}`}
         </span>
-      </div>
-      <p className="text-muted">
-        {`${typeLabel(p.property_type)} in ${p.area}${rating}, ${plural(p.rooms, 'room', 'rooms')}`}
-        <br />
-        {p.amenities.map(amenityLabel).join(', ')}
-      </p>
+      }
+      meta={
+        <>
+          {`${typeLabel(p.property_type)} in ${p.area}${rating}, ${plural(p.rooms, 'room', 'rooms')}`}
+          <br />
+          {p.amenities.map(amenityLabel).join(', ')}
+        </>
+      }
+    >
       <div className="offers">
         {p.offers.map((o) => (
           <div className="card offer" key={o.provider}>
@@ -45,6 +49,6 @@ export function PropertyCard({ property: p, nights }: PropertyCardProps) {
         <InfoIcon />
         Final price confirmed on provider's site
       </p>
-    </article>
+    </OptionCard>
   )
 }

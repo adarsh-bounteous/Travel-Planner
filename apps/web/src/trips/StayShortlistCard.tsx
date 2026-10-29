@@ -1,4 +1,5 @@
 import { AlertIcon, CheckIcon } from '../auth/icons'
+import { OptionCard } from '../components/OptionCard'
 import type { ShortlistStay } from './api'
 import { amenityLabel, formatMoney, plural } from './stayOptions'
 
@@ -48,32 +49,30 @@ type CardProps = {
 export function StayShortlistCard({ stay, nights, chosen = false, busy = false, onChoose }: CardProps) {
   const perNight = formatMoney(Number(stay.total) / nights, stay.currency)
   return (
-    <article className="card stay-card" aria-label={`${stay.property.name}, rank ${stay.rank}`}>
-      <div className="row-between">
-        <span className="badge badge-neutral">
-          <span className="sr-only">Rank </span>
-          {stay.rank}
-        </span>
-        <span className="badges">
+    <OptionCard
+      title={stay.property.name}
+      ariaLabel={`${stay.property.name}, rank ${stay.rank}`}
+      badges={
+        <>
+          <span className="badge badge-neutral">
+            <span className="sr-only">Rank </span>
+            {stay.rank}
+          </span>
           <span className={`badge ${stay.fits_budget ? 'badge-success' : 'badge-neutral'}`}>{stay.reason}</span>
           {!stay.fits_budget && <OverBudget stay={stay} />}
-        </span>
-      </div>
-      <h3>{stay.property.name}</h3>
-      <p className="text-sm text-muted">{stay.why}</p>
-      <div>
-        <div className="stay-total">{formatMoney(stay.total, stay.currency)}</div>
-        <div className="text-sm text-muted">
-          {`Total price for ${plural(nights, 'night', 'nights')}, ${perNight} per night`}
-        </div>
-      </div>
-      <FitBar fit={stay.fit} />
-      <div className="metric">
-        <span className="text-sm">Offers</span>
-        <OfferChips stay={stay} />
-      </div>
-      {onChoose && (
+        </>
+      }
+      meta={stay.why}
+      price={
         <div>
+          <div className="stay-total">{formatMoney(stay.total, stay.currency)}</div>
+          <div className="text-sm text-muted">
+            {`Total price for ${plural(nights, 'night', 'nights')}, ${perNight} per night`}
+          </div>
+        </div>
+      }
+      actions={
+        onChoose && (
           <button
             className="btn btn-secondary"
             type="button"
@@ -96,8 +95,14 @@ export function StayShortlistCard({ stay, nights, chosen = false, busy = false, 
               </>
             )}
           </button>
-        </div>
-      )}
-    </article>
+        )
+      }
+    >
+      <FitBar fit={stay.fit} />
+      <div className="metric">
+        <span className="text-sm">Offers</span>
+        <OfferChips stay={stay} />
+      </div>
+    </OptionCard>
   )
 }

@@ -190,7 +190,7 @@ export function FlightShortlistPage() {
         </p>
       ))}
       {shortlist && ordered.length > 0 && (
-        <div className="stack" role="list" aria-label="Travel options ranked, best first">
+        <ul className="stack" role="list" aria-label="Travel options ranked, best first">
           {ordered.map((item) => (
             <FlightShortlistCard
               key={item.flight.id}
@@ -200,7 +200,7 @@ export function FlightShortlistPage() {
               onPick={leg && canPick ? () => pick(leg, item) : undefined}
             />
           ))}
-        </div>
+        </ul>
       )}
       {shortlist && ordered.length === 0 && missing.length === 0 && (
         <div className="empty-state">

@@ -57,11 +57,13 @@ const open = (view: string, entries: ShortlistEntry[] = FIVE) => {
 describe('compare tab', () => {
   it('shows every match side by side with cuisine, style and price (AC1, AC5)', async () => {
     open('compare')
-    expect(await screen.findAllByRole('article')).toHaveLength(5)
-    const casa = screen.getByRole('article', { name: 'Casa Lima' })
-    expect(within(casa).getByText('Cuisine:')).toBeInTheDocument()
-    expect(within(casa).getByText(/Dining style:/)).toBeInTheDocument()
-    expect(within(casa).getByText(/Typical price per person:/)).toBeInTheDocument()
+    const table = await screen.findByRole('table', { name: 'Matching restaurants side by side' })
+    expect(table).toHaveClass('compare-table')
+    expect(within(table).getAllByRole('row')).toHaveLength(6)
+    const casa = within(table).getByRole('row', { name: /Casa Lima/ })
+    expect(within(table).getByRole('columnheader', { name: 'Cuisine' })).toBeInTheDocument()
+    expect(within(table).getByRole('columnheader', { name: 'Dining style' })).toBeInTheDocument()
+    expect(within(table).getByRole('columnheader', { name: 'Typical price per person' })).toBeInTheDocument()
     expect(within(casa).getByText('€19')).toBeInTheDocument()
     expect(screen.getByTestId('comparison')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Choose / })).not.toBeInTheDocument()
@@ -74,7 +76,7 @@ describe('compare tab', () => {
       expect(await screen.findByRole('heading', { name: 'Nothing to compare' })).toBeInTheDocument()
       expect(screen.getByRole('status')).toHaveTextContent('fewer than 2 matching restaurants')
       expect(screen.queryByTestId('comparison')).not.toBeInTheDocument()
-      expect(screen.queryAllByRole('article')).toHaveLength(0)
+      expect(screen.queryByRole('table')).not.toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'Back to restaurant options' })).toHaveAttribute(
         'href',
         '/trips/t1/restaurant-options',

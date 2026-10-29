@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { SearchIcon } from '../auth/icons'
+import { CompareTable } from '../components/CompareTable'
 import type { ShortlistEntry } from './api'
 import { canCompare } from './restaurantShortlist'
 import { formatMoney } from './stayOptions'
@@ -20,26 +21,26 @@ export function RestaurantCompare({ entries, optionsHref }: { entries: Shortlist
       </div>
     )
   return (
-    <section aria-label="Matching restaurants side by side">
-      <div className="grid" data-testid="comparison">
-        {entries.map(({ restaurant: r }) => (
-          <article key={`${r.name}-${r.city}`} className="card compare-card" aria-label={r.name}>
-            <h3>{r.name}</h3>
-            <p>
-              <span className="fact-label">Cuisine:</span> {r.cuisine}
-            </p>
-            <p>
-              <span className="fact-label">Dining style:</span> {r.dining_style}
-            </p>
-            <p>
-              <span className="fact-label">Typical price per person:</span>{' '}
+    <section aria-label="Matching restaurants side by side" data-testid="comparison">
+      <CompareTable
+        caption="Matching restaurants side by side"
+        rows={entries.map((e) => e.restaurant)}
+        rowKey={(r) => `${r.name}-${r.city}`}
+        title={(r) => r.name}
+        columns={[
+          { key: 'cuisine', header: 'Cuisine', render: (r) => r.cuisine },
+          { key: 'style', header: 'Dining style', render: (r) => r.dining_style },
+          {
+            key: 'price',
+            header: 'Typical price per person',
+            render: (r) => (
               <strong>
                 {r.typical_price === null ? 'Typical price not available' : formatMoney(r.typical_price, r.currency)}
               </strong>
-            </p>
-          </article>
-        ))}
-      </div>
+            ),
+          },
+        ]}
+      />
     </section>
   )
 }

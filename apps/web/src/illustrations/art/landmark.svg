@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
+  <rect width="160" height="90" fill="#ecfeff"/>
+  <path d="M50 76h60V44l-30-18-30 18z" fill="#0e7490"/><rect x="62" y="48" width="8" height="28" fill="#ecfeff"/><rect x="76" y="48" width="8" height="28" fill="#ecfeff"/><rect x="90" y="48" width="8" height="28" fill="#ecfeff"/>
+  <rect x="40" y="76" width="80" height="6" fill="#0f172a"/>
+</svg>

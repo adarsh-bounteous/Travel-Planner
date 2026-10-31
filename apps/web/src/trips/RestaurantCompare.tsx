@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { SearchIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import type { ShortlistEntry } from './api'
@@ -10,6 +11,7 @@ export function RestaurantCompare({ entries, optionsHref }: { entries: Shortlist
   if (!canCompare(entries))
     return (
       <div className="empty-state" role="status">
+        <EmptyStateArt />
         <SearchIcon />
         <h2>Nothing to compare</h2>
         <p>This trip has fewer than 2 matching restaurants. Check the shortlist, or relax a filter to find more.</p>

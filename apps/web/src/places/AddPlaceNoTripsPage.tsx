@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { CalendarIcon } from '../auth/icons'
 import { GUIDED_SETUP_PATH } from '../trips/MyTripsPage'
 import type { Place } from './api'
@@ -10,6 +11,7 @@ export function AddPlaceNoTripsPage() {
     <div className="narrow stack stack-lg">
       <h1>Add a place</h1>
       <div className="empty-state">
+        <EmptyStateArt />
         <CalendarIcon />
         <h2>You have no trips yet</h2>
         <p>Places live inside a trip. Set one up first and we'll add this place right after.</p>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, CheckIcon, ChevronDownIcon, SearchIcon } from '../auth/icons'
 import { fetchFlightShortlist, fetchTrip, pickTransport } from './api'
 import type { FlightShortlist, ShortlistFlight, TransportLeg, Trip } from './api'
@@ -204,6 +205,7 @@ export function FlightShortlistPage() {
       )}
       {shortlist && ordered.length === 0 && missing.length === 0 && (
         <div className="empty-state">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No travel options were found for this route and date.</h2>
           <p>{`Try another date, or choose another way to travel between ${origin} and ${destination}.`}</p>

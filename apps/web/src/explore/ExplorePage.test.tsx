@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { Reply } from '../test-api'
 
@@ -52,11 +52,11 @@ describe('ExplorePage', () => {
     expect(screen.getByRole('button', { name: 'Museum' })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('shows gradient covers and loads no photo (AC1, AC2)', async () => {
+  it('shows place-type art and loads no photo (AC1, AC2)', async () => {
     stubApi(base)
     renderAt('/explore')
-    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    await waitFor(() => expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2))
+    expect(document.querySelector('img[src*="img.example"]')).toBeNull()
   })
 
   it('toggles between list and map (AC5, AC6)', async () => {
@@ -162,8 +162,8 @@ describe('ExplorePage real places', () => {
     expect(await screen.findByText('Museu X')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeInTheDocument()
     expect(screen.queryByText(/Live data unavailable/)).not.toBeInTheDocument()
-    expect(screen.getAllByTestId('place-cover')).toHaveLength(1)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    expect(document.querySelectorAll('li.card .imgc')).toHaveLength(1)
+    expect(document.querySelector('img[src^="data:image/svg+xml,x"], img[src*="img.example"]')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Details for Museu X' }))
     expect(await screen.findByText('node/42')).toBeInTheDocument()
   })

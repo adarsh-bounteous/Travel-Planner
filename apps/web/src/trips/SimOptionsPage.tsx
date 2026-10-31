@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, SearchIcon } from '../auth/icons'
 import { clearSim, fetchSimOptions, fetchTrip, pickSim } from './api'
 import type { SimOption, SimOptions } from './api'
@@ -150,6 +151,7 @@ export function SimOptionsPage() {
       )}
       {data.options.length === 0 && !stale && (
         <div className="empty-state">
+          <EmptyStateArt />
           <SearchIcon />
           <h2 className="text-lg">No SIM options match this destination and trip dates.</h2>
           <p className="text-muted">Try changing your trip dates and check again.</p>

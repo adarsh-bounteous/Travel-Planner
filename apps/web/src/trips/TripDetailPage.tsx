@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { ImageHero } from '../components/ImageHero'
+import { illustrationRefOfTrip } from '../illustrations/registry'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, RestaurantPick, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -186,8 +188,11 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         </ol>
       </nav>
       <header className="trip-hero" aria-label="Trip">
-        <h1>{trip.name}</h1>
-        {trip.start_date && trip.end_date && <p>{formatRange(trip.start_date, trip.end_date)}</p>}
+        <ImageHero
+          illustration={illustrationRefOfTrip(trip)}
+          title={<h1 className="hero-title">{trip.name}</h1>}
+          dates={trip.start_date && trip.end_date ? formatRange(trip.start_date, trip.end_date) : undefined}
+        />
         {trip.destination && <p>{trip.destination}</p>}
       </header>
       <div className="stack stack-sm">

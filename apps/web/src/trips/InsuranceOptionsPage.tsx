@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import {
   addTraveller,
@@ -180,6 +181,7 @@ export function InsuranceOptionsPage() {
       {options && options.missing.length === 0 && plans.length === 0 && (
         <>
           <div className="empty-state">
+            <EmptyStateArt />
             <SearchIcon />
             <h2 className="text-lg">No plans suit this trip.</h2>
             <p className="text-muted">

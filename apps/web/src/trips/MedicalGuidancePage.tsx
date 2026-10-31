@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, CheckIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import { fetchMedicalGuidance, fetchTrip } from './api'
 import type { MedicalGuidanceView, Trip, TravellerGuidance, VaccinationGuidance } from './api'
@@ -52,6 +53,7 @@ function TravellerCard({ row }: { row: TravellerGuidance }) {
       </div>
       {row.result === 'no_data' && (
         <div className="empty-state" role="status">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No data for this route</h2>
           <p>No data for this route. Check the official government site for your citizenship and destination.</p>

@@ -26,13 +26,35 @@ const oslo = {
 }
 
 describe('MyTripsPage entry look', () => {
-  it('gives each card a gradient cover, a status badge and the same Open link', async () => {
+  it('gives each card 16:9 art hidden from screen readers (AC1, AC9, AC12)', async () => {
+    stubApi({
+      'GET /trips': {
+        status: 200,
+        body: [{ ...lisbon, country: 'Portugal', place: 'Lisbon' }, { ...oslo, stays: [{ id: 's' }] }],
+      },
+    })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'Lisbon' })
+    const frames = document.querySelectorAll('li.card > .imgc')
+    expect(frames).toHaveLength(2)
+    for (const frame of frames) expect(frame).toHaveStyle({ '--ratio': '16/9' })
+    await waitFor(() => expect(document.querySelectorAll('li.card .imgc img')).toHaveLength(2))
+    const [first, second] = document.querySelectorAll<HTMLImageElement>('li.card .imgc img')
+    expect(first.getAttribute('src')).toMatch(/lisbon\.svg/)
+    // Norway has no art of its own: the neutral generic art stands in (AC13).
+    expect(second.getAttribute('src')).toMatch(/generic\.svg/)
+    for (const img of [first, second]) {
+      expect(img).toHaveAttribute('aria-hidden', 'true')
+      expect(img).toHaveAttribute('alt', '')
+    }
+  })
+
+  it('gives each card a status badge and the same Open link', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [lisbon, { ...oslo, stays: [{ id: 's' }] }] } })
     renderAt('/')
     await screen.findByRole('heading', { name: 'Lisbon' })
     const container = document.body
     const cards = container.querySelectorAll('li.card')
-    expect(container.querySelectorAll('li.card .trip-cover')).toHaveLength(2)
     for (const card of cards) {
       expect(card.querySelector('.badge-success, .badge-neutral')).not.toBeNull()
     }

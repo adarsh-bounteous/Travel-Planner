@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import type { MouseEvent, ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { BrandLogo } from '../components/BrandLogo'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { ImageHero } from '../components/ImageHero'
+import { illustrationRefOfLabel } from '../illustrations/registry'
 import { usePageName } from '../pageTitle'
 import {
   AlertIcon,
@@ -13,7 +16,6 @@ import {
   CheckIcon,
   EyeIcon,
   HomeIcon,
-  ImageIcon,
   InfoIcon,
   MinusIcon,
   SearchIcon,
@@ -146,25 +148,25 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       <div className="doc-brand">
         <BrandLogo />
       </div>
-      <section className="cover" id="cover" aria-labelledby="cover-h">
-        <div className="cover-art" aria-hidden="true">
-          <ImageIcon />
-        </div>
-        <div className="cover-body">
-          <h1 id="cover-h">{cover.name}</h1>
-          {cover.start_date && cover.end_date && (
-            <p className="cover-meta text-lg">
-              <CalendarIcon />
-              <span>{formatRange(cover.start_date, cover.end_date)}</span>
-            </p>
-          )}
-          {cover.destinations.length > 0 && (
+      <section className="itin-cover" id="cover" aria-labelledby="cover-h">
+        <ImageHero
+          variant="cover"
+          illustration={illustrationRefOfLabel(cover.destinations[0])}
+          title={
+            <h1 id="cover-h" className="hero-title">
+              {cover.name}
+            </h1>
+          }
+          dates={cover.start_date && cover.end_date ? formatRange(cover.start_date, cover.end_date) : undefined}
+        />
+        {cover.destinations.length > 0 && (
+          <div className="cover-body">
             <p className="cover-meta">
               <HomeIcon />
               <span>{cover.destinations.join(', ')}</span>
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       <section className="card glance" id="at-a-glance" aria-labelledby="glance-h">
@@ -302,6 +304,7 @@ export function ItineraryPage() {
   if (error === 'not-found')
     return (
       <div className="empty-state" role="alert">
+        <EmptyStateArt />
         <SearchIcon />
         <h1 className="text-lg">Itinerary not found</h1>
         <p>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, ArrowLeftIcon, EyeIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import { chooseStay, clearChosenStay, fetchStayShortlist, fetchTrip } from './api'
 import type { Shortlist, Stay, Trip } from './api'
@@ -199,6 +200,7 @@ export function StayShortlistPage() {
       )}
       {shortlist && stays.length === 0 && (
         <div className="empty-state">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No stays to shortlist</h2>
           <p>No stays match your property type and rooms in {stay.place}.</p>

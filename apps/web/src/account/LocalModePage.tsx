@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { InfoIcon } from '../auth/icons'
 import {
   fetchLocalMode,
@@ -52,6 +53,7 @@ function ProviderList({ providers }: { providers: Providers }) {
   if (providers.length === 0)
     return (
       <div className="empty-state">
+        <EmptyStateArt />
         <InfoIcon />
         <h2>No providers are registered.</h2>
         <p>Register a provider in your local configuration, then reload this page.</p>

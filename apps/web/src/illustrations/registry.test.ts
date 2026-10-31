@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { PLACE_TYPE_LABELS, type PlaceType } from '../places/api'
-import { illustrationLoaders, regionOfCountry, resolveIllustration } from './registry'
+import {
+  illustrationAlt,
+  illustrationLoaders,
+  illustrationRefOfLabel,
+  illustrationRefOfTrip,
+  regionOfCountry,
+  resolveIllustration,
+} from './registry'
 
 const PLACE_TYPES = Object.keys(PLACE_TYPE_LABELS) as PlaceType[]
 
@@ -22,6 +29,32 @@ describe('resolveIllustration', () => {
 
   it('uses the place type art with no destination', () => {
     expect(resolveIllustration({ placeType: 'park' })).toBe('type/park')
+  })
+
+  it('falls back to the generic art when nothing matches (AC13)', () => {
+    expect(resolveIllustration({ destination: 'Reykjavik' })).toBe('generic/generic')
+    expect(resolveIllustration({})).toBe('generic/generic')
+    expect(illustrationLoaders['generic/generic']).toBeTypeOf('function')
+  })
+
+  it('describes destination art by name and everything else neutrally (AC11)', () => {
+    expect(illustrationAlt({ destination: 'Lisbon' }, 'Lisbon')).toBe('Illustration of Lisbon')
+    expect(illustrationAlt({ placeType: 'food' })).toBe('Neutral illustration of hills and a sun')
+    expect(illustrationAlt({})).toBe('Neutral illustration of hills and a sun')
+  })
+
+  it('reads a "Country, Place" label in either order (AC5)', () => {
+    expect(resolveIllustration(illustrationRefOfLabel('Portugal, Lisbon'))).toBe('destination/lisbon')
+    expect(resolveIllustration(illustrationRefOfLabel('Lisbon, Portugal'))).toBe('destination/lisbon')
+    expect(resolveIllustration(illustrationRefOfLabel('Portugal, Porto'))).toBe('region/europe')
+    expect(resolveIllustration(illustrationRefOfLabel(null))).toBe('generic/generic')
+  })
+
+  it('reads a trip by its place and country, else by its destination label (AC1, AC2)', () => {
+    expect(resolveIllustration(illustrationRefOfTrip({ place: 'Lisbon', country: 'Portugal' }))).toBe('destination/lisbon')
+    expect(resolveIllustration(illustrationRefOfTrip({ destination: 'Lisbon, Portugal' }))).toBe('destination/lisbon')
+    expect(resolveIllustration(illustrationRefOfTrip({ destination: 'Norway' }))).toBe('generic/generic')
+    expect(resolveIllustration(illustrationRefOfTrip({}))).toBe('generic/generic')
   })
 
   it('maps seeded countries to regions', () => {

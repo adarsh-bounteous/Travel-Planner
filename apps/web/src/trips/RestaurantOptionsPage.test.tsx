@@ -57,6 +57,16 @@ describe('restaurant options page', () => {
     expect(within(filters).getByText('Vegetarian').closest('.chip-trip')).toBeNull()
   })
 
+  it('tops each card with hidden 16:9 food art instead of a grey placeholder (AC8, AC9, AC12)', async () => {
+    open(body([restaurant('Casa Lima')]))
+    const card = await screen.findByRole('article', { name: 'Casa Lima' })
+    expect(card.firstElementChild).toHaveClass('imgc')
+    expect(card.firstElementChild).toHaveStyle({ '--ratio': '16/9' })
+    await waitFor(() => expect(card.querySelector('img')?.getAttribute('src')).toMatch(/food\.svg/))
+    expect(card.querySelector('img')).toHaveAttribute('aria-hidden', 'true')
+    expect(within(card).queryByRole('img', { name: /Photo placeholder/ })).toBeNull()
+  })
+
   it('asks to choose a destination when there is none (AC6, AC8)', async () => {
     open(body([], { destination: null, status: 'no_destination' }))
     expect(await screen.findByRole('heading', { name: 'Choose a destination' })).toBeInTheDocument()

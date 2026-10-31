@@ -300,7 +300,7 @@ def list_trips(
         trip = trips.get_trip(owner_id, trip_id)
         if trip is not None and can_edit_trip(trip, user, owner_id, email):  # stale index rows are skipped
             trip = _converted(trips, owner_id, trip)
-            shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token"}), shared=True))
+            shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token", "share_itinerary"}), shared=True))
     return sorted([*mine, *shared], key=_updated_key, reverse=True)
 
 

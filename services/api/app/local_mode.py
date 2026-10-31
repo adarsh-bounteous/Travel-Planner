@@ -1,12 +1,14 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from app.providers.registry import default_registry
+
 LOCAL_ENVIRONMENT = "local"
 _OFF = {"", "false", "off", "0"}
 _ON = {"true", "on", "1", "yes"}
 
 
-KNOWN_LIVE_PROVIDERS = frozenset({"places"})
+KNOWN_LIVE_PROVIDERS = default_registry().names()
 
 
 class LocalModeRefusedError(RuntimeError):
@@ -82,7 +84,7 @@ def stand_ins_for(local_mode: bool) -> LocalStandIns:
 
 def resolve_live_providers(env: Mapping[str, str]) -> frozenset[str]:
     """The sources opted in to a live provider in local mode (LOCAL_LIVE_PROVIDERS, comma separated)."""
-    names = frozenset(n.strip().lower() for n in env.get("LOCAL_LIVE_PROVIDERS", "").split(",") if n.strip())
+    names = frozenset(n.strip() for n in env.get("LOCAL_LIVE_PROVIDERS", "").split(",") if n.strip())
     unknown = names - KNOWN_LIVE_PROVIDERS
     if unknown:
         raise LocalModeRefusedError(

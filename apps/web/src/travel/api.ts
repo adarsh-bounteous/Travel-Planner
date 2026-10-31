@@ -47,12 +47,12 @@ export const fetchLocalMode = () => call<{ local_mode: boolean }>('/local/mode')
 
 export type ProviderStatus = { name: string; kind: string; health: string }
 
-/** Thrown when the API hides the provider list, which it does outside local mode (404). */
+/** Thrown when the API withholds the provider list: 404 outside local mode, 401/403 for no access. */
 export class ProvidersNotAllowedError extends Error {}
 
 export async function fetchProviderStatuses(): Promise<ProviderStatus[]> {
   const response = await fetch('/providers/status', { credentials: 'same-origin' })
-  if (response.status === 404) throw new ProvidersNotAllowedError()
+  if ([401, 403, 404].includes(response.status)) throw new ProvidersNotAllowedError()
   if (!response.ok) throw new Error(`request failed: ${response.status}`)
   return (await response.json()).providers
 }

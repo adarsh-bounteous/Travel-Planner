@@ -45,7 +45,12 @@ function ProviderList({ providers }: { providers: Providers }) {
         The provider list could not be loaded. Reload the page to try again.
       </div>
     )
-  if (providers === 'refused') return null
+  if (providers === 'refused')
+    return (
+      <div className="alert alert-danger" role="alert">
+        This page is for developers only.
+      </div>
+    )
   if (providers.length === 0)
     return (
       <div className="empty-state">
@@ -99,16 +104,6 @@ export function LocalModePage() {
       }
     }
   }
-
-  if (providers === 'refused')
-    return (
-      <div className="inbox-col stack">
-        <h1>Access refused</h1>
-        <div className="alert alert-danger" role="alert">
-          This page is for developers only.
-        </div>
-      </div>
-    )
 
   if (on === null) return <span className="spinner" role="status" aria-label="Loading" />
 

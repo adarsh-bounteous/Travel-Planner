@@ -587,6 +587,29 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
 .it-detail { overflow-wrap: anywhere; }
 .print-fab { position: sticky; bottom: var(--space-3); align-self: flex-end; margin-top: var(--space-3); }
 
+/* Money and inclusions */
+.document > .divider { margin: 0; }
+.section { display: flex; flex-direction: column; gap: var(--space-3); }
+.bk-wrap { min-width: 0; }
+@media (min-width: 48rem) { .bk-wrap { overflow-x: auto; } }
+.compare-table tr.is-flagged td { background: var(--color-warning-subtle); }
+@media (max-width: 47.99rem) {
+  .compare-table tr.is-flagged { border-color: var(--color-warning); background: var(--color-warning-subtle); }
+  .compare-table tr.is-flagged td { background: none; }
+}
+.unpriced { color: var(--color-fg-muted); font-style: italic; }
+.line-list { list-style: none; margin: 0; padding: 0; }
+.line-list li { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); min-height: var(--size-control-lg); padding: var(--space-1) 0; border-bottom: var(--border-width) solid var(--color-border); }
+.line-list li:last-child { border-bottom: 0; }
+.line-list .amt { white-space: nowrap; font-weight: var(--font-weight-medium); }
+.line-list .name { min-width: 0; overflow-wrap: anywhere; }
+.excl { margin: 0; padding-left: var(--space-4); color: var(--color-fg-muted); }
+.excl li { padding: var(--space-1) 0; }
+.total { display: flex; flex-direction: column; gap: var(--space-1); }
+.total-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
+.note { display: flex; gap: var(--space-2); align-items: flex-start; }
+.note .icon { flex: none; margin-top: var(--space-1); }
+
 /* Printing the itinerary: A4, no app navigation or section list, a page per day, link URLs after link text */
 @page { size: A4; margin: 15mm; }
 @media print {
@@ -594,6 +617,7 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
   .itin-body { display: block; }
   .document { max-width: none; }
   .day-card, #still-to-schedule { break-before: page; }
-  .day-card, .it { break-inside: avoid; }
+  .day-card, .it, .compare-table tr, .line-list li, .alert, .total { break-inside: avoid; }
+  .alert, .badge { print-color-adjust: exact; }
   .document a[href]::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
 }

@@ -504,12 +504,44 @@ export type ItineraryItem = {
 
 export type ItineraryDay = { number: number; date: string; items: ItineraryItem[] }
 
-/** The printable trip document; the server leaves out money, essentials, editors and sharing. */
+export type Booking = {
+  name: string
+  kind: 'stay' | 'transport' | 'option' | 'restaurant'
+  provider: string | null
+  start_date: string | null
+  end_date: string | null
+  price: string | null
+  currency: string | null
+  status: string
+  link_url: string | null
+  outside_trip_dates: boolean
+  add_url: string
+}
+export type PricedLine = { name: string; amount: string; currency: string }
+export type NotIncludedLine = { name: string; reason: 'unchosen' | 'unpriced'; add_url: string }
+export type CostBreakdown = {
+  currency: string
+  subtotals: { currency: string; amount: string }[]
+  total: string
+  conversions: { currency: string; rate: string; rate_date: string }[]
+  unconvertible_count: number
+  estimates_note: string
+}
+export type ItineraryMoney = {
+  bookings: Booking[]
+  included: PricedLine[]
+  not_included: NotIncludedLine[]
+  standard_exclusions: string[]
+  cost: CostBreakdown
+}
+
+/** The printable trip document; the server leaves out essentials, editors and sharing. */
 export type Itinerary = {
   cover: { name: string; start_date: string | null; end_date: string | null; destinations: string[] }
   glance: { booked: number; unbooked: number }
   days: ItineraryDay[]
   still_to_schedule: ItineraryItem[]
+  money: ItineraryMoney
 }
 
 export const fetchItinerary = (tripId: string) =>

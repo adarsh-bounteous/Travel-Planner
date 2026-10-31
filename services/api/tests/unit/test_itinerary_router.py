@@ -20,7 +20,7 @@ def test_owner_gets_the_itinerary(trip):
     owner, tid = trip
     r = owner.get(f"/trips/{tid}/itinerary")
     assert r.status_code == 200
-    assert set(r.json()) == {"cover", "glance", "days", "still_to_schedule"}
+    assert set(r.json()) == {"cover", "glance", "days", "still_to_schedule", "money"}
     assert [d["number"] for d in r.json()["days"]] == [1, 2, 3]
 
 
@@ -41,12 +41,12 @@ def test_stranger_and_unaccepted_editor_get_the_missing_trip_answer(trip, sign_i
         assert "Lisbon" not in r.text and "2026-11-14" not in r.text
 
 
-def test_money_editors_and_sharing_never_appear(trip):
+def test_editors_and_sharing_never_appear(trip):
     owner, tid = trip
     owner.post(f"/trips/{tid}/editors", json={"email": "ana@example.com"})
     owner.post(f"/trips/{tid}/share-link")
     text = owner.get(f"/trips/{tid}/itinerary").text.lower()
-    for word in ("price", "total", "fare", "currency", "budget", "editors", "share", "insurance", "sim", "essential", "visa"):
+    for word in ("editors", "share", "sim", "essential"):
         assert word not in text
 
 

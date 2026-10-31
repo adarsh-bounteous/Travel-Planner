@@ -17,12 +17,18 @@ import {
 } from '../auth/icons'
 import { fetchItinerary, NotFoundError } from './api'
 import type { Itinerary, ItineraryItem } from './api'
+import { ItineraryMoney } from './ItineraryMoney'
+import { formatDay, formatRange } from './itineraryFormat'
 
 const SECTIONS = [
   { id: 'cover', label: 'Cover' },
   { id: 'at-a-glance', label: 'At a glance' },
   { id: 'day-by-day', label: 'Day by day' },
   { id: 'still-to-schedule', label: 'Still to schedule' },
+  { id: 'bookings-section', label: 'Bookings and confirmations' },
+  { id: 'included-section', label: 'Included' },
+  { id: 'not-included-section', label: 'Not included' },
+  { id: 'cost-summary-section', label: 'Cost summary' },
 ]
 
 const KINDS: Record<ItineraryItem['kind'], { label: string; icon: ReactNode }> = {
@@ -36,21 +42,6 @@ const KINDS: Record<ItineraryItem['kind'], { label: string; icon: ReactNode }> =
 }
 
 const SKELETON_WIDTHS = ['40%', '70%', '55%']
-
-/** An ISO calendar date read as that day in the traveller's own time zone. */
-const localDate = (iso: string) => {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-
-const formatDay = (iso: string) =>
-  new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' }).format(localDate(iso))
-
-const formatRange = (start: string, end: string) => {
-  const format = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
-  const year = new Intl.DateTimeFormat(undefined, { year: 'numeric' }).format(localDate(end))
-  return `${format.format(localDate(start))} – ${format.format(localDate(end))} ${year}`
-}
 
 function NotYetPlanned() {
   return (
@@ -162,6 +153,8 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
       </section>
+
+      <ItineraryMoney money={itinerary.money} tripDates={{ start: cover.start_date, end: cover.end_date }} />
     </div>
   )
 }

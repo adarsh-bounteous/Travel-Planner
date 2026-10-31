@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.trips.money import Money, _http_link, build_money
+from app.trips.rates import RateSource
 from app.trips.store import Trip, reconcile_days, visible_reminders
 
 Kind = Literal["stay", "check_in", "check_out", "transport", "activity", "meal", "reminder"]
@@ -39,16 +41,13 @@ class Cover(BaseModel):
 
 
 class Itinerary(BaseModel):
-    """The printable trip document. Deliberately has no money, essentials, editor or sharing field."""
+    """The printable trip document. Deliberately has no essentials, editor or sharing field."""
 
     cover: Cover
     glance: Glance
     days: list[ItineraryDay]
     still_to_schedule: list[ItineraryItem]
-
-
-def _http_link(url: str | None) -> str | None:
-    return url if url and url.startswith(("http://", "https://")) else None
+    money: Money
 
 
 def _item(kind: Kind, title: str, detail: str | None = None, status: Status | None = None, url: str | None = None, link_text: str = "Booking page") -> ItineraryItem:
@@ -89,8 +88,8 @@ def _ordered(items: list[ItineraryItem]) -> list[ItineraryItem]:
     return sorted(items, key=lambda i: (KIND_ORDER.index(i.kind), i.title))
 
 
-def build_itinerary(trip: Trip) -> Itinerary:
-    """The trip as a document: cover, booked/unbooked counts, one entry per day, and what is still unscheduled."""
+def build_itinerary(trip: Trip, rates: RateSource, today: date) -> Itinerary:
+    """The trip as a document: cover, booked/unbooked counts, one entry per day, and what is still unscheduled, and the money."""
     if trip.days:
         dates = [d.date for d in trip.days]
     elif trip.start_date and trip.end_date:
@@ -122,4 +121,5 @@ def build_itinerary(trip: Trip) -> Itinerary:
         glance=Glance(booked=statuses.count("booked"), unbooked=statuses.count("unbooked")),
         days=[ItineraryDay(number=n + 1, date=d, items=_ordered(by_day[d])) for n, d in enumerate(dates)],
         still_to_schedule=_ordered(still),
+        money=build_money(trip, rates, today),
     )

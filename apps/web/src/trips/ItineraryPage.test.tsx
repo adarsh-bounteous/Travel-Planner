@@ -30,14 +30,31 @@ const cover = {
 }
 const dayDates = ['2026-11-14', '2026-11-15', '2026-11-16']
 
+const noMoney: Itinerary['money'] = {
+  bookings: [],
+  included: [],
+  not_included: [],
+  standard_exclusions: ['Flights to and from the destination'],
+  cost: {
+    currency: 'EUR',
+    subtotals: [],
+    total: '0.00',
+    conversions: [],
+    unconvertible_count: 0,
+    estimates_note: 'Prices are estimates and may change before you pay.',
+  },
+}
+
 const empty: Itinerary = {
   cover,
   glance: { booked: 0, unbooked: 0 },
   days: dayDates.map((date, i) => ({ number: i + 1, date, items: [] })),
   still_to_schedule: [],
+  money: noMoney,
 }
 
 const planned: Itinerary = {
+  money: noMoney,
   cover,
   glance: { booked: 4, unbooked: 2 },
   days: [
@@ -82,7 +99,8 @@ describe('ItineraryPage', () => {
   it('lists each day once and shows Not yet planned for an empty day (AC4, AC5)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1 })
-    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+    const dayHeadings = screen.getAllByRole('article').map((a) => within(a).getByRole('heading', { level: 3 }))
+    expect(dayHeadings.map((h) => h.textContent)).toEqual([
       'Day 1',
       'Day 2',
       'Day 3',
@@ -96,6 +114,19 @@ describe('ItineraryPage', () => {
     expect(screen.getAllByText('Not yet planned').length).toBeGreaterThanOrEqual(5)
     for (const name of ['Cover', 'At a glance', 'Day by day', 'Still to schedule'])
       expect(screen.getByRole('link', { name })).toBeInTheDocument()
+  })
+
+  it('shows the four money sections after Still to schedule and in the section list', async () => {
+    show(planned)
+    await screen.findByRole('heading', { level: 1 })
+    const nav = screen.getByRole('navigation', { name: 'On this page' })
+    for (const name of ['Bookings and confirmations', 'Included', 'Not included', 'Cost summary']) {
+      expect(within(nav).getByRole('link', { name })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
+    }
+    const still = screen.getByRole('region', { name: 'Still to schedule' })
+    const bookings = screen.getByRole('region', { name: 'Bookings and confirmations' })
+    expect(still.compareDocumentPosition(bookings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('lists an undated item under Still to schedule (AC6)', async () => {

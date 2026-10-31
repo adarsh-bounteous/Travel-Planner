@@ -63,17 +63,19 @@ describe('local mode settings page', () => {
       renderAt('/account/local-mode')
       expect(await screen.findByRole('alert')).toHaveTextContent('This page is for developers only.')
       expect(screen.queryByRole('list', { name: 'Registered providers' })).toBeNull()
-      // The switch that turns local mode On must stay reachable while it is Off.
-      expect(screen.getByLabelText('Off')).toBeChecked()
+      expect(screen.getByRole('heading', { name: 'Access refused' })).toBeInTheDocument()
+      expect(screen.queryByLabelText('On')).toBeNull()
+      expect(screen.queryByLabelText('Off')).toBeNull()
     })
 
-    it.each([401, 403])('refuses the provider list on a %i (AC7)', async (status) => {
+    it.each([401, 403])('refuses the whole page on a %i (AC7)', async (status) => {
       stubApi({
         'GET /local/mode': { status: 200, body: { local_mode: false } },
         'GET /providers/status': { status, body: {} },
       })
       renderAt('/account/local-mode')
       expect(await screen.findByRole('alert')).toHaveTextContent('This page is for developers only.')
+      expect(screen.queryByLabelText('On')).toBeNull()
     })
 
     it('shows health as a dot plus a text label (AC8)', async () => {

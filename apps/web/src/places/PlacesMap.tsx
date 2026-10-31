@@ -241,6 +241,7 @@ export function PlacesMap({
       </div>
       {tilesOn ? (
         <TileLayerSvg
+          key={places.map((p) => p.id).join(',')} // a new set of places refits the view
           places={places}
           ariaLabel={ariaLabel}
           isSaved={isSaved}

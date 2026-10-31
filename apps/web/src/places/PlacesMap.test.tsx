@@ -62,6 +62,16 @@ describe('PlacesMap with tiles on', () => {
     await waitFor(() => expect(new Set(hrefs())).toEqual(expected(zoomed)))
   })
 
+  it('refits the map when the places change', async () => {
+    stub(true)
+    const { rerender } = render(<PlacesMap places={PLACES} />)
+    await screen.findAllByTestId('map-tile')
+    const far = [place('z', 'Zed', -33.9, 151.2)]
+    rerender(<PlacesMap places={far} />)
+    const view = fitView(far, 400, 300)
+    await waitFor(() => expect(new Set(hrefs())).toEqual(expected(view)))
+  })
+
   it('panning requests only the new visible tiles (AC6)', async () => {
     stub(true)
     render(<PlacesMap places={PLACES} />)

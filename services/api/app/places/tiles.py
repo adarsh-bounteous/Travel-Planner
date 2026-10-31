@@ -1,5 +1,6 @@
 import logging
 import time
+from collections import OrderedDict
 from collections.abc import Callable
 
 import httpx
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 MAX_ZOOM = 19
 CACHE_SECONDS = 3600
 TIMEOUT_SECONDS = 5.0
+MAX_CACHED_TILES = 2000
 
 
 class InvalidTileError(ValueError):
@@ -29,6 +31,7 @@ class TileSource:
         settings: Settings,
         client: httpx.Client | None = None,
         clock: Callable[[], float] = time.monotonic,
+        max_entries: int = MAX_CACHED_TILES,
     ) -> None:
         self._template = settings.osm_tile_url_template
         self._headers = {
@@ -37,7 +40,8 @@ class TileSource:
         }
         self._client = client or httpx.Client(timeout=TIMEOUT_SECONDS)
         self._clock = clock
-        self._cache: dict[tuple[int, int, int], tuple[float, bytes, str]] = {}
+        self._max_entries = max_entries
+        self._cache: OrderedDict[tuple[int, int, int], tuple[float, bytes, str]] = OrderedDict()
 
     def fetch(self, z: int, x: int, y: int) -> tuple[bytes, str]:
         if not 0 <= z <= MAX_ZOOM or not (0 <= x < 2**z and 0 <= y < 2**z):
@@ -45,6 +49,7 @@ class TileSource:
         key = (z, x, y)
         hit = self._cache.get(key)
         if hit and hit[0] > self._clock():
+            self._cache.move_to_end(key)
             return hit[1], hit[2]
         try:
             response = self._client.get(
@@ -58,4 +63,7 @@ class TileSource:
             raise TileUnavailableError
         content_type = response.headers.get("content-type", "image/png")
         self._cache[key] = (self._clock() + CACHE_SECONDS, response.content, content_type)
+        self._cache.move_to_end(key)
+        while len(self._cache) > self._max_entries:
+            self._cache.popitem(last=False)  # least recently used goes first
         return response.content, content_type

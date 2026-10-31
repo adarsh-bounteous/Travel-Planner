@@ -38,6 +38,7 @@ def setup(monkeypatch):
         monkeypatch.setattr("app.routers.place_tiles.get_settings", lambda: settings)
         source = TileSource(settings, httpx.Client(transport=httpx.MockTransport(handler)))
         app.dependency_overrides[deps.get_tile_source] = lambda: source
+        app.dependency_overrides[deps.get_current_user] = lambda: "user-1"
         return TestClient(app)
 
     yield build, calls, status
@@ -79,3 +80,30 @@ def test_upstream_failure_is_502(setup):
     status["code"] = 500
     client = build(_settings(False, frozenset()))
     assert client.get("/places/tiles/3/4/2.png").status_code == 502
+
+
+def test_requires_a_session(setup):
+    build, calls, _ = setup
+    client = build(_settings(False, frozenset()))
+    del app.dependency_overrides[deps.get_current_user]
+    assert client.get("/places/tiles/3/4/2.png").status_code == 401
+    assert calls == []
+
+
+def test_cache_is_bounded_and_expires(setup):
+    build, calls, _ = setup
+    now = {"t": 0.0}
+    source = TileSource(
+        _settings(False, frozenset()),
+        httpx.Client(transport=httpx.MockTransport(lambda r: calls.append(r) or httpx.Response(200, content=b"p"))),
+        clock=lambda: now["t"],
+        max_entries=2,
+    )
+    for x in range(3):
+        source.fetch(5, x, 0)
+    assert len(source._cache) == 2
+    source.fetch(5, 2, 0)  # newest is still cached
+    assert len(calls) == 3
+    now["t"] = 10_000.0
+    source.fetch(5, 2, 0)  # expired: fetched again
+    assert len(calls) == 4

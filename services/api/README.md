@@ -24,7 +24,7 @@ FastAPI service. Python 3.12.
 | `NOMINATIM_USER_AGENT` | `trip-planner-api` | Identifying `User-Agent` sent to Nominatim, as its usage policy requires. Set an app name and contact in production. |
 | `LOCAL_LIVE_PROVIDERS` | empty | Comma-separated sources that use a live provider in local mode. `places` shows real OpenStreetMap tiles on the places map. Unknown names stop startup. Outside local mode the places source is live, so tiles are on. |
 | `OSM_TILE_URL_TEMPLATE` | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | Tile server the API fetches map tiles from. The public server is for light use only (see the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/)); point this at a commercial or self-hosted provider for heavy use. |
-| `OSM_USER_AGENT` | `TripPlanner/1.0` | Identifying `User-Agent` sent with every tile request, as the tile policy requires. Set an app name and contact (email or URL) in production. |
+| `OSM_USER_AGENT` | `TripPlanner/1.0` | Identifying `User-Agent` sent with every tile request, as the tile policy requires. Set an app name and contact (email or URL) in production: the default has no contact, which the tile policy requires. |
 | `OSM_REFERER` | `WEB_ORIGIN` | `Referer` sent with every tile request. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |

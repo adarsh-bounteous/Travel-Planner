@@ -9,7 +9,13 @@ router = APIRouter()
 
 
 @router.get("/places/tiles/{z}/{x}/{y}.png")
-def get_tile(z: int, x: int, y: int, source: TileSource = Depends(deps.get_tile_source)) -> Response:
+def get_tile(
+    z: int,
+    x: int,
+    y: int,
+    _: str = Depends(deps.get_current_user),  # signed-in travellers only: the proxy spends our OSM identity
+    source: TileSource = Depends(deps.get_tile_source),
+) -> Response:
     if not get_settings().map_tiles_enabled:
         raise ApiError(404, "not_found")  # not opted in: no outside call
     try:

@@ -37,10 +37,14 @@ class Settings:
     osm_user_agent: str = ""
     osm_referer: str = ""  # falls back to web_origin
 
+    def is_live(self, provider: str) -> bool:
+        """Outside local mode every provider is live; in local mode only the opted-in ones are."""
+        return (not self.local_mode) or provider in self.live_providers
+
     @property
     def map_tiles_enabled(self) -> bool:
-        """Real map tiles only where the places source is live: always outside local mode, opt-in inside it."""
-        return (not self.local_mode) or "places" in self.live_providers
+        """Real map tiles only where the places source is live."""
+        return self.is_live("places")
 
 
 def session_secret() -> bytes:

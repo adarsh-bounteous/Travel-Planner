@@ -80,7 +80,7 @@ def _local_accounts() -> InMemoryAccountStore:
 
 
 def get_identity() -> IdentityProvider:
-    return _local_identity() if get_settings().local_mode else _cognito()
+    return _cognito() if get_settings().is_live("identity") else _local_identity()
 
 
 def get_local_identity() -> LocalIdentityProvider:

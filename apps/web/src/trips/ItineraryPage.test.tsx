@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 
+import { illustrationLoaders } from '../illustrations/registry'
 import { renderAt, stubApi } from '../test-api'
 import type { Itinerary, ItineraryItem } from './api'
 
@@ -87,6 +88,13 @@ describe('ItineraryPage', () => {
     expect(img.getAttribute('alt')).not.toBe('')
     expect(coverSection.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
     expect(coverSection.querySelector('.scrim')).not.toBeNull()
+  })
+
+  it('finds the art for the real "Country, Place" destination format (AC5)', async () => {
+    show({ ...planned, cover: { ...cover, destinations: ['Portugal, Lisbon'] } })
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    const img = await within(document.getElementById('cover') as HTMLElement).findByRole('img', { name: /Lisbon/ })
+    expect(img.getAttribute('src')).toBe(await illustrationLoaders['destination/lisbon']())
   })
 
   it('lists each day once and shows Not yet planned for an empty day (AC4, AC5)', async () => {

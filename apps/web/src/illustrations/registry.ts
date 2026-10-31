@@ -42,6 +42,13 @@ export function regionOfCountry(country: string): Region | undefined {
   return REGION_OF_COUNTRY[country]
 }
 
+/** Reads a "Country, Place" label (either order) into the ref the resolver expects. */
+export function illustrationRefOfLabel(label: string | undefined): IllustrationRef {
+  const parts = (label ?? '').split(',').map((p) => p.trim()).filter(Boolean)
+  const destination = parts.find((p) => `destination/${p.toLowerCase()}` in illustrationLoaders) ?? parts[parts.length - 1]
+  return { destination, country: parts.find((p) => regionOfCountry(p)) }
+}
+
 /** Destination art first, then its region's art, then the place type's art, then the generic art. */
 export function resolveIllustration({ destination, country, placeType }: IllustrationRef): string {
   const destinationKey = destination ? `destination/${destination.trim().toLowerCase()}` : undefined

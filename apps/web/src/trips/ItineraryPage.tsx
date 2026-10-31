@@ -16,6 +16,7 @@ import {
 } from '../auth/icons'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { HeroImage } from '../components/HeroImage'
+import { illustrationRefOfLabel } from '../illustrations/registry'
 import { fetchItinerary, NotFoundError } from './api'
 import type { Itinerary, ItineraryItem } from './api'
 
@@ -107,7 +108,7 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
     <div className="document">
       <section className="itin-cover" id="cover" aria-labelledby="cover-h">
         <HeroImage
-          illustration={{ destination: cover.destinations[0]?.split(',')[0] }}
+          illustration={illustrationRefOfLabel(cover.destinations[0])}
           alt={cover.destinations[0] ? `Illustration of ${cover.destinations[0]}` : 'Travel illustration'}
         >
           <h1 className="hero-title" id="cover-h">

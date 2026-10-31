@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PLACE_TYPE_LABELS, type PlaceType } from '../places/api'
-import { illustrationLoaders, regionOfCountry, resolveIllustration } from './registry'
+import { illustrationLoaders, illustrationRefOfLabel, regionOfCountry, resolveIllustration } from './registry'
 
 const PLACE_TYPES = Object.keys(PLACE_TYPE_LABELS) as PlaceType[]
 
@@ -37,6 +37,14 @@ describe('resolveIllustration', () => {
     expect(resolveIllustration({})).toBe('generic/generic')
     expect(resolveIllustration({ placeType: 'food' })).toBe('type/food')
     expect(illustrationLoaders).toHaveProperty(['generic/generic'])
+  })
+
+  it('reads a destination label in either order', () => {
+    for (const label of ['Portugal, Lisbon', 'Lisbon, Portugal']) {
+      expect(resolveIllustration(illustrationRefOfLabel(label))).toBe('destination/lisbon')
+    }
+    expect(resolveIllustration(illustrationRefOfLabel('Japan, Kyoto'))).toBe('region/asia')
+    expect(resolveIllustration(illustrationRefOfLabel(undefined))).toBe('generic/generic')
   })
 
   it('has a loader for every key the resolver can return', () => {

@@ -156,3 +156,41 @@ export const ChevronDownIcon = () => (
     <path d="m6 9 6 6 6-6" />
   </Icon>
 )
+
+export const SuitcaseIcon = () => (
+  <Icon>
+    <rect x="3" y="7" width="18" height="13" rx="2" />
+    <path d="M9 7V4h6v3M9 11v5M15 11v5" />
+  </Icon>
+)
+
+export const MapPinIcon = () => (
+  <Icon>
+    <path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" />
+    <circle cx="12" cy="9" r="2.5" />
+  </Icon>
+)
+
+export const ClockIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </Icon>
+)
+
+export const CloseIcon = XIcon
+
+/** The single icon set, keyed by the names the design uses. */
+export const ICONS = {
+  home: HomeIcon,
+  search: SearchIcon,
+  trips: SuitcaseIcon,
+  profile: UserIcon,
+  calendar: CalendarIcon,
+  'map-pin': MapPinIcon,
+  clock: ClockIcon,
+  plus: PlusIcon,
+  'arrow-right': ArrowRightIcon,
+  close: CloseIcon,
+  suitcase: SuitcaseIcon,
+} as const

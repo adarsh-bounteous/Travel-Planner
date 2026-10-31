@@ -1,3 +1,4 @@
+import time
 from datetime import UTC, date, datetime
 from functools import lru_cache
 
@@ -7,6 +8,9 @@ from app.auth.session import read_session
 from app.availability.store import DynamoProbeStore, InMemoryProbeStore, ProbeStore
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
+from app.locations.cache import DynamoLocationCache
+from app.locations.nominatim import NominatimResolver
+from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.places.local_search import LocalPlaceSearch
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
@@ -86,6 +90,22 @@ def _probe_store() -> ProbeStore:
 def _local_probe_store() -> InMemoryProbeStore:
     """Local mode's probe history stand-in: empty, so no table is needed to run locally."""
     return InMemoryProbeStore()
+
+
+@lru_cache
+def _resolver() -> DestinationResolver:
+    settings = get_settings()
+    return CachedResolver(
+        NominatimResolver(settings.nominatim_base_url, settings.nominatim_user_agent),
+        DynamoLocationCache(settings.trips_table_name),
+        RateLimiter(time.monotonic, time.sleep),
+        now=lambda: datetime.now(UTC),
+    )
+
+
+def get_destination_resolver() -> DestinationResolver:
+    """Local mode resolves nothing: it makes no outside request."""
+    return NoResolver() if get_settings().local_mode else _resolver()
 
 
 def get_probe_store() -> ProbeStore:

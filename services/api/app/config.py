@@ -29,6 +29,8 @@ class Settings:
     public_health_url: str = ""
     environment: str = "production"
     local_mode: bool = False
+    nominatim_base_url: str = "https://nominatim.openstreetmap.org"
+    nominatim_user_agent: str = "trip-planner-api"
     local_data_dir: Path = DEFAULT_LOCAL_DATA_DIR
 
 
@@ -59,5 +61,7 @@ def get_settings() -> Settings:
         availability_table_name=env.get("AVAILABILITY_TABLE_NAME", "trip-planner-availability"),
         oncall_alert_topic_arn=env.get("ONCALL_ALERT_TOPIC_ARN", ""),
         public_health_url=env.get("PUBLIC_HEALTH_URL", ""),
+        nominatim_base_url=env.get("NOMINATIM_BASE_URL") or "https://nominatim.openstreetmap.org",
+        nominatim_user_agent=env.get("NOMINATIM_USER_AGENT") or "trip-planner-api",
         local_data_dir=Path(env.get("LOCAL_DATA_DIR") or DEFAULT_LOCAL_DATA_DIR),
     )

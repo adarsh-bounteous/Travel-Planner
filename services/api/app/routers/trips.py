@@ -13,6 +13,7 @@ from app.routers.auth import get_identity, get_now
 from app.routers.deps import (
     ApiError,
     get_current_user,
+    get_destination_resolver,
     get_invite_sender,
     get_profiles,
     get_rates,
@@ -20,6 +21,7 @@ from app.routers.deps import (
     get_trips,
     get_visa_rules,
 )
+from app.locations.resolver import DestinationResolver
 from app.trips.destination import (
     ChosenDestination,
     DestinationStatus,
@@ -174,6 +176,17 @@ def _converted(trips: TripStore, owner_id: str, trip: Trip) -> Trip:
     return done
 
 
+def _located(trip: Trip, resolver: DestinationResolver) -> Trip:
+    """The trip with `location` set from its destination; None when it cannot be resolved. Never raises."""
+    location = None
+    if trip.country or trip.place or trip.destination:
+        try:
+            location = resolver.resolve(trip.country, trip.place, trip.destination)
+        except Exception:  # a resolver failure must never fail or block a save
+            logger.warning("Destination resolution failed for trip %s", trip.id, exc_info=True)
+    return trip.model_copy(update={"location": location})
+
+
 def _rematched(existing: Trip, destination: str | None) -> dict:
     """A flagged trip whose destination now matches gets its country and place and loses the flag."""
     match = best_match(destination) if existing.destination_unmatched else None
@@ -293,9 +306,11 @@ def create_trip(
     trips: TripStore = Depends(get_trips),
     rates: RateSource = Depends(get_rates),
     now: datetime = Depends(get_now),
+    resolver: DestinationResolver = Depends(get_destination_resolver),
 ) -> TripView:
     trip = Trip(id=uuid.uuid4().hex, updated_at=now, destination_converted=True, **body.model_dump())
     trip.days = _days(trip, trip.start_date, trip.end_date)
+    trip = _located(trip, resolver)
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 
@@ -309,8 +324,14 @@ def get_trip(
     profiles: ProfileStore = Depends(get_profiles),
     visa_rules: VisaRuleSource = Depends(get_visa_rules),
     identity: IdentityProvider = Depends(get_identity),
+    resolver: DestinationResolver = Depends(get_destination_resolver),
 ) -> TripView:
     trip, owner, is_owner = _load(trips, identity, user, trip_id)  # same 404 for another traveller's trip and one that never existed
+    if trip.location is None:  # first open of a trip saved before locations existed, or one that could not be resolved
+        located = _located(trip, resolver)
+        if located.location is not None:
+            trips.save_trip(owner, located)  # updated_at stays as it was
+            trip = located
     if not trip.days and trip.start_date and trip.end_date:
         trip = trip.model_copy(update={"days": _days(trip, trip.start_date, trip.end_date)})  # saved before days existed; not written
     view = _view(trip, rates, user, owner)
@@ -329,6 +350,7 @@ def update_trip(
     rates: RateSource = Depends(get_rates),
     identity: IdentityProvider = Depends(get_identity),
     now: datetime = Depends(get_now),
+    resolver: DestinationResolver = Depends(get_destination_resolver),
 ) -> TripView:
     existing = _owned_trip(trips, identity, owner, trip_id)
     # The body cannot carry days, options or currency: keep the stored ones.
@@ -358,6 +380,11 @@ def update_trip(
             **_rematched(existing, body.destination),
         }
     )
+    if (trip.destination, trip.country, trip.place) != (existing.destination, existing.country, existing.place):
+        # A country and place this edit did not rematch describe the old destination: look up the typed one.
+        rematched = (trip.country, trip.place) != (existing.country, existing.place)
+        query = trip if rematched else trip.model_copy(update={"country": None, "place": None})
+        trip = trip.model_copy(update={"location": _located(query, resolver).location})
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 

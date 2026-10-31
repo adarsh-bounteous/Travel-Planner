@@ -20,3 +20,7 @@ def test_trips_survive_a_restart(store):
     rules_trips.rule_trips_survive_a_restart(store)
 
 
+
+
+def test_located_trip_round_trips(store):
+    rules_trips.rule_located_trip_round_trips(store)

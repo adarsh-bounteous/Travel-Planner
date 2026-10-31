@@ -9,6 +9,7 @@ dependencies = [
     "pytest>=8.3,<9.0",
     "httpx>=0.27,<1.0",
     "boto3>=1.35,<2",
+    "timezonefinder>=6.5",
 ]
 
 [build-system]

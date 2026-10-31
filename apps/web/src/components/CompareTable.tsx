@@ -11,16 +11,28 @@ type CompareTableProps<T> = {
   /** Shown under the title in both modes. */
   badges?: (row: T) => ReactNode
   columns: CompareColumn<T>[]
+  /** Heading of the first column; defaults to "Option". */
+  titleHeader?: string
+  rowClassName?: (row: T) => string | undefined
 }
 
 /** Options side by side: a table on desktop, one stacked option card per row on phones. */
-export function CompareTable<T>({ caption, rows, rowKey, title, badges, columns }: CompareTableProps<T>) {
+export function CompareTable<T>({
+  caption,
+  rows,
+  rowKey,
+  title,
+  badges,
+  columns,
+  titleHeader = 'Option',
+  rowClassName,
+}: CompareTableProps<T>) {
   return (
     <table className="compare-table">
       <caption className="sr-only">{caption}</caption>
       <thead>
         <tr>
-          <th scope="col">Option</th>
+          <th scope="col">{titleHeader}</th>
           {columns.map((c) => (
             <th scope="col" key={c.key}>
               {c.header}
@@ -30,8 +42,8 @@ export function CompareTable<T>({ caption, rows, rowKey, title, badges, columns 
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={rowKey(row)}>
-            <td data-label="Option" className="compare-table-title">
+          <tr key={rowKey(row)} className={rowClassName?.(row)}>
+            <td data-label={titleHeader}className="compare-table-title">
               <strong>{title(row)}</strong>
               {badges && <div className="badges">{badges(row)}</div>}
             </td>

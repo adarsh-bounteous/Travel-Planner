@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, SearchIcon } from '../auth/icons'
 import { fetchStayOptions, fetchTrip, stayQuery } from './api'
 import type { Stay, StayCriteria, StayOptions } from './api'
@@ -152,6 +153,7 @@ export function StayOptionsPage() {
           )}
           {options && options.properties.length === 0 && (
             <div className="empty-state">
+              <EmptyStateArt />
               <SearchIcon />
               <h2>No stays match</h2>
               <p>No stays match your property type, rooms and filters.</p>

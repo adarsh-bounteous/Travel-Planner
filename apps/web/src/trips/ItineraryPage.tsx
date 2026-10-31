@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import type { MouseEvent, ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { BrandLogo } from '../components/BrandLogo'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { ImageHero } from '../components/ImageHero'
+import { illustrationRefOfLabel } from '../illustrations/registry'
 import { usePageName } from '../pageTitle'
 import {
   AlertIcon,
@@ -13,20 +16,29 @@ import {
   CheckIcon,
   EyeIcon,
   HomeIcon,
-  ImageIcon,
   InfoIcon,
   MinusIcon,
   SearchIcon,
   StarIcon,
 } from '../auth/icons'
 import { fetchItinerary, NotFoundError } from './api'
-import type { EssentialFact, Itinerary, ItineraryItem } from './api'
+import type { BookingRow, EssentialFact, Itinerary, ItineraryItem, Money } from './api'
+import { formatMoney, formatRate } from './money'
+import { CompareTable } from '../components/CompareTable'
+
+const MONEY_SECTIONS = [
+  { id: 'bookings', label: 'Bookings and confirmations' },
+  { id: 'included', label: 'Included' },
+  { id: 'not-included', label: 'Not included' },
+  { id: 'cost-summary', label: 'Cost summary' },
+]
 
 const SECTIONS = [
   { id: 'cover', label: 'Cover' },
   { id: 'at-a-glance', label: 'At a glance' },
   { id: 'day-by-day', label: 'Day by day' },
   { id: 'still-to-schedule', label: 'Still to schedule' },
+  ...MONEY_SECTIONS,
   { id: 'essentials', label: 'Travel essentials' },
   { id: 'before-you-go', label: 'Before you go' },
   { id: 'important-notes', label: 'Important notes' },
@@ -95,6 +107,172 @@ function NotYetPlanned() {
   )
 }
 
+const bookingDates = (b: BookingRow) => {
+  if (!b.start_date || !b.end_date) return 'Unscheduled'
+  return b.start_date === b.end_date ? formatDate(b.start_date) : formatRange(b.start_date, b.end_date)
+}
+
+function BookingsTable({ bookings }: { bookings: BookingRow[] }) {
+  return (
+    <CompareTable
+      caption="Bookings and confirmations"
+      rows={bookings}
+      rowKey={(b) => `${b.kind}-${b.id}`}
+      titleHeader="Item"
+      title={(b) => b.name}
+      badges={(b) =>
+        b.outside_trip && (
+          <span className="badge badge-warning">
+            <AlertIcon />
+            Outside trip dates
+          </span>
+        )
+      }
+      rowClassName={(b) => (b.outside_trip ? 'is-flagged' : undefined)}
+      columns={[
+        { key: 'provider', header: 'Provider', render: (b) => b.provider ?? '—' },
+        { key: 'dates', header: 'Dates', render: bookingDates },
+        {
+          key: 'price',
+          header: 'Price',
+          render: (b) =>
+            b.price !== null && b.currency ? formatMoney(b.price, b.currency) : <span className="unpriced">No price</span>,
+        },
+        {
+          key: 'status',
+          header: 'Status',
+          render: () => <span className="badge badge-success">Confirmed</span>,
+        },
+        {
+          key: 'link',
+          header: 'Provider link',
+          render: (b) =>
+            b.link_url ? (
+              <a
+                href={b.link_url}
+                target="_blank"
+                rel="noopener"
+                aria-label={`Open ${b.provider ?? 'provider'} for ${b.name}`}
+              >
+                Open provider
+              </a>
+            ) : (
+              'No link'
+            ),
+        },
+      ]}
+    />
+  )
+}
+
+function MoneySections({ money, tripDates }: { money: Money; tripDates: Itinerary['cover'] }) {
+  const { bookings, included, not_included: notIncluded, standard_exclusions: exclusions, cost } = money
+  const outside = bookings.filter((b) => b.outside_trip)
+  return (
+    <>
+      <section className="section" id="bookings" aria-labelledby="bookings-h">
+        <h2 id="bookings-h">Bookings and confirmations</h2>
+        {bookings.length === 0 ? (
+          <div className="empty-state">
+            <p>Nothing booked yet</p>
+            <Link className="btn btn-primary" to="/explore">
+              Explore options
+            </Link>
+          </div>
+        ) : (
+          <BookingsTable bookings={bookings} />
+        )}
+        {outside.length > 0 && (
+          <div className="alert alert-warning" role="alert">
+            <AlertIcon />
+            <div>
+              <p className="alert-title">A booked stay falls outside the trip dates</p>
+              <p>{outside.map((b) => `${b.name} is booked ${bookingDates(b)}.`).join(' ')}</p>
+              {tripDates.start_date && tripDates.end_date && (
+                <p className="text-sm">
+                  Trip dates: {formatRange(tripDates.start_date, tripDates.end_date)}. Change the stay with its
+                  provider or adjust the trip dates.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <hr className="divider" />
+      <section className="section" id="included" aria-labelledby="included-h">
+        <h2 id="included-h">Included</h2>
+        <ul className="line-list">
+          {included.map((r) => (
+            <li key={`${r.kind}-${r.id}`}>
+              <span className="name">{r.name}</span>
+              <span className="amt">{formatMoney(r.price ?? 0, r.currency ?? cost.currency)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <hr className="divider" />
+      <section className="section" id="not-included" aria-labelledby="not-included-h">
+        <h2 id="not-included-h">Not included</h2>
+        <ul className="line-list">
+          {notIncluded.map((n) => (
+            <li key={`${n.reason}-${n.name}`}>
+              <span className="name">{n.name}</span>
+              {n.reason === 'unpriced' && <span className="badge badge-neutral">Unpriced</span>}
+              {n.reason === 'unchosen' && n.add_path && (
+                <Link to={n.add_path} aria-label={`Add to plan: ${n.name}`}>
+                  Add to plan
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+        <div>
+          <h3 className="text-sm text-muted">Usually not covered by a trip plan</h3>
+          <ul className="excl">
+            {exclusions.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <hr className="divider" />
+      <section className="section" id="cost-summary" aria-labelledby="cost-h">
+        <h2 id="cost-h">Cost summary</h2>
+        <div className="card total">
+          <span className="text-muted">Total in trip currency</span>
+          <span className="total-value">{formatMoney(cost.total, cost.currency)}</span>
+        </div>
+        <div>
+          <h3 className="text-sm text-muted">Total per currency</h3>
+          <ul className="line-list">
+            {cost.by_currency.map((t) => (
+              <li key={t.currency}>
+                <span>{t.currency}</span>
+                <span className="amt">{formatMoney(t.total, t.currency)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {cost.conversions.map((c) => (
+          <p className="note" key={c.currency}>
+            <InfoIcon />
+            <span>
+              {`${c.currency} converted to ${cost.currency} at 1 ${c.currency} = ${formatRate(c.rate)} ${cost.currency}, rate from ${formatDate(c.rate_date)}.`}
+            </span>
+          </p>
+        ))}
+        <p className="note text-muted">
+          <InfoIcon />
+          <span>{cost.estimates_note}</span>
+        </p>
+      </section>
+    </>
+  )
+}
+
 function ItemRows({ items }: { items: ItineraryItem[] }) {
   return (
     <ul className="it-list">
@@ -146,25 +324,25 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       <div className="doc-brand">
         <BrandLogo />
       </div>
-      <section className="cover" id="cover" aria-labelledby="cover-h">
-        <div className="cover-art" aria-hidden="true">
-          <ImageIcon />
-        </div>
-        <div className="cover-body">
-          <h1 id="cover-h">{cover.name}</h1>
-          {cover.start_date && cover.end_date && (
-            <p className="cover-meta text-lg">
-              <CalendarIcon />
-              <span>{formatRange(cover.start_date, cover.end_date)}</span>
-            </p>
-          )}
-          {cover.destinations.length > 0 && (
+      <section className="itin-cover" id="cover" aria-labelledby="cover-h">
+        <ImageHero
+          variant="cover"
+          illustration={illustrationRefOfLabel(cover.destinations[0])}
+          title={
+            <h1 id="cover-h" className="hero-title">
+              {cover.name}
+            </h1>
+          }
+          dates={cover.start_date && cover.end_date ? formatRange(cover.start_date, cover.end_date) : undefined}
+        />
+        {cover.destinations.length > 0 && (
+          <div className="cover-body">
             <p className="cover-meta">
               <HomeIcon />
               <span>{cover.destinations.join(', ')}</span>
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       <section className="card glance" id="at-a-glance" aria-labelledby="glance-h">
@@ -205,6 +383,8 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
       </section>
+
+      {itinerary.money && <MoneySections money={itinerary.money} tripDates={cover} />}
 
       <section id="essentials" aria-labelledby="essentials-h">
         <h2 id="essentials-h">Travel essentials</h2>
@@ -302,6 +482,7 @@ export function ItineraryPage() {
   if (error === 'not-found')
     return (
       <div className="empty-state" role="alert">
+        <EmptyStateArt />
         <SearchIcon />
         <h1 className="text-lg">Itinerary not found</h1>
         <p>
@@ -333,7 +514,7 @@ export function ItineraryPage() {
       <div className="itin-body">
         <nav className="section-list" aria-label="On this page">
           <span className="section-list-title">On this page</span>
-          {SECTIONS.map((s) => (
+          {SECTIONS.filter((s) => itinerary.money || !MONEY_SECTIONS.some((m) => m.id === s.id)).map((s) => (
             <a
               key={s.id}
               className="section-link"

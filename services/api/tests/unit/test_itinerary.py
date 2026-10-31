@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from app.trips.itinerary import Itinerary, ItineraryItem
 from app.trips.itinerary import build_itinerary as _build_itinerary
+from app.trips.rates import SEED_RATES, InMemoryRates
 from app.trips.visa import SEED_VISA_RULES, InMemoryVisaRules
 from app.trips.store import (
     Activity,
@@ -20,7 +21,7 @@ START, END = date(2026, 11, 14), date(2026, 11, 16)
 
 
 def build_itinerary(trip: Trip) -> Itinerary:
-    return _build_itinerary(trip, None, InMemoryVisaRules(SEED_VISA_RULES, date(2026, 10, 20)), date(2026, 10, 31))
+    return _build_itinerary(trip, None, InMemoryVisaRules(SEED_VISA_RULES, date(2026, 10, 20)), date(2026, 10, 31), InMemoryRates(SEED_RATES))
 
 
 def _trip(**changes) -> Trip:
@@ -163,9 +164,9 @@ def test_links_are_http_only():
     assert local.link_url is None and local.link_text is None
 
 
-def test_the_model_carries_no_money_or_sharing_field():
+def test_the_model_carries_a_money_block_but_no_sharing_field():
     assert set(Itinerary.model_fields) == {
-        "cover", "glance", "days", "still_to_schedule", "essentials", "checklist", "notes",
+        "cover", "glance", "days", "still_to_schedule", "money", "essentials", "checklist", "notes",
     }
     assert set(ItineraryItem.model_fields) == {
         "kind",

@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { CalendarIcon } from '../auth/icons'
 import type { RestaurantPick, Trip } from './api'
 import { dayMealLabel, estimateLabel } from './restaurantPicks'
@@ -14,6 +15,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
       <h2 id="overview-restaurants">Restaurants</h2>
       {picks.length === 0 ? (
         <div className="empty-state">
+          <EmptyStateArt />
           <h3>No restaurants picked yet</h3>
           <p className="text-muted">Found somewhere you'd love to eat? Add it and we'll slot it into your days.</p>
           {canEdit && (

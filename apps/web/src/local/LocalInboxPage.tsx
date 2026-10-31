@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, ArrowLeftIcon, BellIcon } from '../auth/icons'
 
 type Message = {
@@ -100,6 +101,7 @@ export function LocalInboxPage() {
     return (
       <div className="inbox-col stack">
         <div className="empty-state">
+          <EmptyStateArt />
           <AlertIcon />
           <h2>This page is not available</h2>
           <p>The local inbox only exists when local mode is on. Head back to your trips.</p>
@@ -122,6 +124,7 @@ export function LocalInboxPage() {
       <h1>Emails</h1>
       {load.messages.length === 0 ? (
         <div className="empty-state">
+          <EmptyStateArt />
           <BellIcon />
           <h2>No emails have been generated yet</h2>
           <p>Sign in or invite someone to a trip and the email will show up here.</p>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router'
+import { EmptyStateArt } from './components/EmptyStateArt'
 import { BrandLogo } from './components/BrandLogo'
 
 export function NotFoundPage() {
@@ -12,6 +13,7 @@ export function NotFoundPage() {
         <BrandLogo size="lg" />
       </Link>
       <div className="empty-state">
+        <EmptyStateArt />
         <span className="nf-icon" aria-hidden="true">
           <svg className="icon" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8" />

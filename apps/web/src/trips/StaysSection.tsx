@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, HomeIcon, PlusIcon, SearchIcon } from '../auth/icons'
 import type { Stay } from './api'
 import { formatRange, nights, outsideReason, sortStays, warningFor } from './stays'
@@ -29,6 +30,7 @@ export function StaysSection({ tripId, stays, tripStart, tripEnd, canEdit, onAdd
       </div>
       {stays.length === 0 ? (
         <div className="empty-state">
+          <EmptyStateArt />
           <HomeIcon />
           <p>No stays yet. Add a place and dates for this trip.</p>
         </div>

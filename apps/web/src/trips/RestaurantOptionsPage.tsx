@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { AlertIcon, EditIcon, ImageIcon, PlusIcon, SearchIcon, UserIcon } from '../auth/icons'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { AlertIcon, EditIcon, PlusIcon, SearchIcon, UserIcon } from '../auth/icons'
 import { fetchRestaurantOptions, fetchTrip } from './api'
 import type { RestaurantOption, RestaurantOptions, Trip } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -15,15 +16,12 @@ type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; optio
 function RestaurantCard({ option, home }: { option: RestaurantOption; home: boolean }) {
   return (
     <OptionCard
+      illustration={{ placeType: 'food' }}
       title={option.name}
       badges={<span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>}
       meta={`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. ${option.typical_price === null ? 'Typical price not available.' : `Typically ${formatMoney(option.typical_price, option.currency)} per person.`}`}
       actions={<RestaurantLink name={option.name} url={option.url} />}
-    >
-      <div className="restaurant-photo" role="img" aria-label={`Photo placeholder for ${option.name}`}>
-        <ImageIcon />
-      </div>
-    </OptionCard>
+    />
   )
 }
 
@@ -147,6 +145,7 @@ export function RestaurantOptionsPage() {
 
       {empty && (
         <div className="empty-state" role="status">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No restaurants match your filters.</h2>
           <p>Try relaxing a filter, such as budget or a trip need, to see more options.</p>

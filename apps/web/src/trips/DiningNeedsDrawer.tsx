@@ -44,7 +44,10 @@ export function DiningNeedsDrawer({ tripId, needs, profileFilters, onClose, onAp
   return (
     <Overlay kind="drawer" labelledBy="needs-title" describedBy="needs-note" onClose={onClose}>
       <div className="stack">
-        <h2 id="needs-title">Dining needs for this trip</h2>
+        <h2 id="needs-title">
+          <UtensilsIcon />
+          Dining needs for this trip
+        </h2>
         <h3>
           <UserIcon />
           From your profile

@@ -31,7 +31,10 @@ export function RemoveStayModal({ tripId, stay, onClose, onRemoved }: RemoveStay
   return (
     <Overlay kind="modal" role="alertdialog" labelledBy="remove-stay-title" onClose={onClose}>
       <div className="stack stack-lg">
-        <h2 id="remove-stay-title">Remove this stay?</h2>
+        <h2 id="remove-stay-title">
+          <TrashIcon />
+          Remove this stay?
+        </h2>
         <p>
           <strong>{`${stay.place}, ${formatRange(stay.start_date, stay.end_date)}`}</strong> will be removed from
           this trip.

@@ -377,8 +377,6 @@ html.vt-active::view-transition-new(route) { animation: route-in var(--route-dur
 .stay-place { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
 .stay-flags { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-1); }
 .stay-flagged { border-color: var(--color-warning); border-left-width: var(--space-1); }
-.modal-title { display: flex; align-items: flex-start; gap: var(--space-2); }
-.modal-title .icon { flex: none; margin-top: var(--space-1); color: var(--color-warning); }
 .form-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
 .form-row .field { flex: 1 1 14rem; }
 .form-row .input[readonly] { overflow-wrap: anywhere; }

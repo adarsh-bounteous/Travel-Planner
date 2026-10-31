@@ -119,7 +119,10 @@ export function StaysReviewDrawer({ trip, onSaved, onClose }: StaysReviewDrawerP
   return (
     <Overlay kind="drawer" labelledBy="review-title" onClose={onClose}>
       <div className="stack">
-        <h2 id="review-title">Stays after date change</h2>
+        <h2 id="review-title">
+          <CalendarIcon />
+          Stays after date change
+        </h2>
         <p>
           Your trip now runs{' '}
           <span className="text-bold">

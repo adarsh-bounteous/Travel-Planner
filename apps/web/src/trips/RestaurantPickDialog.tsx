@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { AlertIcon, ArrowRightIcon, PlusIcon, XIcon } from '../auth/icons'
+import { AlertIcon, ArrowRightIcon, PlusIcon, UtensilsIcon, XIcon } from '../auth/icons'
 import { moveRestaurant, pickRestaurant } from './api'
 import type { Day, Meal, RestaurantPick, Trip } from './api'
 import { Overlay } from './Overlay'
@@ -76,6 +76,7 @@ export function RestaurantPickDialog(props: Props) {
     <Overlay kind="drawer" labelledBy="pick-title" onClose={onClose}>
       <form className="stack" noValidate onSubmit={submit}>
         <h2 className="text-lg" id="pick-title">
+          <UtensilsIcon />
           {adding ? 'Add to trip' : 'Move restaurant'}
         </h2>
         <p className="text-bold">{subject.name}</p>

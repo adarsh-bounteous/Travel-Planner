@@ -1,4 +1,4 @@
-import { ArrowRightIcon, InfoIcon, XIcon } from '../auth/icons'
+import { ArrowRightIcon, InfoIcon, SuitcaseIcon, XIcon } from '../auth/icons'
 import type { ChosenOption, ChosenSim, InsurancePick, RestaurantPick } from './api'
 import { formatDay } from './ItineraryTab'
 import { Overlay } from './Overlay'
@@ -39,7 +39,10 @@ export function BookTripDrawer({
     <Overlay kind="drawer" labelledBy="book-title" onClose={onClose}>
       <div className="stack stack-lg">
         <div className="stack stack-sm">
-          <h2 id="book-title">Book trip</h2>
+          <h2 id="book-title">
+            <SuitcaseIcon />
+            Book trip
+          </h2>
           <p className="text-muted">
             {count} chosen {count === 1 ? 'option' : 'options'}. Each link opens the provider's
             site in a new tab.

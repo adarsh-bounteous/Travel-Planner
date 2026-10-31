@@ -35,7 +35,10 @@ export function RemoveTravellerModal({
   return (
     <Overlay kind="modal" labelledBy="remove-traveller-title" onClose={onClose}>
       <div className="stack stack-lg">
-        <h2 id="remove-traveller-title">Remove {traveller.name} from this trip?</h2>
+        <h2 id="remove-traveller-title">
+          <TrashIcon />
+          Remove {traveller.name} from this trip?
+        </h2>
         <p className="text-muted">Their details will be removed from this trip.</p>
         {failed && (
           <p className="field-error" role="alert">

@@ -1,4 +1,4 @@
-import { CheckIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 
 type AccessRemovedModalProps = {
@@ -22,7 +22,10 @@ export function AccessRemovedModal({
       onClose={onOk}
     >
       <div className="stack stack-lg">
-        <h2 id="access-removed-title">Access removed</h2>
+        <h2 id="access-removed-title">
+          <AlertIcon />
+          Access removed
+        </h2>
         <p id="access-removed-text">{text}</p>
         <div className="overlay-actions">
           <button className="btn btn-primary" type="button" onClick={onOk}>

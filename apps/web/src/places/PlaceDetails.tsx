@@ -1,4 +1,4 @@
-import { XIcon } from '../auth/icons'
+import { MapPinIcon, XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 import type { Place } from './api'
 
@@ -8,7 +8,10 @@ export function PlaceDetails({ place, onClose }: { place: Place; onClose: () => 
   return (
     <Overlay kind="drawer" labelledBy="place-details-title" onClose={onClose}>
       <div className="stack">
-        <h2 id="place-details-title">{place.name}</h2>
+        <h2 id="place-details-title">
+          <MapPinIcon />
+          {place.name}
+        </h2>
         <dl className="stack">
           {place.address && (
             <div>

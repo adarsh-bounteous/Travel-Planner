@@ -1,4 +1,4 @@
-import { CheckIcon } from '../auth/icons'
+import { CheckIcon, ShieldIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 
 /** Shown after a change to destination, dates or travellers removed the insurance pick. */
@@ -12,7 +12,10 @@ export function InsurancePickClearedModal({ onOk }: { onOk: () => void }) {
       onClose={onOk}
     >
       <div className="stack stack-lg">
-        <h2 id="insurance-cleared-title">Insurance pick cleared</h2>
+        <h2 id="insurance-cleared-title">
+          <ShieldIcon />
+          Insurance pick cleared
+        </h2>
         <p id="insurance-cleared-text">
           Trip details changed. Your insurance pick was cleared. Choose an insurance plan again.
         </p>

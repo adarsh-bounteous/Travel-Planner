@@ -30,7 +30,10 @@ export function RemoveActivityModal({ tripId, activity, onClose, onRemoved }: Re
   return (
     <Overlay kind="modal" labelledBy="remove-activity-title" onClose={onClose}>
       <div className="stack stack-lg">
-        <h2 id="remove-activity-title">Remove this activity?</h2>
+        <h2 id="remove-activity-title">
+          <TrashIcon />
+          Remove this activity?
+        </h2>
         <p>
           <strong>{activity.name}</strong> will be removed from this day.
         </p>

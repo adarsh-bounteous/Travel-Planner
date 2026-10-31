@@ -74,10 +74,10 @@ describe('icon rollout', () => {
       offenders((f) =>
         elements(f.text, ['h2', 'h3'], /./).filter((e) => {
           if (HAS_ICON.test(e.block)) return false
-          // A dialog title: the dialog carries its own icon and the Overlay owns the heading.
-          if (/id="[^"]*-title"/.test(e.block.split('>')[0]) && f.text.includes('<Overlay')) return false
-          // A heading directly under an empty-state icon would show two icons.
-          return !/empty-state[^]{0,250}Icon/.test(f.text.slice(Math.max(0, e.index - 250), e.index + 1))
+          // A heading inside an empty state that already shows its icon would show two icons.
+          return !elements(f.text, ['div', 'section'], /empty-state/).some(
+            (s) => s.index < e.index && e.index < s.index + s.block.length && /Icon\b/.test(s.block),
+          )
         }),
       ),
     ).toEqual([])

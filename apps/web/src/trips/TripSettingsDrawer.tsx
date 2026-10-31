@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent, RefObject } from 'react'
-import { AlertIcon, CheckIcon, TrashIcon, XIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, SuitcaseIcon, TrashIcon, XIcon } from '../auth/icons'
 import { updateTrip } from './api'
 import type { Trip } from './api'
 import { DestinationPicker } from './DestinationPicker'
@@ -108,7 +108,10 @@ export function TripSettingsDrawer({
   return (
     <Overlay kind="drawer" labelledBy="settings-title" covered={covered} onClose={onClose}>
       <form className="stack stack-lg" noValidate onSubmit={submit}>
-        <h2 id="settings-title">Trip settings</h2>
+        <h2 id="settings-title">
+          <SuitcaseIcon />
+          Trip settings
+        </h2>
         <div className={`field${invalid('name')}`}>
           <label className="field-label" htmlFor="trip-name-input">
             Trip name

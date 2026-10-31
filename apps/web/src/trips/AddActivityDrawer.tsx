@@ -130,7 +130,10 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
     <Overlay kind="drawer" labelledBy="add-activity-title" onClose={onClose}>
       <div className="stack">
         <div className="title-row">
-          <h2 id="add-activity-title">{`Add activity to ${day.name}`}</h2>
+          <h2 id="add-activity-title">
+            <PlusIcon />
+            {`Add activity to ${day.name}`}
+          </h2>
           <button className="btn btn-ghost" type="button" aria-label="Close add activity" onClick={onClose}>
             <XIcon />
           </button>

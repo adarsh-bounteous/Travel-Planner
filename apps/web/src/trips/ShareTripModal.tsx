@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckIcon, ListIcon, PlusIcon, XIcon } from '../auth/icons'
+import { CheckIcon, ListIcon, PlusIcon, UsersIcon, XIcon } from '../auth/icons'
 import { createShareLink, revokeShareLink, setShareItinerary } from './api'
 import type { Trip } from './api'
 import { Overlay } from './Overlay'
@@ -44,7 +44,10 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
     <Overlay kind="modal" labelledBy="share-title" onClose={onClose}>
       <div className="stack stack-lg">
         <div className="title-row">
-          <h2 id="share-title">Share trip</h2>
+          <h2 id="share-title">
+            <UsersIcon />
+            Share trip
+          </h2>
           <button className="btn btn-ghost" type="button" aria-label="Close" onClick={onClose}>
             <XIcon />
           </button>

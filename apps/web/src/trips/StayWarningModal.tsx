@@ -18,12 +18,10 @@ export function StayWarningModal({ stay, warning, pending, onChange, onSaveAnywa
   return (
     <Overlay kind="modal" role="alertdialog" labelledBy="stay-warning-title" onClose={onChange}>
       <div className="stack stack-lg">
-        <div className="modal-title">
+        <h2 id="stay-warning-title">
           <AlertIcon />
-          <h2 id="stay-warning-title">
-            {overlap ? 'These dates overlap another stay' : 'There is a gap between stays'}
-          </h2>
-        </div>
+          {overlap ? 'These dates overlap another stay' : 'There is a gap between stays'}
+        </h2>
         <p>
           {warning.kind === 'overlap'
             ? `${formatRange(warning.other.start_date, warning.other.end_date)} in ${warning.other.place} overlaps ${formatRange(stay.start_date, stay.end_date)} in ${stay.place}.`

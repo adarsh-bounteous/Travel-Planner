@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckIcon, XIcon } from '../auth/icons'
+import { BedIcon, CheckIcon, XIcon } from '../auth/icons'
 import { addStay, updateStay } from './api'
 import type { Stay, StayInput, Trip } from './api'
 import { FieldError } from './FieldError'
@@ -69,7 +69,10 @@ export function StayDrawer({ trip, stay, onClose, onSaved }: StayDrawerProps) {
             save()
           }}
         >
-          <h2 id="stay-title">{stay ? 'Edit stay' : 'Add stay'}</h2>
+          <h2 id="stay-title">
+            <BedIcon />
+            {stay ? 'Edit stay' : 'Add stay'}
+          </h2>
           <div className={`field${invalid && errors.place ? ' is-invalid' : ''}`}>
             <label className="field-label" htmlFor="stay-place">
               Place

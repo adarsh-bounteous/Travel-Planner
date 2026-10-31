@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckIcon, XIcon } from '../auth/icons'
+import { CheckIcon, UserIcon, XIcon } from '../auth/icons'
 import type { FormEvent } from 'react'
 import { saveTravellerDetails } from './api'
 import type { CompanionDetailsInput, Trip, Traveller } from './api'
@@ -51,7 +51,10 @@ export function CompanionDetailsDrawer({
     <Overlay kind="drawer" labelledBy="companion-title" onClose={onClose}>
       <form className="stack" onSubmit={submit} noValidate>
         <div className="stack stack-sm">
-          <h2 id="companion-title">{traveller.name}</h2>
+          <h2 id="companion-title">
+            <UserIcon />
+            {traveller.name}
+          </h2>
           <p className="text-muted text-sm">
             We use these to check visa and medical needs for this trip. They aren't saved to any
             profile.

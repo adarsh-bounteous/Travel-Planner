@@ -1,5 +1,5 @@
 import type { RestaurantPick } from './api'
-import { estimateLabel, pickEstimate, picksForDay, unscheduled } from './restaurantPicks'
+import { dayMealLabel, defaultDay, estimateLabel, pickEstimate, picksForDay, unscheduled } from './restaurantPicks'
 
 const pick = (overrides: Partial<RestaurantPick> = {}): RestaurantPick => ({
   id: 'p1',
@@ -46,5 +46,25 @@ describe('grouping', () => {
   })
   it('lists the picks without a day (AC2)', () => {
     expect(unscheduled(picks).map((p) => p.id)).toEqual(['d'])
+  })
+})
+
+describe('dayMealLabel', () => {
+  const days = [
+    { date: '2026-05-01', name: 'Day 1' },
+    { date: '2026-05-02', name: 'Day 2' },
+  ]
+  it('names the day and meal of a scheduled pick', () => {
+    expect(dayMealLabel(pick({ date: '2026-05-02', meal: 'dinner' }), days)).toBe('Day 2, Dinner')
+  })
+  it('says Unscheduled for a pick with no day', () => {
+    expect(dayMealLabel(pick(), days)).toBe('Unscheduled')
+  })
+})
+
+describe('defaultDay', () => {
+  it('is the first day, or empty when the trip has no days', () => {
+    expect(defaultDay([{ date: '2026-05-01', name: 'Day 1' }])).toBe('2026-05-01')
+    expect(defaultDay([])).toBe('')
   })
 })

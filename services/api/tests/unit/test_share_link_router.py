@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.trips.store import ChosenOption, Editor, Reminder, Traveller
+from app.trips.store import ChosenOption, Editor, Reminder, RestaurantPick, Traveller
 from tests.trip_body import trip_body
 
 
@@ -71,6 +71,30 @@ def test_public_body_is_an_allow_list(sign_in_as):
     assert not {"editors", "reminders", "travellers", "budget", "cost", "share_token", "share_url"} & body.keys()
     assert all("booking_url" not in o for o in body["options"])
     assert "private note" not in str(body) and token not in str(body)
+
+
+def test_public_body_carries_restaurant_picks_without_their_link(sign_in_as):
+    owner = sign_in_as("o@example.com")
+    tid = _trip(owner, sign_in_as)
+    owner_id = next(iter(sign_in_as.trips._trips))[0]
+    trip = sign_in_as.trips.get_trip(owner_id, tid)
+    pick = RestaurantPick(
+        id="p1",
+        name="Casa Lima",
+        city="Lisbon",
+        cuisine="Portuguese",
+        typical_price=Decimal(19),
+        currency="EUR",
+        url="https://example.com/secret-menu",
+        date=date(2027, 3, 4),
+        meal="dinner",
+    )
+    sign_in_as.trips.save_trip(owner_id, trip.model_copy(update={"restaurants": [pick]}))
+    token = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
+    body = TestClient(app).get(f"/shared/{token}").json()
+    assert [r["name"] for r in body["restaurants"]] == ["Casa Lima"]
+    assert "url" not in body["restaurants"][0]
+    assert "secret-menu" not in str(body)
 
 
 def test_the_token_is_not_a_credential_on_trip_routes(sign_in_as):

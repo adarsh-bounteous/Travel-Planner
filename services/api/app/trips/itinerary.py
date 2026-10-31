@@ -3,7 +3,10 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.trips.essentials import ChecklistItem, EssentialFact, ImportantNotes, build_essentials
+from app.trips.profile_store import Profile
 from app.trips.store import Trip, reconcile_days, visible_reminders
+from app.trips.visa import VisaRuleSource
 
 Kind = Literal["stay", "check_in", "check_out", "transport", "activity", "meal", "reminder"]
 Status = Literal["booked", "unbooked"]
@@ -39,12 +42,15 @@ class Cover(BaseModel):
 
 
 class Itinerary(BaseModel):
-    """The printable trip document. Deliberately has no money, essentials, editor or sharing field."""
+    """The printable trip document. Deliberately has no money, editor or sharing field."""
 
     cover: Cover
     glance: Glance
     days: list[ItineraryDay]
     still_to_schedule: list[ItineraryItem]
+    essentials: list[EssentialFact]
+    checklist: list[ChecklistItem]
+    notes: ImportantNotes
 
 
 def _http_link(url: str | None) -> str | None:
@@ -89,8 +95,8 @@ def _ordered(items: list[ItineraryItem]) -> list[ItineraryItem]:
     return sorted(items, key=lambda i: (KIND_ORDER.index(i.kind), i.title))
 
 
-def build_itinerary(trip: Trip) -> Itinerary:
-    """The trip as a document: cover, booked/unbooked counts, one entry per day, and what is still unscheduled."""
+def build_itinerary(trip: Trip, owner_profile: Profile | None, visa_rules: VisaRuleSource, today: date) -> Itinerary:
+    """The trip as a document: cover, booked/unbooked counts, one entry per day, what is still unscheduled, and the essentials."""
     if trip.days:
         dates = [d.date for d in trip.days]
     elif trip.start_date and trip.end_date:
@@ -112,6 +118,7 @@ def build_itinerary(trip: Trip) -> Itinerary:
         still.append(_item("activity", place.name))
 
     statuses = [i.status for i in everything]
+    essentials, checklist, notes = build_essentials(trip, owner_profile, visa_rules, today)
     return Itinerary(
         cover=Cover(
             name=trip.name,
@@ -122,4 +129,7 @@ def build_itinerary(trip: Trip) -> Itinerary:
         glance=Glance(booked=statuses.count("booked"), unbooked=statuses.count("unbooked")),
         days=[ItineraryDay(number=n + 1, date=d, items=_ordered(by_day[d])) for n, d in enumerate(dates)],
         still_to_schedule=_ordered(still),
+        essentials=essentials,
+        checklist=checklist,
+        notes=notes,
     )

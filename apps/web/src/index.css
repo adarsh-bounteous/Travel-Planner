@@ -585,6 +585,24 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
 .it-type { font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); }
 .it-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .it-detail { overflow-wrap: anywhere; }
+.fact { display: flex; flex-direction: column; gap: var(--space-1); }
+.fact-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-fg-muted); }
+.fact-value { font-size: var(--font-size-md); font-weight: var(--font-weight-bold); overflow-wrap: anywhere; }
+.fact-value.is-empty { font-weight: var(--font-weight-regular); color: var(--color-fg-muted); font-style: italic; }
+.fact-detail { color: var(--color-fg); }
+.fact-source { display: flex; align-items: flex-start; gap: var(--space-1); margin-top: auto; padding-top: var(--space-2); font-size: var(--font-size-sm); color: var(--color-fg-muted); overflow-wrap: anywhere; }
+.fact-source .icon { flex: none; width: var(--space-3); height: var(--space-3); margin-top: var(--space-1); }
+.fact-link { display: inline-flex; align-items: center; min-height: var(--size-control-md); font-weight: var(--font-weight-medium); overflow-wrap: anywhere; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.check-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: var(--size-control-lg); padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); }
+.check-row.is-done .check-label { color: var(--color-fg-muted); text-decoration: line-through; }
+.check-label { font-weight: var(--font-weight-medium); }
+.check-hint { display: block; font-weight: var(--font-weight-regular); text-decoration: none; }
+.check-row .badge { min-height: var(--size-control-sm); white-space: nowrap; }
+.check-row .badge .icon { width: var(--space-3); height: var(--space-3); margin-right: var(--space-1); }
+.sources { margin: var(--space-2) 0 0; padding-left: var(--space-4); }
+.sources li { overflow-wrap: anywhere; }
 .print-fab { position: sticky; bottom: var(--space-3); align-self: flex-end; margin-top: var(--space-3); }
 
 /* Printing the itinerary: A4, no app navigation or section list, a page per day, link URLs after link text */
@@ -594,6 +612,6 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
   .itin-body { display: block; }
   .document { max-width: none; }
   .day-card, #still-to-schedule { break-before: page; }
-  .day-card, .it { break-inside: avoid; }
+  .day-card, .it, .fact, .check-row { break-inside: avoid; }
   .document a[href]::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
 }

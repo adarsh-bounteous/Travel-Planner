@@ -20,7 +20,8 @@ def test_owner_gets_the_itinerary(trip):
     owner, tid = trip
     r = owner.get(f"/trips/{tid}/itinerary")
     assert r.status_code == 200
-    assert set(r.json()) == {"cover", "glance", "days", "still_to_schedule"}
+    assert set(r.json()) == {"cover", "glance", "days", "still_to_schedule", "essentials", "checklist", "notes"}
+    assert len(r.json()["checklist"]) == 6
     assert [d["number"] for d in r.json()["days"]] == [1, 2, 3]
 
 
@@ -46,8 +47,26 @@ def test_money_editors_and_sharing_never_appear(trip):
     owner.post(f"/trips/{tid}/editors", json={"email": "ana@example.com"})
     owner.post(f"/trips/{tid}/share-link")
     text = owner.get(f"/trips/{tid}/itinerary").text.lower()
-    for word in ("price", "total", "fare", "currency", "budget", "editors", "share", "insurance", "sim", "essential", "visa"):
+    for word in ("total", "fare", "budget", "editors", "share", "invite"):
         assert word not in text
+
+
+def test_accepted_editor_sees_the_owners_visa_answer(trip, sign_in_as):
+    owner, tid = trip
+    owner.put("/profile", json={"citizenship": "India", "residence": "India"})
+    ana = sign_in_as("ana@example.com")
+    ana.post(f"/invites/{_invite(owner, tid, 'ana@example.com')}/accept")
+    owner.put(f"/trips/{tid}", json=trip_body(destination="Lisbon, Portugal", start_date="2026-11-14", end_date="2026-11-16"))
+    visa = next(f for f in ana.get(f"/trips/{tid}/itinerary").json()["essentials"] if f["key"] == "visa")
+    assert visa["value"] == "A visa is required for Portugal."
+
+
+def test_shared_link_payload_has_no_essentials(trip):
+    owner, tid = trip
+    token = owner.post(f"/trips/{tid}/share-link").json()["share_token"]
+    text = owner.get(f"/shared/{token}").text
+    for key in ("essentials", "checklist", "notes"):
+        assert f'"{key}"' not in text
 
 
 def test_reading_does_not_change_the_trip(trip):

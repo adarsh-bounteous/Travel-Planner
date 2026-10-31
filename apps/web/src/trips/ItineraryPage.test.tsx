@@ -30,7 +30,54 @@ const cover = {
 }
 const dayDates = ['2026-11-14', '2026-11-15', '2026-11-16']
 
+const checklist = (done: string[]): Itinerary['checklist'] =>
+  [
+    ['passport', 'Passport validity'],
+    ['visa', 'Visa'],
+    ['insurance', 'Insurance'],
+    ['sim', 'SIM'],
+    ['reminders', 'Reminders'],
+    ['bookings', 'Bookings to make'],
+  ].map(([key, label]) => ({ key, label, hint: null, done: done.includes(key) })) as Itinerary['checklist']
+
+const notes: Itinerary['notes'] = {
+  price_notice: 'Prices and availability may change. Check again before you book.',
+  confirm_notice: 'Confirm with official sources before you travel.',
+  sources: [],
+}
+
+const fact = (key: string, label: string, extra: Partial<Itinerary['essentials'][number]> = {}) =>
+  ({
+    key,
+    label,
+    value: null,
+    detail: null,
+    link_text: null,
+    link_url: null,
+    source: null,
+    as_of: null,
+    ...extra,
+  }) as Itinerary['essentials'][number]
+
+const full = (key: string, label: string, value: string, source: string, extra = {}) =>
+  fact(key, label, { value, source, as_of: '2026-10-09', ...extra })
+
+const essentials: Itinerary['essentials'] = [
+  full('visa', 'Visa status', 'A visa is required for Portugal.', 'Visa rules service', {
+    link_text: 'Official visa source',
+    link_url: 'https://vistos.mne.gov.pt/en',
+  }),
+  full('insurance', 'Insurance', 'Gold Cover', 'SafeTrip'),
+  full('sim', 'SIM', 'Lisbon eSIM', 'Vodafone Portugal'),
+  full('currency', 'Currency', 'EUR', 'Destination data'),
+  full('weather', 'Typical weather for your dates', 'Mild days.', 'Climate data'),
+  full('medical', 'Medical guidance', 'Typhoid (required)', 'Health guidance'),
+]
+
 const empty: Itinerary = {
+  essentials: ['visa', 'insurance', 'sim', 'currency', 'weather'].map((k) => fact(k, k === 'sim' ? 'SIM' : k[0].toUpperCase() + k.slice(1))),
+  checklist: checklist([]),
+  notes,
   cover,
   glance: { booked: 0, unbooked: 0 },
   days: dayDates.map((date, i) => ({ number: i + 1, date, items: [] })),
@@ -38,6 +85,12 @@ const empty: Itinerary = {
 }
 
 const planned: Itinerary = {
+  essentials,
+  checklist: checklist(['visa']),
+  notes: {
+    ...notes,
+    sources: essentials.map((f) => ({ label: f.label, source: f.source!, as_of: f.as_of! })),
+  },
   cover,
   glance: { booked: 4, unbooked: 2 },
   days: [
@@ -82,7 +135,7 @@ describe('ItineraryPage', () => {
   it('lists each day once and shows Not yet planned for an empty day (AC4, AC5)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1 })
-    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+    expect(screen.getAllByRole('article').map((a) => a.querySelector('h3')?.textContent)).toEqual([
       'Day 1',
       'Day 2',
       'Day 3',
@@ -165,6 +218,72 @@ describe('ItineraryPage', () => {
     stubApi({ 'GET /trips/t1/itinerary': { status: 500 } })
     renderAt('/trips/t1/itinerary')
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent("We couldn't load your itinerary"))
+  })
+})
+
+describe('ItineraryPage essentials, checklist and notes', () => {
+  it('shows all three sections and links to them (AC12)', async () => {
+    show(planned)
+    for (const name of ['Travel essentials', 'Before you go', 'Important notes'])
+      expect(await screen.findByRole('heading', { level: 2, name })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Before you go' })).toHaveAttribute('href', '#before-you-go')
+  })
+
+  it('shows each fact with its source and date (AC1)', async () => {
+    show(planned)
+    const sim = await screen.findByTestId('fact-sim')
+    expect(within(sim).getByText('Lisbon eSIM')).toBeInTheDocument()
+    expect(within(sim).getByText(/Source: Vodafone Portugal\. Checked .*2026/)).toBeInTheDocument()
+  })
+
+  it('links the visa status to its official source (AC2)', async () => {
+    show(planned)
+    const link = await screen.findByRole('link', { name: /Official visa source/ })
+    expect(link).toHaveAttribute('href', 'https://vistos.mne.gov.pt/en')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('shows medical guidance only when the destination has it (AC3, AC4)', async () => {
+    show(planned)
+    expect(await screen.findByText('Medical guidance')).toBeInTheDocument()
+    expect(within(screen.getByTestId('fact-medical')).getByText(/Source:/)).toBeInTheDocument()
+  })
+
+  it('omits medical guidance when there is none (AC4)', async () => {
+    show({ ...planned, essentials: essentials.filter((f) => f.key !== 'medical') })
+    await screen.findByRole('heading', { name: 'Travel essentials' })
+    expect(screen.queryByText('Medical guidance')).not.toBeInTheDocument()
+  })
+
+  it('lists exactly six checklist items with their done state (AC5, AC6, AC7)', async () => {
+    show(planned)
+    const list = await screen.findByRole('list', { name: 'Before you go' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(6)
+    expect(within(screen.getByTestId('check-visa')).getByText('Done')).toBeInTheDocument()
+    expect(within(screen.getByTestId('check-passport')).getByText('Not done')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: /done/ })).toHaveTextContent('1 of 6 done')
+  })
+
+  it('shows Not yet planned for a fact without data (AC8)', async () => {
+    show(empty)
+    const insurance = await screen.findByTestId('fact-insurance')
+    expect(within(insurance).getByText('Not yet planned')).toBeInTheDocument()
+    expect(within(insurance).getByText('No source or date yet')).toBeInTheDocument()
+  })
+
+  it('always shows the price and official-source notices and the data sources (AC9, AC10, AC11)', async () => {
+    show(planned)
+    expect(await screen.findByText(/Prices and availability may change/)).toBeInTheDocument()
+    expect(screen.getByText(/Confirm with official sources before you travel/)).toBeInTheDocument()
+    const sources = screen.getByRole('heading', { name: 'Data sources and dates used' }).closest('div')!
+    expect(within(sources).getByText(/Vodafone Portugal, .*2026/)).toBeInTheDocument()
+    expect(within(sources).getAllByRole('listitem')).toHaveLength(6)
+  })
+
+  it('still renders when the new arrays are missing', async () => {
+    show({ ...planned, essentials: undefined, checklist: undefined, notes: undefined } as unknown as Itinerary)
+    expect(await screen.findByRole('heading', { name: 'Important notes' })).toBeInTheDocument()
+    expect(screen.getByText(/Prices and availability may change/)).toBeInTheDocument()
   })
 })
 

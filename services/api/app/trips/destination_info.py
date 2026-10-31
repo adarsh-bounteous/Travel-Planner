@@ -30,6 +30,9 @@ _CURRENCY = {
 }
 
 CLIMATE_AS_OF = date(2026, 10, 1)
+CLIMATE_SOURCE = "Travel Planner climate data"
+CURRENCY_AS_OF = date(2026, 10, 1)
+CURRENCY_SOURCE = "Travel Planner destination data"
 
 # (high, low, rain mm, rain days) per month, January first.
 _CLIMATE = {

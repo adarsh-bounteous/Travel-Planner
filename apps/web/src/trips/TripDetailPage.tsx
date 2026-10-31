@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
@@ -9,6 +9,8 @@ import { BookTripDrawer } from './BookTripDrawer'
 import { InsurancePickClearedModal } from './InsurancePickClearedModal'
 import { DeleteTripModal } from './DeleteTripModal'
 import { ItineraryTab } from './ItineraryTab'
+import { PanelFade } from './PanelFade'
+import { useTabIndicator } from './useTabIndicator'
 import { ReminderModal } from './ReminderModal'
 import { RemoveActivityModal } from './RemoveActivityModal'
 import { RenameDayModal } from './RenameDayModal'
@@ -79,6 +81,9 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
   const [toast, setToast] = useState<{ id: number; message: string; undo?: () => void } | null>(
     null,
   )
+
+  const tablistRef = useRef<HTMLDivElement>(null)
+  const indicator = useTabIndicator(tablistRef, trip ? tab : '')
 
   useEffect(() => {
     fetchTrip(tripId).then(
@@ -243,7 +248,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
-      <div className="tabs" role="tablist" aria-label="Trip sections">
+      <div className="tabs trip-tabs" role="tablist" aria-label="Trip sections" ref={tablistRef}>
         {TABS.map(({ id, label }) => (
           <button
             key={id}
@@ -258,6 +263,11 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             {label}
           </button>
         ))}
+        <span
+          className={indicator.moving ? 'tab-indicator is-moving' : 'tab-indicator'}
+          aria-hidden="true"
+          style={{ left: indicator.left, width: indicator.width }}
+        />
       </div>
       <div className="trip-layout">
       <div className="trip-main">
@@ -275,7 +285,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
         )}
       </div>
       {trip.is_owner && <VisaSummaryCard tripId={trip.id} unresolved={trip.unresolved_visas ?? []} />}
-      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+      <PanelFade tabKey={tab}>
         {tab === 'itinerary' ? (
           <ItineraryTab
             trip={trip}
@@ -324,7 +334,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             <TravelHelpersCard trip={trip} />
           </div>
         )}
-      </div>
+      </PanelFade>
       {(trip.destination_unmatched || (trip.country && trip.place)) && (
         <section className="card stack" aria-labelledby="destination-heading">
           <h2 id="destination-heading">Destination</h2>

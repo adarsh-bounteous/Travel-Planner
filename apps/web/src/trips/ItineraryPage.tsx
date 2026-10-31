@@ -14,17 +14,22 @@ import {
   EyeIcon,
   HomeIcon,
   ImageIcon,
+  InfoIcon,
+  MinusIcon,
   SearchIcon,
   StarIcon,
 } from '../auth/icons'
 import { fetchItinerary, NotFoundError } from './api'
-import type { Itinerary, ItineraryItem } from './api'
+import type { EssentialFact, Itinerary, ItineraryItem } from './api'
 
 const SECTIONS = [
   { id: 'cover', label: 'Cover' },
   { id: 'at-a-glance', label: 'At a glance' },
   { id: 'day-by-day', label: 'Day by day' },
   { id: 'still-to-schedule', label: 'Still to schedule' },
+  { id: 'essentials', label: 'Travel essentials' },
+  { id: 'before-you-go', label: 'Before you go' },
+  { id: 'important-notes', label: 'Important notes' },
 ]
 
 const KINDS: Record<ItineraryItem['kind'], { label: string; icon: ReactNode }> = {
@@ -52,6 +57,34 @@ const formatRange = (start: string, end: string) => {
   const format = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
   const year = new Intl.DateTimeFormat(undefined, { year: 'numeric' }).format(localDate(end))
   return `${format.format(localDate(start))} – ${format.format(localDate(end))} ${year}`
+}
+
+const formatDate = (iso: string) =>
+  new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).format(localDate(iso))
+
+function FactCard({ fact }: { fact: EssentialFact }) {
+  const empty = fact.value === null
+  return (
+    <div className="card fact" data-testid={`fact-${fact.key}`}>
+      <span className="fact-label">{fact.label}</span>
+      <span className={`fact-value${empty ? ' is-empty' : ''}`}>{empty ? 'Not yet planned' : fact.value}</span>
+      {!empty && fact.detail && <span className="fact-detail text-sm">{fact.detail}</span>}
+      {fact.link_url && (
+        <a className="fact-link" href={fact.link_url} target="_blank" rel="noopener">
+          {fact.link_text ?? fact.link_url}
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      )}
+      <span className="fact-source">
+        <CalendarIcon />
+        <span>
+          {fact.source && fact.as_of
+            ? `Source: ${fact.source}. Checked ${formatDate(fact.as_of)}.`
+            : 'No source or date yet'}
+        </span>
+      </span>
+    </div>
+  )
 }
 
 function NotYetPlanned() {
@@ -102,6 +135,11 @@ function ItemRows({ items }: { items: ItineraryItem[] }) {
 
 function Document({ itinerary }: { itinerary: Itinerary }) {
   const { cover, glance, days, still_to_schedule: still } = itinerary
+  // An older API build has none of these; treat them as empty so the page still renders.
+  const essentials = itinerary.essentials ?? []
+  const checklist = itinerary.checklist ?? []
+  const sources = itinerary.notes?.sources ?? []
+  const doneCount = checklist.filter((c) => c.done).length
   const nothingBooked = glance.booked === 0 && glance.unbooked === 0
   return (
     <div className="document">
@@ -166,6 +204,75 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
           Still to schedule
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
+      </section>
+
+      <section id="essentials" aria-labelledby="essentials-h">
+        <h2 id="essentials-h">Travel essentials</h2>
+        <div className="grid">
+          {essentials.map((fact) => (
+            <FactCard key={fact.key} fact={fact} />
+          ))}
+        </div>
+      </section>
+
+      <section id="before-you-go" aria-labelledby="before-h">
+        <div className="section-head">
+          <h2 id="before-h">Before you go</h2>
+          <span className="text-muted text-sm" role="status" aria-label={`${doneCount} of 6 done`}>
+            {doneCount} of 6 done
+          </span>
+        </div>
+        <ul className="check-list" aria-label="Before you go">
+          {checklist.map((c) => (
+            <li className={`check-row${c.done ? ' is-done' : ''}`} key={c.key} data-testid={`check-${c.key}`}>
+              <span className="check-label">
+                {c.label}
+                {c.hint && <span className="text-muted text-sm check-hint">{c.hint}</span>}
+              </span>
+              {c.done ? (
+                <span className="badge badge-success">
+                  <CheckIcon />
+                  Done
+                </span>
+              ) : (
+                <span className="badge badge-neutral">
+                  <MinusIcon />
+                  Not done
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section id="important-notes" aria-labelledby="notes-h">
+        <h2 id="notes-h">Important notes</h2>
+        <div className="stack">
+          <div className="alert alert-warning">
+            <AlertIcon />
+            <p>
+              <span className="alert-title">Prices and availability may change.</span> Check again before you book.
+            </p>
+          </div>
+          <div className="alert alert-info">
+            <InfoIcon />
+            <p>
+              <span className="alert-title">Confirm with official sources before you travel.</span> Entry rules and
+              health advice can change at short notice.
+            </p>
+          </div>
+          <div className="card">
+            <h3>Data sources and dates used</h3>
+            <ul className="sources text-sm">
+              {sources.map((s) => (
+                <li key={s.label}>
+                  {s.label}: {s.source}, {formatDate(s.as_of)}
+                </li>
+              ))}
+              {sources.length < essentials.length && <li>Items marked Not yet planned have no source yet.</li>}
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
   )

@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router'
+import { RouteTransition } from './RouteTransition'
 import { AccountPage } from './account/AccountPage'
 import { LocalModePage } from './account/LocalModePage'
 import { LocalBookingPage } from './travel/LocalBookingPage'
@@ -59,7 +60,9 @@ export default function App() {
       <TitleManager />
       <AppHeader />
       <main className="shell-main">
-        <Routes>
+        <RouteTransition>
+          {(location) => (
+        <Routes location={location}>
           <Route
             path="/"
             element={
@@ -330,6 +333,8 @@ export default function App() {
           <Route path="/confirm-email/:token" element={<ConfirmLinkPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+          )}
+        </RouteTransition>
       </main>
     </>
   )

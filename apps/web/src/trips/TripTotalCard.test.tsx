@@ -17,6 +17,13 @@ const cost = (overrides: Partial<CostSummary> = {}): CostSummary => ({
 const show = (overrides: Partial<CostSummary> = {}) =>
   render(<TripTotalCard cost={cost(overrides)} />)
 
+describe('TripTotalCard count-up', () => {
+  it('keeps the final figure as the only match once counting ends (AC12)', () => {
+    show({ total: 1240 })
+    expect(screen.getAllByText('1,240 EUR')).toHaveLength(1)
+  })
+})
+
 describe('TripTotalCard insurance line', () => {
   const insurance = {
     plan_id: 'globetrek',

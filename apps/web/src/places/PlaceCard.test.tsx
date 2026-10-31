@@ -34,6 +34,22 @@ describe('PlaceCard', () => {
     expect(onAdd).toHaveBeenCalledWith(alfama)
   })
 
+  it('pops the heart on save only (AC6, AC7)', () => {
+    const { container, rerender } = renderCard({ saved: true })
+    expect(container.querySelector('.heart-pop')).toBeNull()
+    const card = (saved: boolean) => (
+      <ul>
+        <PlaceCard place={alfama} saved={saved} onToggleSave={() => {}} />
+      </ul>
+    )
+    rerender(card(false))
+    expect(container.querySelector('.heart-pop')).toBeNull()
+    rerender(card(true))
+    expect(container.querySelector('.heart-pop')).not.toBeNull()
+    rerender(card(false))
+    expect(container.querySelector('.heart-pop')).toBeNull()
+  })
+
   it('leaves out add-to-trip when no handler is given', () => {
     renderCard()
     expect(screen.queryByRole('button', { name: 'Add Alfama to trip' })).not.toBeInTheDocument()

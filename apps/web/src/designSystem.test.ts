@@ -23,8 +23,8 @@ describe('design system stylesheet', () => {
     expect(body).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/)
   })
 
-  it('uses no raw px values (1px visually-hidden boxes aside)', () => {
-    const raw = body.replace(/\b1px\b/g, '')
+  it('uses no raw px values (1px visually-hidden boxes and collapsed 0px distances aside)', () => {
+    const raw = body.replace(/\b[01]px\b/g, '')
     expect(raw).not.toMatch(/:\s*[^;{}]*\b\d+px\b/)
   })
 
@@ -38,7 +38,12 @@ describe('design system stylesheet', () => {
     const blocks = css.match(/@media \(prefers-reduced-motion: reduce\)/g) ?? []
     expect(blocks).toHaveLength(1)
     const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
-    expect(rm).toMatch(/animation: none !important/)
+    expect(rm).toMatch(/--mi-lift:\s*0px/)
+    expect(rm).toMatch(/--mi-press:\s*1\b/)
+    expect(rm).toMatch(/--mi-shift:\s*0px/)
+    expect(rm).toMatch(/--mi-pop-peak:\s*1\b/)
+    expect(rm).toMatch(/animation-iteration-count: 1 !important/)
+    expect(rm).not.toMatch(/\*, \*::before, \*::after \{ animation: none/)
     expect(rm).toMatch(/\.motion-move[^}]*transform: none !important/)
     expect(rm).toMatch(/transition-property: opacity/)
     expect(rm).not.toMatch(/transition: none/)

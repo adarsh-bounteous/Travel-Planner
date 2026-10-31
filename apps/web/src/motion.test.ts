@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { MOTION, prefersReducedMotion } from './motion'
+import { MOTION, MOTION_MS, prefersReducedMotion, useCountUp, useExit } from './motion'
 
 const tokens = readFileSync(resolve(__dirname, '../../../design-system/tokens.css'), 'utf8')
 const tokensJson = readFileSync(resolve(__dirname, '../../../design-system/tokens.json'), 'utf8')
@@ -25,6 +26,49 @@ describe('motion tokens', () => {
     expect(tokens).toMatch(/--blur-placeholder:\s*12px/)
     expect(tokens).not.toMatch(/--motion[^;]*\[object Object\]/)
     expect(tokensJson).toContain('"motion-duration-base"')
+  })
+})
+
+describe('useCountUp', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('counts up from below and ends exactly on the target (AC12)', () => {
+    let now = 0
+    let frame: FrameRequestCallback | null = null
+    vi.stubGlobal('matchMedia', () => ({ matches: false }))
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      frame = cb
+      return 1
+    })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    vi.spyOn(performance, 'now').mockImplementation(() => now)
+    const { result } = renderHook(() => useCountUp(1240))
+    expect(result.current).toBeLessThan(1240)
+    now = 1000
+    act(() => frame?.(now))
+    expect(result.current).toBe(1240)
+    vi.restoreAllMocks()
+  })
+
+  it('returns the target at once under reduced motion', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    const { result } = renderHook(() => useCountUp(1240))
+    expect(result.current).toBe(1240)
+  })
+})
+
+describe('useExit', () => {
+  it('calls onDone on animation end and, failing that, after the fallback', () => {
+    vi.useFakeTimers()
+    const onDone = vi.fn()
+    const { result } = renderHook(() => useExit(onDone))
+    act(() => result.current.start())
+    expect(result.current.leaving).toBe(true)
+    act(() => {
+      vi.advanceTimersByTime(MOTION_MS + 10)
+    })
+    expect(onDone).toHaveBeenCalledOnce()
+    vi.useRealTimers()
   })
 })
 

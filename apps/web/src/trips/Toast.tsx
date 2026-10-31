@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AlertIcon, CheckIcon, XIcon } from '../auth/icons'
+import { useExit } from '../motion'
 
 const TOAST_MS = 4000
 
@@ -28,16 +29,19 @@ export function Toast({
 }: ToastProps) {
   const [visible, setVisible] = useState(true)
   const isError = tone === 'error'
+  const exit = useExit(() => setVisible(false))
+  const { start } = exit
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), ms)
+    const timer = setTimeout(start, ms)
     return () => clearTimeout(timer)
-  }, [ms])
+  }, [ms, start])
 
   return (
     <div role={isError ? 'alert' : 'status'}>
       {message && visible && (
-        <div className={`toast is-open cluster${isError ? ' toast-error' : ''}`}>
+        <div className={`toast is-open cluster ${exit.leaving ? 'is-leaving' : 'is-entering'}${isError ? ' toast-error' : ''}`}
+          onAnimationEnd={exit.onAnimationEnd}>
           {isError ? <AlertIcon /> : <CheckIcon />}
           <span className="toast-message">{message}</span>
           {undo && (
@@ -45,7 +49,7 @@ export function Toast({
               className="btn btn-ghost btn-sm"
               type="button"
               onClick={() => {
-                setVisible(false)
+                start()
                 undo()
               }}
             >
@@ -57,7 +61,7 @@ export function Toast({
               className="btn btn-ghost btn-sm"
               type="button"
               onClick={() => {
-                setVisible(false)
+                start()
                 action.onAction()
               }}
             >
@@ -69,7 +73,7 @@ export function Toast({
               className="toast-close"
               type="button"
               aria-label="Dismiss"
-              onClick={() => setVisible(false)}
+              onClick={start}
             >
               <XIcon />
             </button>

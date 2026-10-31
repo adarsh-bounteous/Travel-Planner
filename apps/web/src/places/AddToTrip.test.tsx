@@ -174,7 +174,7 @@ describe('Add a place to a trip', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     await screen.findByText('Place added')
     act(() => {
-      vi.advanceTimersByTime(4000)
+      vi.advanceTimersByTime(4300)
     })
     expect(screen.queryByText('Place added')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Places in Lisbon' })).toBeInTheDocument()

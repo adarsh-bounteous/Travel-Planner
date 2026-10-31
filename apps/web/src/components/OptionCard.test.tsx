@@ -22,6 +22,11 @@ describe('OptionCard', () => {
     expect(within(card).getByRole('button', { name: 'Pick' })).toBeInTheDocument()
   })
 
+  it('lifts on hover through the lift class (AC4)', () => {
+    render(<OptionCard title="Skyline" />)
+    expect(screen.getByRole('article', { name: 'Skyline' })).toHaveClass('lift')
+  })
+
   it('marks a picked card and prefers an explicit aria-label', () => {
     render(<OptionCard title="Hotel Sol" ariaLabel="Hotel Sol, rank 1" picked />)
     expect(screen.getByRole('article', { name: 'Hotel Sol, rank 1' })).toHaveClass('is-picked')

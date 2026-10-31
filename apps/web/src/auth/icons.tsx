@@ -126,9 +126,9 @@ export const SearchIcon = () => (
   </Icon>
 )
 
-export const HeartIcon = ({ filled = false }: { filled?: boolean }) => (
+export const HeartIcon = ({ filled = false, className }: { filled?: boolean; className?: string }) => (
   <svg
-    className="icon"
+    className={className ? `icon ${className}` : 'icon'}
     viewBox="0 0 24 24"
     aria-hidden="true"
     style={filled ? { fill: 'currentColor' } : undefined}

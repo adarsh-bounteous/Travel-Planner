@@ -1,5 +1,6 @@
 import { AlertIcon, CheckIcon, StarIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
+import { RouteLine } from '../components/RouteLine'
 import { BookingLink } from '../travel/BookingLink'
 import type { ShortlistFlight } from './api'
 import { formatFare, formatMinutes, formatMode, formatRetrieved, formatStops } from './flights'
@@ -72,12 +73,18 @@ export function FlightShortlistCard({
               aria-pressed={picked}
               onClick={onPick}
             >
-              {picked && <CheckIcon />}
+              {picked && (
+                <span className="check-badge is-playing">
+                  <CheckIcon />
+                </span>
+              )}
               {picked ? 'Picked' : 'Pick'}
             </button>
           )}
         </>
       }
-    />
+    >
+      <RouteLine />
+    </OptionCard>
   )
 }

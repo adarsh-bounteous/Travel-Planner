@@ -32,7 +32,7 @@ export function OptionCard({
 }: OptionCardProps) {
   const label = ariaLabel ?? (typeof title === 'string' ? title : undefined)
   return (
-    <Tag className={`card option-card${picked ? ' is-picked' : ''}`} aria-label={Tag === 'article' ? label : undefined}>
+    <Tag className={`card option-card lift${picked ? ' is-picked' : ''}`} aria-label={Tag === 'article' ? label : undefined}>
       <div className="option-card-head">
         <h3 className="option-card-title">{title}</h3>
         {badges && <div className="badges option-card-badges">{badges}</div>}

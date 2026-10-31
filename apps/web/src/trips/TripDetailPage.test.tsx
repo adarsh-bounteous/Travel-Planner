@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { CostSummary, Trip } from './api'
 
@@ -423,7 +423,7 @@ describe('TripDetailPage book trip', () => {
     fireEvent.click(book)
     const dialog = await screen.findByRole('dialog', { name: 'Book trip' })
     fireEvent.keyDown(dialog, { key: 'Escape' })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(book).toHaveFocus()
   })
 })

@@ -69,3 +69,44 @@ def test_filters_combine_validate_and_carry_coordinates(sign_in_as):
     museum = a.get("/places", params={**with_q, "place_type": "museum"}).json()
     assert [p["name"] for p in museum] == ["Belém Tower"]
     assert a.get("/places", params={**with_q, "place_type": "park"}).json() == []
+
+
+def test_category_filter_and_live_places_come_from_the_override(sign_in_as):
+    from datetime import date
+
+    from app.places.fallback import FallbackPlaceSearch
+    from app.places.overpass import element_to_place
+    from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch
+    from app.routers import deps
+
+    elements = [
+        {"type": "node", "id": 1, "lat": 1, "lon": 2, "tags": {"name": "M", "tourism": "museum"}},
+        {"type": "node", "id": 2, "lat": 1, "lon": 2, "tags": {"name": "F", "amenity": "restaurant"}},
+    ]
+
+    class Osm:
+        def search(self, destination):
+            return [element_to_place(e) for e in elements]
+
+    a = sign_in_as("a@example.com")
+    app.dependency_overrides[deps.get_places] = lambda: FallbackPlaceSearch(
+        Osm(), InMemoryPlaceSearch(SEED_CATALOGUE), date.today
+    )
+    assert len(a.get("/places", params={"destination": "Ljubljana"}).json()) == 2
+    body = a.get("/places", params={"destination": "Ljubljana", "category": "museums"}).json()
+    assert [p["category"] for p in body] == ["museums"]
+
+
+def test_seed_places_are_stamped_and_filterable_by_category(sign_in_as):
+    from datetime import date
+
+    from app.places.fallback import FallbackPlaceSearch
+    from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch
+    from app.routers import deps
+
+    a = sign_in_as("a@example.com")
+    app.dependency_overrides[deps.get_places] = lambda: FallbackPlaceSearch(
+        None, InMemoryPlaceSearch(SEED_CATALOGUE), date.today
+    )
+    body = a.get("/places", params={"destination": "Lisbon", "category": "sights"}).json()
+    assert body and all(p["source"] == "seed" and p["as_of"] for p in body)

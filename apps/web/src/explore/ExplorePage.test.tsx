@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { Reply } from '../test-api'
 
@@ -136,5 +136,55 @@ describe('ExplorePage', () => {
     await screen.findByText("We couldn't add that place. Try again.")
     expect(screen.getByRole('button', { name: 'Save Alfama' })).toBeInTheDocument()
     expect(fetchMock.mock.calls.filter(([, i]) => i?.method === 'PUT')).toHaveLength(0)
+  })
+})
+
+describe('ExplorePage real places', () => {
+  const osmPlace = {
+    ...alfama,
+    id: 'osm-node-42',
+    name: 'Museu X',
+    image_url: 'data:image/svg+xml,x',
+    place_type: 'museum',
+    price: null,
+    category: 'museums',
+    source: 'osm',
+    provider_id: 'node/42',
+    url: 'https://www.openstreetmap.org/node/42',
+    address: '1 Rua X',
+    opening_hours: 'Mo-Fr 09:00-17:00',
+  }
+  const seedPlace = { ...alfama, source: 'seed', as_of: '2026-10-31' }
+
+  it('credits OpenStreetMap, uses the placeholder cover and shows details (AC3, AC4, AC5)', async () => {
+    stubApi({ ...base, 'GET /places?destination=Lisbon': { status: 200, body: [osmPlace] } })
+    renderAt('/explore')
+    expect(await screen.findByText('Museu X')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeInTheDocument()
+    expect(screen.queryByText(/Live data unavailable/)).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('place-cover')).toHaveLength(1)
+    expect(document.querySelectorAll('img')).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Details for Museu X' }))
+    expect(await screen.findByText('node/42')).toBeInTheDocument()
+  })
+
+  it('shows the saved-data notice and no attribution for seed places (AC11, AC13)', async () => {
+    stubApi({ ...base, 'GET /places?destination=Lisbon': { status: 200, body: [seedPlace] } })
+    renderAt('/explore')
+    expect(await screen.findByText(/Live data unavailable, showing saved data/)).toBeInTheDocument()
+    expect(screen.queryByText(/OpenStreetMap contributors/)).not.toBeInTheDocument()
+  })
+
+  it('filters by category through the API (AC2)', async () => {
+    const fetchMock = stubApi({
+      ...base,
+      'GET /places?destination=Lisbon&category=museums': { status: 200, body: [osmPlace] },
+    })
+    renderAt('/explore')
+    await screen.findByText('Belém Tower')
+    const group = screen.getByRole('group', { name: 'Category' })
+    fireEvent.click(within(group).getByRole('button', { name: 'Museums' }))
+    await screen.findByText('Museu X')
+    expect(fetchMock).toHaveBeenCalledWith('/places?destination=Lisbon&category=museums', expect.anything())
   })
 })

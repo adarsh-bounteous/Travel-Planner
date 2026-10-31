@@ -453,6 +453,8 @@ export type Profile = {
   sim_preference?: SimType | null
 }
 
+/** The request needs a signed-in traveller (401). */
+export class UnauthorizedError extends Error {}
 export class NotFoundError extends Error {}
 /** The traveller may see this trip but not change it (403). */
 export class ForbiddenError extends Error {}
@@ -474,6 +476,7 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+  if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 403) throw new ForbiddenError()
   if (response.status === 404) {
     if (method !== 'GET' && path.startsWith('/trips/')) window.dispatchEvent(new Event(TRIP_WRITE_REFUSED))

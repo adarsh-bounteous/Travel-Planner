@@ -78,11 +78,19 @@ def test_entry_shows_name_kind_and_health(monkeypatch):
 
 def test_providers_status_lists_every_provider_in_local_mode(monkeypatch):
     _local(monkeypatch)
+    app.dependency_overrides[deps.get_current_user] = lambda: "user-1"
     with TestClient(app) as client:
         r = client.get("/providers/status")
     assert r.status_code == 200
     assert {p["name"] for p in r.json()["providers"]} == {e.name for e in default_registry()._entries}
     assert r.json()["providers"][0].keys() == {"name", "kind", "health"}
+
+
+def test_providers_status_is_401_when_not_signed_in(monkeypatch):
+    _local(monkeypatch)
+    with TestClient(app) as client:
+        r = client.get("/providers/status")
+    assert (r.status_code, r.json()) == (401, {"code": "not_signed_in"})
 
 
 def test_providers_status_is_404_outside_local_mode(monkeypatch):

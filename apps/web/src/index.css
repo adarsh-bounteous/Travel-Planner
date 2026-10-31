@@ -86,6 +86,12 @@ a.btn { text-decoration: none; }
 .alert-danger { border-color: var(--color-danger); background: var(--color-danger-subtle); }
 .alert.cluster { flex-wrap: nowrap; align-items: flex-start; }
 .alert .icon { flex: none; }
+.fallback-notice .icon { color: var(--color-warning); }
+.provider-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: var(--size-control-lg); }
+.provider-name { display: flex; flex-direction: column; overflow-wrap: anywhere; }
+.provider-kind { color: var(--color-fg-muted); font-size: var(--font-size-sm); }
+.provider-health { gap: var(--space-2); min-height: var(--size-control-sm); }
+.dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-full); background: currentColor; flex: none; }
 
 .backdrop { position: fixed; inset: 0; z-index: var(--z-overlay); background: var(--color-overlay); opacity: var(--opacity-overlay); }
 .modal {

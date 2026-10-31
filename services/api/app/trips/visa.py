@@ -22,6 +22,14 @@ OFFICIAL_SITES = {
 }
 
 
+VISA_SOURCE = "Visa rules service"
+
+
+def official_site_for(country: str) -> str | None:
+    """The seeded official visa page only; never the search fallback."""
+    return OFFICIAL_SITES.get(country)
+
+
 def _fallback_site(country: str) -> str:
     """A search for the destination's government visa page, for countries outside OFFICIAL_SITES."""
     query = quote_plus(f"{country or 'destination'} government visa immigration official site")

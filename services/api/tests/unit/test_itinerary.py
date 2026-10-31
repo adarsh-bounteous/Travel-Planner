@@ -1,7 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
-from app.trips.itinerary import Itinerary, ItineraryItem, build_itinerary
+from app.trips.itinerary import Itinerary, ItineraryItem
+from app.trips.itinerary import build_itinerary as _build_itinerary
+from app.trips.visa import SEED_VISA_RULES, InMemoryVisaRules
 from app.trips.store import (
     Activity,
     ChosenStay,
@@ -15,6 +17,10 @@ from app.trips.store import (
 )
 
 START, END = date(2026, 11, 14), date(2026, 11, 16)
+
+
+def build_itinerary(trip: Trip) -> Itinerary:
+    return _build_itinerary(trip, None, InMemoryVisaRules(SEED_VISA_RULES, date(2026, 10, 20)), date(2026, 10, 31))
 
 
 def _trip(**changes) -> Trip:
@@ -158,7 +164,9 @@ def test_links_are_http_only():
 
 
 def test_the_model_carries_no_money_or_sharing_field():
-    assert set(Itinerary.model_fields) == {"cover", "glance", "days", "still_to_schedule"}
+    assert set(Itinerary.model_fields) == {
+        "cover", "glance", "days", "still_to_schedule", "essentials", "checklist", "notes",
+    }
     assert set(ItineraryItem.model_fields) == {
         "kind",
         "title",

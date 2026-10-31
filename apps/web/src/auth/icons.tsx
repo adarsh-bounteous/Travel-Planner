@@ -23,6 +23,12 @@ export const CheckIcon = () => (
   </Icon>
 )
 
+export const MinusIcon = () => (
+  <Icon>
+    <path d="M5 12h14" />
+  </Icon>
+)
+
 export const InfoIcon = () => (
   <Icon>
     <circle cx="12" cy="12" r="10" />

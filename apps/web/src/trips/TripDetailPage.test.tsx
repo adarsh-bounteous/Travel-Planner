@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { CostSummary, Trip } from './api'
+import { PALETTES, paletteForTrip } from './tripPalettes'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -558,24 +559,53 @@ describe('TripDetailPage restyle', () => {
     expect(within(hero).queryAllByRole('link')).toHaveLength(0)
   })
 
-  it('puts destination art behind the title and dates, on a scrim, with alt text (AC2, AC7, AC9, AC11)', async () => {
+  it('puts the title and dates on a solid palette panel beside palette-coloured art, with alt text (AC1, AC7)', async () => {
     open()
     await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
     const hero = document.querySelector('.trip-hero .hero') as HTMLElement
-    expect(hero).toBeInTheDocument()
-    expect(hero.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
-    expect(hero.querySelector('.scrim')).toHaveAttribute('aria-hidden', 'true')
-    expect(within(hero).getByRole('heading', { level: 1, name: 'Lisbon' })).toHaveClass('hero-title')
-    await waitFor(() => expect(hero.querySelector('img')?.getAttribute('src')).toMatch(/lisbon\.svg/))
-    expect(within(hero).getByRole('img', { name: 'Illustration of Lisbon' })).toBeInTheDocument()
+    expect(hero).toHaveClass('hero-palette')
+    expect(hero.querySelector('.scrim')).toBeNull()
+    expect(hero.querySelector('.hero-text')).toContainElement(
+      within(hero).getByRole('heading', { level: 1, name: 'Lisbon' }),
+    )
+    expect(within(hero).getByRole('img', { name: "Illustration in the trip's palette" })).toBeInTheDocument()
   })
 
-  it('uses the generic art, still with alt text, when the destination has no art (AC13, AC11)', async () => {
-    open(trip({ destination: 'Norway' }))
+  it('shows the named palette of a seeded destination, the same on each visit (AC1, AC6)', async () => {
+    open()
     await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
-    const hero = document.querySelector('.trip-hero .hero') as HTMLElement
-    await waitFor(() => expect(hero.querySelector('img')?.getAttribute('src')).toMatch(/generic\.svg/))
-    expect(within(hero).getByRole('img', { name: 'Neutral illustration of hills and a sun' })).toBeInTheDocument()
+    const page = document.querySelector('.trip-page') as HTMLElement
+    expect(page).toHaveAttribute('data-palette', 'lisbon')
+    expect(page.style.getPropertyValue('--pal-hero')).toBe(PALETTES.lisbon.hero)
+    expect(paletteForTrip(trip())).toBe(paletteForTrip(trip()))
+  })
+
+  it('shows the neutral palette for an unmatched destination (AC5)', async () => {
+    open(trip({ destination: 'Atlantis' }))
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const page = document.querySelector('.trip-page') as HTMLElement
+    expect(page).toHaveAttribute('data-palette', 'neutral')
+    expect(page.style.getPropertyValue('--pal-hero')).toBe(PALETTES.neutral.hero)
+  })
+
+  it('stays light with a dark operating system, and keeps the action buttons primary (AC2, AC4, AC10)', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('dark'),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      onchange: null,
+      dispatchEvent: () => false,
+    }))
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const page = document.querySelector('.trip-page') as HTMLElement
+    expect(page.className).not.toMatch(/dark/)
+    expect(page.getAttribute('data-theme')).toBeNull()
+    expect(await screen.findByRole('button', { name: 'Book trip' })).toHaveClass('btn-primary')
+    expect(screen.getByRole('tab', { selected: true })).toBeInTheDocument()
   })
 
   it('shows the tabs below the hero (AC2)', async () => {

@@ -137,3 +137,42 @@ describe('token contrast pairs', () => {
     expect(ratio(t(fg), t(bg))).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+describe('per-trip accent theme', () => {
+  it('declares the light theme and has no dark rule (AC2)', () => {
+    expect(css).toMatch(/:root\s*\{[^}]*color-scheme:\s*light/)
+    expect(css).not.toMatch(/prefers-color-scheme/)
+    expect(readFileSync(resolve(__dirname, '../index.html'), 'utf8')).toMatch(
+      /<meta name="color-scheme" content="light">/,
+    )
+  })
+
+  it('keeps --color-primary out of every palette rule (AC3)', () => {
+    const rules = css.match(/\.(trip-page|hero-palette|hero-text|art-[a-z]+)[^{]*\{[^}]*\}/g) ?? []
+    expect(rules.length).toBeGreaterThan(8)
+    for (const r of rules) expect(r).not.toContain('--color-primary')
+    expect(css).toMatch(/\.trip-page \.tab-indicator\s*\{[^}]*background:\s*var\(--pal-accent\)/)
+  })
+
+  it('keeps action buttons on primary and never re-scopes them (AC4)', () => {
+    expect(css).toMatch(/\.btn-primary\s*\{[^}]*var\(--button-primary-background\)/)
+    expect(css).not.toMatch(/\.trip-page[^{]*\.btn-primary/)
+  })
+
+  it('colours the selected tab and chip from the palette, with a non-colour cue (AC10)', () => {
+    expect(css).toMatch(/\.trip-page \.tab\[aria-selected="true"\]\s*\{[^}]*var\(--pal-ink\)[^}]*var\(--pal-accent\)/)
+    expect(css).toMatch(
+      /\.trip-page \.chip\[aria-pressed="true"\][^{]*\{[^}]*var\(--pal-subtle\)[^}]*font-weight: var\(--font-weight-bold\)/,
+    )
+    const sel = css.match(/\.trip-page \.(tab|chip)\[[^{]*\{[^}]*\}/g) ?? []
+    expect(sel.length).toBeGreaterThan(1)
+    for (const r of sel) expect(r).not.toContain('--color-primary')
+  })
+
+  it('lays the palette hero out as text panel and art from 48rem (AC7)', () => {
+    expect(css).toMatch(/\.hero-text\s*\{[^}]*background:\s*var\(--pal-hero\)[^}]*color:\s*var\(--color-bg\)/)
+    expect(css).toMatch(
+      /@media \(min-width: 48rem\)\s*\{\s*\.hero-palette\s*\{[^}]*grid-template-columns: minmax\(0, 3fr\) minmax\(0, 2fr\)/,
+    )
+  })
+})

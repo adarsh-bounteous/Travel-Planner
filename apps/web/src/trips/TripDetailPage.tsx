@@ -34,6 +34,7 @@ import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripRecommendationsTab } from './TripRecommendationsTab'
 import { UnmatchedBadge } from './UnmatchedBadge'
 import { TripTotalCard } from './TripTotalCard'
+import { paletteForTrip, paletteStyle } from './tripPalettes'
 import { VisaSummaryCard } from './VisaSummaryCard'
 
 type LoadState = 'loading' | 'ready' | 'notFound' | 'failed'
@@ -180,8 +181,10 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
     close()
   }
 
+  const palette = paletteForTrip(trip)
+
   return (
-    <div className="stack stack-lg">
+    <div className="stack stack-lg trip-page" data-palette={palette.name} style={paletteStyle(palette)}>
       <nav className="crumbs" aria-label="Breadcrumb">
         <ol>
           <li>
@@ -192,6 +195,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       </nav>
       <header className="trip-hero" aria-label="Trip">
         <ImageHero
+          variant="palette"
           illustration={illustrationRefOfTrip(trip)}
           title={<h1 className="hero-title">{trip.name}</h1>}
           dates={trip.start_date && trip.end_date ? formatRange(trip.start_date, trip.end_date) : undefined}

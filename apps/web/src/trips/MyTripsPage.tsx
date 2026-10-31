@@ -5,6 +5,7 @@ import { ImageFrame } from '../components/ImageFrame'
 import { illustrationRefOfTrip } from '../illustrations/registry'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
+import { countdownLabel, daysUntil, soonestUpcomingTripId } from './tripCountdown'
 import { Toast } from './Toast'
 import { UnmatchedBadge } from './UnmatchedBadge'
 
@@ -28,7 +29,7 @@ function formatDates(trip: Trip): string {
     .join(' – ')
 }
 
-function TripRow({ trip }: { trip: Trip }) {
+function TripRow({ trip, countdown }: { trip: Trip; countdown: boolean }) {
   const dates = formatDates(trip)
   const stayCount = trip.stays?.length ?? 0
   const destination =
@@ -44,6 +45,9 @@ function TripRow({ trip }: { trip: Trip }) {
         </div>
         {destination && <p>{destination}</p>}
         {dates && <p className="text-sm text-muted">{dates}</p>}
+        {countdown && trip.start_date && (
+          <p className="countdown">{countdownLabel(daysUntil(trip.start_date, new Date()))}</p>
+        )}
         <span className={stayCount === 0 ? 'badge badge-neutral' : 'badge badge-success'}>
           {stayCount === 0 ? 'No stays yet' : `${stayCount} ${stayCount === 1 ? 'stay' : 'stays'}`}
         </span>
@@ -93,11 +97,12 @@ export function MyTripsPage() {
   }
 
   const trips = load.status === 'loaded' ? load.trips : null
+  const soonestId = trips ? soonestUpcomingTripId(trips, new Date()) : null
 
   return (
     <div className="stack stack-lg">
       <div className="page-head">
-        <h1>My trips</h1>
+        <h2>My trips</h2>
         <div className="cluster">
           <Link className="btn btn-secondary" to="/trips/plan">
             Plan from a starter destination
@@ -140,7 +145,7 @@ export function MyTripsPage() {
       {trips && trips.length > 0 && (
         <ul className="grid">
           {trips.map((trip) => (
-            <TripRow key={trip.id} trip={trip} />
+            <TripRow key={trip.id} trip={trip} countdown={trip.id === soonestId} />
           ))}
         </ul>
       )}

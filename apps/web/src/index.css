@@ -7,6 +7,9 @@
   --duration-spin: 600ms;
 }
 
+/* Light only: a dark operating-system setting changes nothing, and there is no dark rule. */
+:root { color-scheme: light; }
+
 *, *::before, *::after { box-sizing: border-box; }
 html { font-family: var(--font-family-sans); font-size: var(--font-size-md); line-height: var(--line-height-body); color: var(--color-fg); background: var(--color-bg); }
 body { margin: 0; }
@@ -296,6 +299,29 @@ html.vt-active::view-transition-new(route) { animation: route-in var(--route-dur
 .hero-title, .hero-dates { position: relative; z-index: 2; grid-column: 1; margin: 0; color: var(--color-on-primary); padding: 0 var(--space-4); overflow-wrap: anywhere; }
 .hero-title { grid-row: 2; font-size: var(--font-size-xl); }
 .hero-dates { grid-row: 3; padding-bottom: var(--space-3); font-weight: var(--font-weight-medium); }
+
+/* Per-trip palette: the colours are --pal-* custom properties set on .trip-page; the primary colour stays on actions. */
+.hero-palette { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; background: var(--pal-hero); }
+.hero-palette > .imgc { grid-area: auto; background: var(--pal-sky); }
+.hero-text { display: flex; flex-direction: column; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-3); min-height: var(--size-preview-frame); background: var(--pal-hero); color: var(--color-bg); }
+.hero-text > * { grid-row: auto; padding: 0; color: var(--color-bg); }
+@media (min-width: 48rem) {
+  .hero-palette { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .hero-text { padding: var(--space-5); min-height: calc(var(--size-preview-frame) * 0.75); }
+}
+.hero-palette .imgc-img { opacity: 1; }
+.art-sky { fill: var(--pal-sky); }
+.art-sun { fill: var(--pal-sun); }
+.art-hill { fill: var(--pal-accent); }
+.art-deep { fill: var(--pal-deep); }
+.art-line { stroke: var(--pal-subtle); stroke-width: 3; fill: none; }
+.trip-page .crumbs a { color: var(--pal-ink); }
+.trip-page .tab:hover { background: var(--pal-subtle); color: var(--pal-ink); }
+.trip-page .tab[aria-selected="true"] { color: var(--pal-ink); border-bottom-color: var(--pal-accent); }
+.trip-page .trip-tabs .tab[aria-selected="true"] { border-bottom-color: transparent; }
+.trip-page .tab-indicator { background: var(--pal-accent); }
+.trip-page .chip:hover { background: var(--pal-subtle); }
+.trip-page .chip[aria-pressed="true"], .trip-page .chip.is-selected { background: var(--pal-subtle); border-color: var(--pal-accent); color: var(--pal-ink); font-weight: var(--font-weight-bold); }
 .trip-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 .trip-layout > * { min-width: 0; }
 .trip-main { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -376,6 +402,8 @@ legend { padding: 0; }
 .badge-success { background: var(--color-success-subtle); color: var(--color-success); border-color: var(--color-success); }
 .badge-warning { background: var(--color-warning-subtle); color: var(--color-warning); border-color: var(--color-warning); }
 .page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.welcome { display: flex; flex-direction: column; gap: var(--space-1); }
+.countdown { font-weight: var(--font-weight-bold); color: var(--color-primary-hover); }
 .trip-row { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); padding: 0; overflow: hidden; list-style: none; min-width: 0; }
 .trip-row .btn { flex: none; align-self: flex-start; margin: 0 var(--space-3) var(--space-3); }
 .trip-info { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; padding: 0 var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start; }

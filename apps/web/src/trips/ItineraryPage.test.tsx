@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 
 import { renderAt, stubApi } from '../test-api'
-import type { Itinerary, ItineraryItem } from './api'
+import type { BookingRow, Itinerary, ItineraryItem, Money } from './api'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -210,7 +210,7 @@ describe('ItineraryPage', () => {
     expect(window.print).toHaveBeenCalled()
     const main = document.querySelector('.itin-body') as HTMLElement
     expect(within(main).queryByRole('button', { name: /share|edit|budget|add/i })).toBeNull()
-    expect(within(main).queryByRole('link', { name: /share|edit|budget|add/i })).toBeNull()
+    expect(within(main).queryByRole('link', { name: /share|edit|budget/i })).toBeNull()
     expect(document.querySelector('.shell-header')).not.toBeNull()
   })
 
@@ -225,6 +225,155 @@ describe('ItineraryPage', () => {
     stubApi({ 'GET /trips/t1/itinerary': { status: 500 } })
     renderAt('/trips/t1/itinerary')
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent("We couldn't load your itinerary"))
+  })
+})
+
+const row = (over: Partial<BookingRow> = {}): BookingRow => ({
+  id: 's1',
+  kind: 'stay',
+  name: 'Alfama Loft',
+  provider: 'Web',
+  start_date: '2026-11-14',
+  end_date: '2026-11-16',
+  price: 300,
+  currency: 'EUR',
+  status: 'confirmed',
+  link_url: 'https://stays.example.com/x',
+  outside_trip: false,
+  ...over,
+})
+
+const money = (over: Partial<Money> = {}): Money => ({
+  bookings: [row()],
+  included: [row()],
+  not_included: [{ name: 'Sintra palaces day tour', reason: 'unchosen', add_path: '/trips/t1/stays/s2/shortlist' }],
+  standard_exclusions: ['Flights to and from the destination', 'Travel insurance'],
+  cost: {
+    currency: 'EUR',
+    total: 300,
+    by_currency: [{ currency: 'EUR', total: 300 }],
+    conversions: [],
+    estimates_note: 'Prices are estimates and may change before you pay.',
+  },
+  ...over,
+})
+
+const showMoney = (m: Money) => show({ ...planned, money: m })
+const region = (name: string) => screen.getByRole('region', { name })
+
+describe('ItineraryPage money and inclusions', () => {
+  it('lists each chosen item with provider, dates, price, status and link (AC1, AC2)', async () => {
+    showMoney(money({ bookings: [row(), row({ id: 's2', name: 'Porto Hotel' })] }))
+    const table = await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(within(table).getAllByRole('row')).toHaveLength(3)
+    const r = within(table).getByRole('row', { name: /Alfama Loft/ })
+    expect(within(r).getByText('EUR 300.00')).toBeInTheDocument()
+    expect(within(r).getByText('Confirmed')).toBeInTheDocument()
+    expect(within(r).getByText('Web')).toBeInTheDocument()
+    expect(within(r).getByRole('link', { name: 'Open Web for Alfama Loft' })).toHaveAttribute(
+      'href',
+      'https://stays.example.com/x',
+    )
+  })
+
+  it('lists priced chosen items under Included and not unchosen ones (AC3, AC4)', async () => {
+    showMoney(money())
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(within(region('Included')).getByText('Alfama Loft')).toBeInTheDocument()
+    expect(within(region('Included')).queryByText('Sintra palaces day tour')).toBeNull()
+  })
+
+  it('lists an unchosen item under Not included with an add link, before the exclusions (AC5, AC6, AC12)', async () => {
+    showMoney(money())
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    const notIncluded = region('Not included')
+    const unchosen = within(notIncluded).getByText('Sintra palaces day tour')
+    expect(within(notIncluded).getByRole('link', { name: /^Add to plan/ })).toHaveAttribute(
+      'href',
+      '/trips/t1/stays/s2/shortlist',
+    )
+    const exclusions = within(notIncluded).getByText('Travel insurance')
+    expect(unchosen.compareDocumentPosition(exclusions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('marks a chosen item with no price as Unpriced (AC11)', async () => {
+    showMoney(
+      money({
+        bookings: [row({ price: null, currency: null })],
+        included: [],
+        not_included: [{ name: 'Alfama Loft', reason: 'unpriced', add_path: null }],
+      }),
+    )
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(within(region('Not included')).getByText('Unpriced')).toBeInTheDocument()
+    expect(within(region('Included')).queryByText('Alfama Loft')).toBeNull()
+  })
+
+  it('shows each total with its currency and the estimates note (AC7, AC14)', async () => {
+    showMoney(
+      money({
+        cost: { ...money().cost, by_currency: [{ currency: 'EUR', total: 300 }, { currency: 'USD', total: 120 }] },
+      }),
+    )
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(within(region('Cost summary')).getByText('USD 120.00')).toBeInTheDocument()
+    expect(within(region('Cost summary')).getAllByText('EUR 300.00').length).toBeGreaterThan(0)
+    expect(screen.getByText('Prices are estimates and may change before you pay.')).toBeInTheDocument()
+  })
+
+  it('shows no conversion note when nothing was converted (AC8)', async () => {
+    showMoney(money())
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(screen.queryByText(/converted to/)).toBeNull()
+  })
+
+  it('shows the conversion note with the rate date (AC9, AC10)', async () => {
+    showMoney(money({ cost: { ...money().cost, conversions: [{ currency: 'USD', rate: 0.92, rate_date: '2026-10-31' }] } }))
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(screen.getByText(/USD converted to EUR at 1 USD = 0\.92 EUR, rate from .*31.*2026/)).toBeInTheDocument()
+  })
+
+  it('flags a stay outside the trip dates with its dates, a badge and an alert (AC15, AC16)', async () => {
+    showMoney(money({ bookings: [row({ start_date: '2026-11-15', end_date: '2026-11-20', outside_trip: true })] }))
+    const table = await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    const r = within(table).getByRole('row', { name: /Alfama Loft/ })
+    expect(within(r).getByText('Outside trip dates')).toBeInTheDocument()
+    expect(within(r).getByText(/20/)).toBeInTheDocument()
+    expect(r).toHaveClass('is-flagged')
+    expect(screen.getByRole('alert')).toHaveTextContent('A booked stay falls outside the trip dates')
+  })
+
+  it('shows no stay warning for a stay inside the trip dates (AC17)', async () => {
+    showMoney(money())
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    expect(screen.queryByText(/falls outside the trip dates/)).toBeNull()
+    expect(screen.queryByText('Outside trip dates')).toBeNull()
+  })
+
+  it('shows an empty state with Explore options when nothing is chosen, and still the exclusions', async () => {
+    showMoney(money({ bookings: [], included: [] }))
+    expect(await screen.findByText('Nothing booked yet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explore options' })).toHaveAttribute('href', '/explore')
+    expect(within(region('Not included')).getByText('Travel insurance')).toBeInTheDocument()
+  })
+
+  it('links the four sections from the section list and still renders without money (older API)', async () => {
+    showMoney(money())
+    await screen.findByRole('table', { name: 'Bookings and confirmations' })
+    const nav = screen.getByRole('navigation', { name: 'On this page' })
+    for (const name of ['Bookings and confirmations', 'Included', 'Not included', 'Cost summary'])
+      expect(within(nav).getByRole('link', { name })).toBeInTheDocument()
+  })
+
+  it('renders when the money block is missing', async () => {
+    show(planned)
+    expect(await screen.findByRole('heading', { level: 1, name: cover.name })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Cost summary', level: 2 })).toBeNull()
+  })
+
+  it('styles the total in the extra-large size from tokens', () => {
+    expect(rule('.total-value')).toMatch(/font-size:\s*var\(--font-size-xl\)/)
+    expect(rule('.line-list li')).not.toMatch(/#[0-9a-f]{3,6}\b|\d+px/i)
   })
 })
 

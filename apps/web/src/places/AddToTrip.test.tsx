@@ -176,6 +176,9 @@ describe('Add a place to a trip', () => {
     act(() => {
       vi.advanceTimersByTime(4000)
     })
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
     expect(screen.queryByText('Place added')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Places in Lisbon' })).toBeInTheDocument()
   })

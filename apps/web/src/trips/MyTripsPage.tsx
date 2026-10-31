@@ -31,7 +31,7 @@ function TripRow({ trip }: { trip: Trip }) {
   const destination =
     trip.country && trip.place ? `${trip.country}, ${trip.place}` : trip.destination
   return (
-    <li className="card trip-row">
+    <li className="card trip-row lift">
       <div className="trip-cover" aria-hidden="true" />
       <div className="trip-info">
         <div className="trip-title">

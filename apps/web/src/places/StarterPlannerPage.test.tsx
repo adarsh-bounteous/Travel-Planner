@@ -112,6 +112,7 @@ describe('Starter planner page', () => {
     await pickJapanTokyo()
     fireEvent.click(screen.getByRole('button', { name: 'Book trip' }))
     expect(await screen.findByText('Trip booked: Tokyo, Japan')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Booking complete' })).toHaveClass('is-playing')
     expect(screen.getByRole('button', { name: 'Book trip' })).toBeEnabled()
   })
 

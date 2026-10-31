@@ -5,6 +5,7 @@ import { fetchFlightShortlist, fetchTrip, pickTransport } from './api'
 import type { FlightShortlist, ShortlistFlight, TransportLeg, Trip } from './api'
 import { FlightShortlistCard } from './FlightShortlistCard'
 import { formatFare, formatLegDate, formatMode, legName, LEGS } from './flights'
+import { ProgressBar } from '../components/ProgressBar'
 import { Toast } from './Toast'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; shortlist: FlightShortlist }
@@ -38,6 +39,7 @@ export function FlightShortlistPage() {
   const [retrying, setRetrying] = useState(false)
   const [toastKey, setToastKey] = useState<number | null>(null)
   const [pickFailed, setPickFailed] = useState(false)
+  const [picking, setPicking] = useState(false)
   const [pickToast, setPickToast] = useState<{ id: number; message: string } | null>(null)
   const legParam = query.get('leg')
   const leg = LEGS.find((l) => l === legParam)
@@ -67,6 +69,7 @@ export function FlightShortlistPage() {
   const pick = async (pickedLeg: TransportLeg, item: ShortlistFlight) => {
     if (legPick?.option_id === item.flight.id) return
     setPickFailed(false)
+    setPicking(true)
     try {
       const updated = await pickTransport(tripId, pickedLeg, { origin, destination, date, optionId: item.flight.id })
       setTrip(updated)
@@ -77,6 +80,8 @@ export function FlightShortlistPage() {
       })
     } catch {
       setPickFailed(true)
+    } finally {
+      setPicking(false)
     }
   }
 
@@ -189,6 +194,7 @@ export function FlightShortlistPage() {
           {`No ${formatMode(mode).toLowerCase()} services run on this route.`}
         </p>
       ))}
+      {picking && <ProgressBar running />}
       {shortlist && ordered.length > 0 && (
         <ul className="stack" role="list" aria-label="Travel options ranked, best first">
           {ordered.map((item) => (

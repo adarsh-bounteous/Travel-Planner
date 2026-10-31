@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { FlightShortlist, ShortlistFlight, SourceResult, Trip } from './api'
 import { formatRetrieved } from './flights'
@@ -288,6 +288,24 @@ describe('flight shortlist page', () => {
         date: '2027-11-18',
         option_id: 'algarve-air',
       })
+    })
+
+    it('shows a progress animation while the pick is saved (AC11)', async () => {
+      const fetchMock = openLeg('destination')
+      const original = fetchMock.getMockImplementation()!
+      let release: () => void = () => {}
+      const gate = new Promise<void>((r) => {
+        release = r
+      })
+      fetchMock.mockImplementation(async (path, init) => {
+        if (init?.method === 'PUT') await gate
+        return original(path, init)
+      })
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Pick' }))[0])
+      await waitFor(() => expect(document.querySelector('.progress-fill.is-running')).not.toBeNull())
+      release()
+      await screen.findByText(/Picked .* Added to your trip total/)
+      expect(document.querySelector('.progress-fill.is-running')).toBeNull()
     })
 
     it('moves the pick when another option is picked (AC2)', async () => {

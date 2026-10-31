@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { AlertIcon, CheckIcon, InfoIcon } from '../auth/icons'
+import { useCountUp } from '../motion'
 import type { CostSummary, InsurancePick } from './api'
 
 const amountFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 })
@@ -27,13 +28,24 @@ export function TripTotalCard({
   insurance?: InsurancePick | null
 }) {
   const { currency } = cost
+  const shown = useCountUp(cost.total)
+  const counting = shown !== cost.total
   const unpricedRestaurants = cost.restaurant_unpriced_count ?? 0
   const hasRestaurants = (cost.restaurant_total ?? 0) > 0 || unpricedRestaurants > 0
   const missing = cost.missing_categories.map((c) => c.toLowerCase())
   return (
     <section className="card stack stack-sm" aria-label="Trip total">
       <div className="total-row">
-        <h2 aria-live="polite">{formatMoney(cost.total, currency)}</h2>
+        <h2 aria-live="polite">
+          {counting ? (
+            <>
+              <span aria-hidden="true">{formatMoney(Math.round(shown), currency)}</span>
+              <span className="sr-only">{formatMoney(cost.total, currency)}</span>
+            </>
+          ) : (
+            formatMoney(cost.total, currency)
+          )}
+        </h2>
         <span className="fx-rate">
           {cost.rates.length > 0
             ? cost.rates

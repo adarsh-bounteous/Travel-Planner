@@ -55,8 +55,11 @@ a.btn { text-decoration: none; }
   font: inherit; font-weight: var(--font-weight-medium); line-height: 1; text-decoration: none; cursor: pointer;
   border: var(--border-width) solid transparent; border-radius: var(--button-default-radius);
   background: var(--button-secondary-background); color: var(--button-secondary-foreground);
-  transition: background var(--duration-fast);
+  transition: transform var(--motion-duration-fast) var(--motion-ease-out), opacity var(--motion-duration-fast) var(--motion-ease-out);
 }
+.btn:hover { transform: translateY(var(--mi-hover-nudge)); }
+.btn:active { transform: scale(var(--mi-press)); opacity: 0.85; }
+.btn:focus-visible:hover, .btn:focus-visible:active { outline: var(--border-width-strong) solid var(--color-focus); outline-offset: var(--border-width-strong); }
 .btn-primary { background: var(--button-primary-background); color: var(--button-primary-foreground); }
 .btn-primary:hover { background: var(--button-primary-hover); color: var(--button-primary-foreground); }
 .btn-secondary { background: var(--button-secondary-background); color: var(--button-secondary-foreground); border-color: var(--button-secondary-border); }
@@ -160,8 +163,7 @@ a.btn { text-decoration: none; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-3); text-align: center; color: var(--color-fg-muted); border: var(--border-width) dashed var(--color-border-strong); border-radius: var(--radius-lg); }
 .empty-state h2, .empty-state h3 { color: var(--color-fg); }
 .compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.skeleton { display: block; height: var(--size-skeleton-line); background: var(--color-skeleton); border-radius: var(--radius-sm); animation: skeleton-pulse calc(var(--duration-spin) * 2) ease-in-out infinite; }
-@keyframes skeleton-pulse { 50% { opacity: var(--opacity-disabled); } }
+.skeleton { display: block; position: relative; overflow: hidden; height: var(--size-skeleton-line); background: var(--color-skeleton); border-radius: var(--radius-sm); }
 .motion-move { transition: transform var(--motion-duration-base) var(--motion-ease-out), opacity var(--motion-duration-base) var(--motion-ease-out); }
 .motion-move.is-moved { transform: translateX(var(--motion-distance)); }
 
@@ -194,11 +196,76 @@ html.vt-active::view-transition-new(route) { animation: route-in var(--route-dur
 .panel-in { animation: fade-in var(--motion-duration-base) var(--motion-ease-out) both; }
 .panel-ghost { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; animation: fade-out var(--motion-duration-base) var(--motion-ease-out) both; }
 
+/* Micro-interaction distances: every movement reads these, so reduced motion collapses them. */
+:root {
+  --mi-lift: calc(var(--space-1) * -1);
+  --mi-press: 0.96;
+  --mi-hover-nudge: calc(var(--space-1) / -4);
+  --mi-pop-peak: 1.35;
+  --mi-shift: var(--motion-distance);
+  --mi-drawer-from: 100%;
+  --mi-modal-from: 0.96;
+  --mi-bar-from: 0;
+  --mi-route-from: -100%;
+  --mi-route-line-from: 0;
+  --mi-shimmer-from: -100%;
+  --mi-shimmer-to: 100%;
+  --mi-check-from: 0.4;
+}
+
+.lift { position: relative; transition: transform var(--motion-duration-base) var(--motion-ease-out); }
+.lift::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: 0 var(--space-2) var(--space-3) var(--color-overlay); opacity: 0; transition: opacity var(--motion-duration-base) var(--motion-ease-out); pointer-events: none; }
+.lift:hover { transform: translateY(var(--mi-lift)); }
+.lift:hover::before { opacity: 0.15; }
+
+.progress { height: var(--space-2); margin-top: var(--space-3); background: var(--color-surface); border-radius: var(--radius-full); overflow: hidden; }
+.progress-fill { height: 100%; width: 100%; background: var(--color-primary); border-radius: var(--radius-full); transform-origin: left center; opacity: 0; }
+.progress-fill.is-running { animation: mi-bar var(--motion-duration-slow) var(--motion-ease-in-out) both; }
+@keyframes mi-bar { from { transform: scaleX(var(--mi-bar-from)); opacity: 0; } 15% { opacity: 1; } to { transform: scaleX(1); opacity: 1; } }
+
+.route { display: flex; align-items: center; gap: var(--space-2); }
+.route-track { position: relative; flex: 1; height: var(--space-4); overflow: hidden; display: flex; align-items: center; }
+.route-line { position: absolute; left: 0; right: 0; top: 50%; height: var(--border-width-strong); background: var(--color-border-strong); transform-origin: left center; border-radius: var(--radius-full); }
+.route-plane { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; color: var(--color-primary); }
+.route.is-playing .route-line { animation: mi-line var(--motion-duration-slow) var(--motion-ease-out) both; }
+.route.is-playing .route-plane { animation: mi-plane calc(var(--motion-duration-slow) * 2) var(--motion-ease-out) both; }
+@keyframes mi-line { from { transform: scaleX(var(--mi-route-line-from)); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+@keyframes mi-plane { from { transform: translateX(var(--mi-route-from)); opacity: 0; } 20% { opacity: 1; } to { transform: translateX(0); opacity: 1; } }
+
+.heart-pop { animation: mi-pop var(--motion-duration-base) var(--motion-ease-out); }
+@keyframes mi-pop { 0% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(var(--mi-pop-peak)); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+.check-badge { display: inline-flex; align-items: center; justify-content: center; width: var(--size-control-sm); height: var(--size-control-sm); border-radius: var(--radius-full); background: var(--color-success); color: var(--color-on-primary); }
+.check-badge.is-big { width: var(--size-control-lg); height: var(--size-control-lg); }
+.check-badge.is-playing { animation: mi-check var(--motion-duration-slow) var(--motion-ease-out) both; }
+@keyframes mi-check { from { transform: scale(var(--mi-check-from)); opacity: 0; } 60% { opacity: 1; } to { transform: scale(1); opacity: 1; } }
+
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--color-bg), transparent); animation: mi-shimmer calc(var(--duration-spin) * 2) ease-in-out infinite; }
+@keyframes mi-shimmer { 0% { transform: translateX(var(--mi-shimmer-from)); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateX(var(--mi-shimmer-to)); opacity: 0; } }
+
+.backdrop.is-entering { animation: mi-scrim-in var(--motion-duration-base) var(--motion-ease-out) both; }
+.backdrop.is-leaving { animation: mi-scrim-out var(--motion-duration-fast) var(--motion-ease-in-out) both; }
+@keyframes mi-scrim-in { from { opacity: 0; } to { opacity: var(--opacity-overlay); } }
+@keyframes mi-scrim-out { from { opacity: var(--opacity-overlay); } to { opacity: 0; } }
+.drawer.is-entering { animation: mi-drawer-in var(--motion-duration-base) var(--motion-ease-out) both; }
+.drawer.is-leaving { animation: mi-drawer-out var(--motion-duration-fast) var(--motion-ease-in-out) both; }
+@keyframes mi-drawer-in { from { transform: translateX(var(--mi-drawer-from)); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes mi-drawer-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(var(--mi-drawer-from)); opacity: 0; } }
+.modal.is-entering { animation: mi-modal-in var(--motion-duration-base) var(--motion-ease-out) both; }
+.modal.is-leaving { animation: mi-modal-out var(--motion-duration-fast) var(--motion-ease-in-out) both; }
+@keyframes mi-modal-in { from { transform: translate(-50%, -50%) scale(var(--mi-modal-from)); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@keyframes mi-modal-out { from { transform: translate(-50%, -50%) scale(1); opacity: 1; } to { transform: translate(-50%, -50%) scale(var(--mi-modal-from)); opacity: 0; } }
+.toast.is-entering { animation: mi-toast-in var(--motion-duration-base) var(--motion-ease-out) both; }
+.toast.is-leaving { animation: mi-toast-out var(--motion-duration-fast) var(--motion-ease-in-out) both; }
+@keyframes mi-toast-in { from { transform: translateY(var(--mi-shift)); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes mi-toast-out { from { transform: translateY(0); opacity: 1; } to { transform: translateY(var(--mi-shift)); opacity: 0; } }
+
 /* Reduced motion keeps a fade but removes all movement. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --route-shift: 0px; }
+  :root { --route-shift: 0px; --mi-lift: 0px; --mi-press: 1; --mi-hover-nudge: 0px; --mi-pop-peak: 1; --mi-shift: 0px; --mi-drawer-from: 0%; --mi-modal-from: 1; --mi-bar-from: 1; --mi-route-from: 0%; --mi-route-line-from: 1; --mi-shimmer-from: 0%; --mi-shimmer-to: 0%; --mi-check-from: 1; }
   .tab-indicator.is-moving { transition: none !important; }
-  *:not(.route-anim):not(.panel-in):not(.panel-ghost), *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition-property: opacity !important; transition-duration: var(--motion-duration-base) !important; transition-timing-function: linear !important; }
+  .spinner, .skeleton::after { animation: none !important; }
+  *:not(.route-anim):not(.panel-in):not(.panel-ghost), *::before, *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-property: opacity !important; transition-duration: var(--motion-duration-base) !important; transition-timing-function: linear !important; }
   .motion-move, .motion-move.is-moved { transform: none !important; }
 }
 

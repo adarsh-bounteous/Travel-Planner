@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { Place } from './api'
 import { PlaceCard } from './PlaceCard'
 
@@ -20,10 +20,18 @@ const renderCard = (props: Partial<Parameters<typeof PlaceCard>[0]> = {}) =>
   )
 
 describe('PlaceCard', () => {
-  it('has a gradient cover with no photo or text on it (AC1, AC2, AC12)', () => {
-    renderCard({ saved: true })
-    expect(screen.getByTestId('place-cover')).toBeEmptyDOMElement()
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+  it('shows 16:9 place-type art hidden from screen readers (AC4, AC9, AC12)', async () => {
+    const { container } = renderCard({ saved: true })
+    expect(container.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    await waitFor(() => expect(container.querySelector('img')?.getAttribute('src')).toMatch(/landmark\.svg/))
+    const img = container.querySelector('img')!
+    expect(img).toHaveAttribute('aria-hidden', 'true')
+    expect(img).toHaveAttribute('alt', '')
+  })
+
+  it('uses the art of the place type (AC4)', async () => {
+    const { container } = renderCard({ place: { ...alfama, place_type: 'park' } })
+    await waitFor(() => expect(container.querySelector('img')?.getAttribute('src')).toMatch(/park\.svg/))
   })
 
   it('shows save and add-to-trip controls (AC7, AC8)', () => {

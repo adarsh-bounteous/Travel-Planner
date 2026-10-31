@@ -132,6 +132,31 @@ describe('ItineraryPage', () => {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
   })
 
+  it('puts destination art with alt text behind the cover title and dates (AC5, AC7, AC9, AC11)', async () => {
+    show(planned)
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    const coverSection = document.getElementById('cover') as HTMLElement
+    expect(coverSection.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    expect(coverSection.querySelector('.scrim')).toHaveAttribute('aria-hidden', 'true')
+    expect(document.getElementById('cover-h')).toHaveClass('hero-title')
+    await waitFor(() => expect(coverSection.querySelector('img')?.getAttribute('src')).toMatch(/lisbon\.svg/))
+    expect(within(coverSection).getByRole('img', { name: 'Illustration of Lisbon' })).toBeInTheDocument()
+  })
+
+  it('falls back to the generic art on the cover for an unknown destination (AC13)', async () => {
+    show({ ...planned, cover: { ...cover, destinations: ['Atlantis'] } })
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    const coverSection = document.getElementById('cover') as HTMLElement
+    await waitFor(() => expect(coverSection.querySelector('img')?.getAttribute('src')).toMatch(/generic\.svg/))
+  })
+
+  it('explains the missing itinerary with art hidden from screen readers (AC6, AC12)', async () => {
+    show(null)
+    expect(await screen.findByRole('heading', { name: 'Itinerary not found' })).toBeInTheDocument()
+    await waitFor(() => expect(document.querySelector('.empty-state img')).not.toBeNull())
+    expect(document.querySelector('.empty-state img')).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('shows the logo at the top of the document (AC1)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1, name: cover.name })

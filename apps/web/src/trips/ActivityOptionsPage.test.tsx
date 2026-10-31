@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { ActivityOption, ActivityOptions, ActivityPrice, Trip } from './api'
 
@@ -53,6 +53,15 @@ const open = (options: ActivityOption[], over: Partial<ActivityOptions> = {}) =>
 }
 
 describe('activity options page', () => {
+  it('tops each card with hidden 16:9 generic art, as an activity has no place type (AC8, AC9, AC12, AC13)', async () => {
+    open([option('Tile Museum')])
+    const card = await screen.findByRole('article', { name: 'Tile Museum' })
+    expect(card.firstElementChild).toHaveClass('imgc')
+    expect(card.firstElementChild).toHaveStyle({ '--ratio': '16/9' })
+    await waitFor(() => expect(card.querySelector('img')?.getAttribute('src')).toMatch(/generic\.svg/))
+    expect(card.querySelector('img')).toHaveAttribute('aria-hidden', 'true')
+  })
+
   it('shows provider, indicative group estimate and adult price (AC3-6)', async () => {
     open([option('Tile Museum')])
     const card = await screen.findByRole('article', { name: 'Tile Museum' })

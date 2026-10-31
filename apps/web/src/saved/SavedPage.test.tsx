@@ -79,13 +79,13 @@ describe('Saved page', () => {
     expect(await screen.findByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
   })
 
-  it('lists each place on the same gradient card as Explore (AC9)', async () => {
+  it('lists each place on the same art card as Explore (AC9)', async () => {
     stubApi(two)
     renderAt('/saved')
-    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
-    expect(screen.getByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
+    await screen.findByRole('button', { name: 'Unsave Alfama' })
+    expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2)
     expect(screen.queryByRole('button', { name: /to trip$/ })).not.toBeInTheDocument()
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    expect(document.querySelector('img[src*="img.example"]')).toBeNull()
   })
 
   it('removing the last place shows the empty state', async () => {

@@ -1,6 +1,6 @@
 import { HeartIcon } from '../auth/icons'
 import type { Place } from './api'
-import { PlaceCover } from './PlaceCover'
+import { ImageFrame } from '../components/ImageFrame'
 
 type PlaceCardProps = {
   place: Place
@@ -25,7 +25,7 @@ export function PlaceCard({
 }: PlaceCardProps) {
   return (
     <li className="card stack">
-      <PlaceCover seed={place.id} />
+      <ImageFrame ratio="16/9" illustration={{ placeType: place.place_type }} />
       <span>{place.name}</span>
       {saved && (
         <span className="badge">

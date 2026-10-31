@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, CheckIcon, InfoIcon, UserIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import { fetchInsuranceOptions, fetchTrip } from './api'
@@ -55,6 +56,7 @@ export function InsuranceComparePage() {
       )}
       {status?.kind === 'too-few' && (
         <div className="empty-state">
+          <EmptyStateArt />
           <InfoIcon />
           <h2>Nothing to compare yet</h2>
           <p>You need at least 2 plans to compare. Change your trip dates or travellers to see more plans.</p>
@@ -65,6 +67,7 @@ export function InsuranceComparePage() {
       )}
       {status?.kind === 'missing-age' && (
         <div className="empty-state">
+          <EmptyStateArt />
           <UserIcon />
           <h2>We need a traveller's age</h2>
           <p>

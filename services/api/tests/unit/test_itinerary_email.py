@@ -40,6 +40,17 @@ def test_values_are_escaped():
     assert "<script>" not in html and "&lt;script&gt;" in html
 
 
+def test_a_fact_link_is_only_linked_for_http_urls():
+    def fact_html(url: str) -> str:
+        itinerary = _itinerary()
+        itinerary.essentials = [EssentialFact(key="visa", label="Visa", value="Required", link_text="Apply", link_url=url)]
+        return render_itinerary_html(itinerary)
+
+    assert 'href="https://example.com/visa"' in fact_html("https://example.com/visa")
+    unsafe = fact_html("javascript:alert(1)")
+    assert "javascript:" not in unsafe and "Visa" in unsafe
+
+
 def test_no_edit_or_add_links_and_inline_styles_only():
     html = render_itinerary_html(_itinerary())
     assert "/trips/t1" not in html and "Add to plan" not in html

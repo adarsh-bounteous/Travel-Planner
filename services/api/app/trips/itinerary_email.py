@@ -74,7 +74,7 @@ def _bookings(rows: list[BookingRow]) -> str:
 def _fact(fact: EssentialFact) -> str:
     value = "Not yet planned" if fact.value is None else fact.value
     detail = f"<br>{_e(fact.detail)}" if fact.value is not None and fact.detail else ""
-    link = f'<br><a href="{_e(fact.link_url)}" style="color:{_COLOURS["primary"]}">{_e(fact.link_text or fact.link_url)}</a>' if fact.link_url else ""
+    link = f'<br><a href="{_e(fact.link_url)}" style="color:{_COLOURS["primary"]}">{_e(fact.link_text or fact.link_url)}</a>' if fact.link_url and fact.link_url.startswith(("http://", "https://")) else ""
     source = f"Source: {_e(fact.source)}. Checked {_day(fact.as_of)}." if fact.source and fact.as_of else "No source or date yet"
     return f'<strong>{_e(fact.label)}</strong>: {_e(value)}{detail}{link}<br><span style="{_MUTED}">{source}</span>'
 

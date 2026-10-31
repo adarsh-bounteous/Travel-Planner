@@ -55,17 +55,15 @@ describe('local mode settings page', () => {
       expect(screen.queryByRole('list', { name: 'Registered providers' })).toBeNull()
     })
 
-    it('refuses a user who is not a developer (AC7)', async () => {
+    it('keeps the switch visible when local mode is off (404)', async () => {
       stubApi({
         'GET /local/mode': { status: 200, body: { local_mode: false } },
         'GET /providers/status': { status: 404, body: { code: 'not_found' } },
       })
       renderAt('/account/local-mode')
-      expect(await screen.findByRole('alert')).toHaveTextContent('This page is for developers only.')
-      expect(screen.queryByRole('list', { name: 'Registered providers' })).toBeNull()
-      expect(screen.getByRole('heading', { name: 'Access refused' })).toBeInTheDocument()
-      expect(screen.queryByLabelText('On')).toBeNull()
-      expect(screen.queryByLabelText('Off')).toBeNull()
+      expect(await screen.findByLabelText('Off')).toBeChecked()
+      expect(screen.getByText('Turn local mode on to see the registered providers.')).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Access refused' })).toBeNull()
     })
 
     it.each([401, 403])('refuses the whole page on a %i (AC7)', async (status) => {
@@ -75,7 +73,9 @@ describe('local mode settings page', () => {
       })
       renderAt('/account/local-mode')
       expect(await screen.findByRole('alert')).toHaveTextContent('This page is for developers only.')
+      expect(screen.getByRole('heading', { name: 'Access refused' })).toBeInTheDocument()
       expect(screen.queryByLabelText('On')).toBeNull()
+      expect(screen.queryByLabelText('Off')).toBeNull()
     })
 
     it('shows health as a dot plus a text label (AC8)', async () => {

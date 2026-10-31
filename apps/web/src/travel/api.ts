@@ -1,4 +1,4 @@
-import { call } from '../trips/api'
+import { call, ForbiddenError, NotFoundError, UnauthorizedError } from '../trips/api'
 
 export type TravelKind = 'stay' | 'flight' | 'transport'
 
@@ -47,14 +47,20 @@ export const fetchLocalMode = () => call<{ local_mode: boolean }>('/local/mode')
 
 export type ProviderStatus = { name: string; kind: string; health: string }
 
-/** Thrown when the API withholds the provider list: 404 outside local mode, 401/403 for no access. */
+/** Thrown when the API refuses the provider list: 401 when not signed in, 403 for no access. */
 export class ProvidersNotAllowedError extends Error {}
 
+/** Thrown when local mode is off (404): there is no provider list to show yet. */
+export class ProvidersUnavailableError extends Error {}
+
 export async function fetchProviderStatuses(): Promise<ProviderStatus[]> {
-  const response = await fetch('/providers/status', { credentials: 'same-origin' })
-  if ([401, 403, 404].includes(response.status)) throw new ProvidersNotAllowedError()
-  if (!response.ok) throw new Error(`request failed: ${response.status}`)
-  return (await response.json()).providers
+  try {
+    return (await call<{ providers: ProviderStatus[] }>('/providers/status')).providers
+  } catch (error) {
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) throw new ProvidersNotAllowedError()
+    if (error instanceof NotFoundError) throw new ProvidersUnavailableError()
+    throw error
+  }
 }
 
 /** Thrown when a live deployment refuses to turn local mode on (409). */

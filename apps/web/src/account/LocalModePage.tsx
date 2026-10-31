@@ -6,6 +6,7 @@ import {
   fetchProviderStatuses,
   LocalModeNotAllowedError,
   ProvidersNotAllowedError,
+  ProvidersUnavailableError,
   setLocalMode,
   type ProviderStatus,
 } from '../travel/api'
@@ -26,7 +27,7 @@ export function healthBadge(health: string): string {
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
-type Providers = ProviderStatus[] | 'loading' | 'refused' | 'failed'
+type Providers = ProviderStatus[] | 'loading' | 'refused' | 'local mode off' | 'failed'
 
 function ProviderList({ providers }: { providers: Providers }) {
   if (providers === 'loading')
@@ -46,6 +47,8 @@ function ProviderList({ providers }: { providers: Providers }) {
       </div>
     )
   if (providers === 'refused') return null
+  if (providers === 'local mode off')
+    return <p className="field-hint">Turn local mode on to see the registered providers.</p>
   if (providers.length === 0)
     return (
       <div className="empty-state">
@@ -84,7 +87,13 @@ export function LocalModePage() {
       () => setOn(false),
     )
     fetchProviderStatuses().then(setProviders, (error) =>
-      setProviders(error instanceof ProvidersNotAllowedError ? 'refused' : 'failed'),
+      setProviders(
+        error instanceof ProvidersNotAllowedError
+          ? 'refused'
+          : error instanceof ProvidersUnavailableError
+            ? 'local mode off'
+            : 'failed',
+      ),
     )
   }, [])
 

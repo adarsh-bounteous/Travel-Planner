@@ -25,5 +25,7 @@ def get_itinerary(
     today: date = Depends(get_today),
 ) -> Itinerary:
     """The printable itinerary for the owner or an accepted editor; anyone else gets the missing-trip 404."""
-    trip, owner_id, _ = _load(trips, identity, user, trip_id)
-    return build_itinerary(trip, profiles.get_profile(owner_id), visa_rules, today)
+    trip, owner_id, is_owner = _load(trips, identity, user, trip_id)
+    # The owner's citizenship, vaccinations and pregnancy answers are private: editors never get facts built from them.
+    profile = profiles.get_profile(owner_id) if is_owner else None
+    return build_itinerary(trip, profile, visa_rules, today)

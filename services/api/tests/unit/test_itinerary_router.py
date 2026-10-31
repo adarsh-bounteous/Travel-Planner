@@ -51,14 +51,20 @@ def test_money_editors_and_sharing_never_appear(trip):
         assert word not in text
 
 
-def test_accepted_editor_sees_the_owners_visa_answer(trip, sign_in_as):
+def test_editor_never_sees_the_owners_private_profile_answers(trip, sign_in_as):
     owner, tid = trip
-    owner.put("/profile", json={"citizenship": "India", "residence": "India"})
+    owner.put(
+        "/profile",
+        json={"citizenship": "India", "residence": "India", "pregnant": True, "vaccinations_had": ["Typhoid"]},
+    )
     ana = sign_in_as("ana@example.com")
     ana.post(f"/invites/{_invite(owner, tid, 'ana@example.com')}/accept")
     owner.put(f"/trips/{tid}", json=trip_body(destination="Lisbon, Portugal", start_date="2026-11-14", end_date="2026-11-16"))
-    visa = next(f for f in ana.get(f"/trips/{tid}/itinerary").json()["essentials"] if f["key"] == "visa")
-    assert visa["value"] == "A visa is required for Portugal."
+    mine = {f["key"]: f for f in owner.get(f"/trips/{tid}/itinerary").json()["essentials"]}
+    assert mine["visa"]["value"] == "A visa is required for Portugal." and "medical" in mine
+    theirs = {f["key"]: f for f in ana.get(f"/trips/{tid}/itinerary").json()["essentials"]}
+    assert theirs["visa"]["value"] is None
+    assert "medical" not in theirs
 
 
 def test_shared_link_payload_has_no_essentials(trip):

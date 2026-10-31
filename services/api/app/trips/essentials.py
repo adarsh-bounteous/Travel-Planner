@@ -71,9 +71,9 @@ def _medical_summary(guidance: TravellerGuidance) -> tuple[str | None, str | Non
         return None, None
     if guidance.result == "none_required":
         return "No vaccinations or tests are required.", None
-    vaccinations = ", ".join(f"{v.name} ({v.status.replace('_', ' ')})" for v in guidance.vaccinations)
-    parts = [p for p in (vaccinations, ", ".join(guidance.tests)) if p]
-    return (parts[0] if parts else guidance.advisories[0]), ("; ".join(guidance.advisories) or None)
+    vaccinations = [f"{v.name} ({v.status.replace('_', ' ')})" for v in guidance.vaccinations]
+    parts = [*vaccinations, *guidance.tests] or guidance.advisories
+    return "; ".join(parts), ("; ".join(guidance.advisories) or None)
 
 
 def _sim_value(trip: Trip) -> str | None:
@@ -124,16 +124,17 @@ def build_essentials(
         key="weather", label="Typical weather for your dates", value=weather.summary if weather else None,
         source=CLIMATE_SOURCE if weather else None, as_of=weather.as_of if weather else None,
     ))
-    if has_data(country):
+    if has_data(country) and owner_profile is not None:
         guidance = guidance_for(
             country, profile.citizenship, profile.residence, profile.vaccinations_had, profile.pregnant,
             name=profile.display_name, traveller_id=None,
         )
         value, detail = _medical_summary(guidance)
-        facts.append(EssentialFact(
-            key="medical", label="Medical guidance", value=value, detail=detail,
-            source=MEDICAL_SOURCE if value else None, as_of=MEDICAL_AS_OF if value else None,
-        ))
+        if value:  # no guidance for this traveller: the card is left out
+            facts.append(EssentialFact(
+                key="medical", label="Medical guidance", value=value, detail=detail,
+                source=MEDICAL_SOURCE, as_of=MEDICAL_AS_OF,
+            ))
 
     derived = {
         "insurance": trip.insurance is not None,

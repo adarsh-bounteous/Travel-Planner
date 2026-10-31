@@ -77,6 +77,18 @@ def test_medical_only_when_the_destination_has_guidance():
     assert "medical" not in _facts(_trip(destination="Peru"))
 
 
+def test_medical_is_omitted_without_a_profile_or_without_guidance_for_it():
+    no_profile = build_essentials(_trip(destination="Portugal"), None, _rules(), TODAY)[0]
+    assert "medical" not in {f.key for f in no_profile}
+    assert "medical" not in _facts(_trip(destination="Portugal"), citizenship="Brazil")
+
+
+def test_medical_summary_keeps_vaccinations_and_tests():
+    profile = Profile(citizenship="India", residence="India")
+    medical = next(f for f in build_essentials(_trip(destination="Portugal"), profile, _rules(), TODAY)[0] if f.key == "medical")
+    assert "Typhoid" in medical.value and "TB screening" in medical.value
+
+
 def test_checklist_is_six_items_in_order():
     _, checklist, _ = build_essentials(_trip(), None, _rules(), TODAY)
     assert [c.key for c in checklist] == ["passport", "visa", "insurance", "sim", "reminders", "bookings"]

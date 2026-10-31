@@ -1,10 +1,11 @@
 from dataclasses import asdict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.config import get_settings
 from app.local_mode import stand_ins_for
 from app.local_seed import DEMO_EMAIL, DEMO_PASSWORD
+from app.providers.registry import ProviderRegistry
 from app.routers import deps
 
 router = APIRouter()
@@ -19,7 +20,7 @@ def _demo_account() -> dict[str, str] | None:
 
 
 @router.get("/startup-status")
-def startup_status() -> dict[str, object]:
+def startup_status(registry: ProviderRegistry = Depends(deps.get_provider_registry)) -> dict[str, object]:
     # get_settings() refuses local mode outside the local environment, so the demo password
     # can only be returned where local mode is allowed.
     settings = get_settings()
@@ -28,4 +29,5 @@ def startup_status() -> dict[str, object]:
         "stand_ins": asdict(stand_ins_for(settings.local_mode)),
         "map_tiles": settings.map_tiles_enabled,
         "demo_account": _demo_account() if settings.local_mode else None,
+        "providers": registry.statuses(deps.secret_reader()),
     }

@@ -79,15 +79,46 @@ describe('restaurants in the itinerary', () => {
     expect(screen.getByText('Estimate unavailable')).toBeInTheDocument()
   })
 
-  it('asks to move a pick for an editor, and not for a viewer (AC4)', () => {
+  it('asks to schedule an unscheduled pick for an editor (AC11)', () => {
     const onMove = show(trip([pick()]))
+    fireEvent.click(screen.getByRole('button', { name: 'Schedule Casa Lima' }))
+    expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }))
+  })
+
+  it('keeps Move for a pick that has a day (AC11)', () => {
+    const onMove = show(trip([pick({ date: '2026-05-01', meal: 'dinner' })]))
+    expect(screen.queryByRole('button', { name: 'Schedule Casa Lima' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Move Casa Lima' }))
     expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }))
   })
 
-  it('has no Move button for a viewer', () => {
-    show(trip([pick()], false))
-    expect(screen.queryByRole('button', { name: 'Move Casa Lima' })).toBeNull()
+  it('has no Schedule or Move button for a viewer', () => {
+    show(trip([pick(), pick({ id: 'p2', name: 'Cervejaria', date: '2026-05-01', meal: 'lunch' })], false))
+    expect(screen.queryByRole('button', { name: /Schedule|Move/ })).toBeNull()
+  })
+
+  it('places a pick with the default day and meal under that day, not in Unscheduled (AC3, AC4)', () => {
+    show(trip([pick({ date: '2026-05-01', meal: 'dinner' })]))
+    expect(within(screen.getByRole('region', { name: /1 May/ })).getByText('Dinner')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Unscheduled' })).queryByText('Casa Lima')).toBeNull()
+  })
+
+  it('lists a pick with no day in the Unscheduled box (AC5)', () => {
+    show(trip([pick()]))
+    expect(within(screen.getByRole('region', { name: 'Unscheduled' })).getByText('Casa Lima')).toBeInTheDocument()
+  })
+
+  it('explains the Unscheduled box (AC10)', () => {
+    show(trip([pick()]))
+    const box = within(screen.getByRole('region', { name: 'Unscheduled' }))
+    expect(box.getByText('Holds picks with no day yet.')).toBeInTheDocument()
+  })
+
+  it('keeps an unscheduled pick visible on a trip without dates (AC8)', () => {
+    show({ ...trip([pick()]), days: [] })
+    const box = within(screen.getByRole('region', { name: 'Unscheduled' }))
+    expect(box.getByText('Casa Lima')).toBeInTheDocument()
+    expect(screen.getByText('Add trip dates to give picks a day.')).toBeInTheDocument()
   })
 
   it('links to the restaurant shortlist', () => {

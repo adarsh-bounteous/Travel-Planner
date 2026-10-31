@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router'
-import { AlertIcon, CheckIcon } from '../auth/icons'
+import { Link, useParams } from 'react-router'
+import { AlertIcon, CheckIcon, InfoIcon, UserIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import { fetchInsuranceOptions, fetchTrip } from './api'
-import type { InsurancePlan } from './api'
+import type { InsuranceOptions } from './api'
+import { compareState } from './insuranceCompare'
 import { InsuranceDisclaimer, ProviderUnavailable } from './InsuranceNotices'
 import { openProviderSite } from './providerSite'
 import { formatMoney } from './TripTotalCard'
 
-type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; plans: InsurancePlan[] }
+type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; options: InsuranceOptions }
 
 /** Every shortlisted plan side by side, in shortlist order. A table on desktop, one card per plan on phones. */
 export function InsuranceComparePage() {
@@ -23,12 +24,12 @@ export function InsuranceComparePage() {
       .then((trip) => setPickedId(trip.insurance?.plan_id ?? null))
       .catch(() => undefined)
     fetchInsuranceOptions(tripId)
-      .then((options) => setResult({ state: 'ready', plans: options.plans }))
+      .then((options) => setResult({ state: 'ready', options }))
       .catch(() => setResult({ state: 'failed' }))
   }, [tripId])
 
-  if (result.state === 'ready' && result.plans.length < 2) return <Navigate to={shortlistHref} replace />
-  const plans = result.state === 'ready' ? result.plans : []
+  const status = result.state === 'ready' ? compareState(result.options) : null
+  const plans = result.state === 'ready' && status?.kind === 'ready' ? result.options.plans : []
 
   return (
     <div className="stack stack-lg">
@@ -50,6 +51,32 @@ export function InsuranceComparePage() {
         <div className="alert alert-danger cluster" role="alert">
           <AlertIcon />
           We couldn't load insurance plans. Check your connection and try again.
+        </div>
+      )}
+      {status?.kind === 'too-few' && (
+        <div className="empty-state">
+          <InfoIcon />
+          <h2>Nothing to compare yet</h2>
+          <p>You need at least 2 plans to compare. Change your trip dates or travellers to see more plans.</p>
+          <Link className="btn btn-primary" to={shortlistHref}>
+            Back to insurance options
+          </Link>
+        </div>
+      )}
+      {status?.kind === 'missing-age' && (
+        <div className="empty-state">
+          <UserIcon />
+          <h2>We need a traveller's age</h2>
+          <p>
+            Add the missing traveller details to compare plans. {status.names.join(', ')}{' '}
+            {status.names.length === 1 ? 'has' : 'have'} no age yet.
+          </p>
+          <Link
+            className="btn btn-primary"
+            to={`${shortlistHref}#${status.names.includes('You') ? 'owner-age' : 'companion-ages'}`}
+          >
+            Add traveller details
+          </Link>
         </div>
       )}
       {siteFailed !== null && <ProviderUnavailable picked={siteFailed === pickedId} />}
@@ -103,6 +130,13 @@ export function InsuranceComparePage() {
             },
           ]}
         />
+      )}
+      {plans.length > 0 && (
+        <div>
+          <Link className="btn btn-secondary" to={shortlistHref}>
+            Back to insurance options
+          </Link>
+        </div>
       )}
     </div>
   )

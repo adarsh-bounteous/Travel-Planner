@@ -33,6 +33,10 @@ function notFoundStatus(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), notFoundStatus()],
+  build: {
+    // Illustrations stay separate files fetched on demand, never data URIs.
+    assetsInlineLimit: (file) => (file.includes('/illustrations/art/') ? false : undefined),
+  },
   server: {
     proxy: apiProxy(process.env.API_ORIGIN ?? 'http://localhost:8000'),
   },

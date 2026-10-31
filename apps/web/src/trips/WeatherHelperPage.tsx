@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { CalendarIcon, ClockIcon, RefreshIcon } from '../auth/icons'
 import { fetchTrip } from './api'
 import type { Trip } from './api'
 import { fetchWeatherHelper } from './helpersApi'
@@ -65,6 +66,7 @@ export function WeatherHelperPage() {
       <div className="alert alert-danger" role="alert">
         <p>We couldn't load the weather helper. Try again.</p>
         <button className="btn btn-secondary" type="button" onClick={reload}>
+          <RefreshIcon />
           Retry
         </button>
       </div>
@@ -98,6 +100,7 @@ export function WeatherHelperPage() {
           {refreshing && <span className="skeleton" />}
           <div className="cluster">
             <button className="btn btn-secondary btn-sm" type="button" disabled={refreshing} onClick={reload}>
+              <RefreshIcon />
               Try again
             </button>
           </div>
@@ -107,6 +110,7 @@ export function WeatherHelperPage() {
       {typical ? (
         <section className="card stack">
           <h3>
+            <ClockIcon />
             Typical weather for {monthName(typical.month)}
             {unavailable && `, dated ${formatDate(typical.as_of)}`}
           </h3>
@@ -132,7 +136,10 @@ export function WeatherHelperPage() {
 
       {forecast?.status === 'available' && (
         <section className="card stack">
-          <h3>Forecast for trip dates</h3>
+          <h3>
+            <CalendarIcon />
+            Forecast for trip dates
+          </h3>
           {refreshing && <span className="skeleton" />}
           <div className="table-wrap">
             <table className="data-table">
@@ -161,6 +168,7 @@ export function WeatherHelperPage() {
           </div>
           <div className="cluster">
             <button className="btn btn-ghost btn-sm" type="button" disabled={refreshing} onClick={reload}>
+              <RefreshIcon />
               Refresh forecast
             </button>
           </div>

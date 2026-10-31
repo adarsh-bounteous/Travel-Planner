@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
-import { UsersIcon } from '../auth/icons'
+import { EditIcon, InfoIcon, ListIcon, MapPinIcon, PlusIcon, TrashIcon, UserIcon, UsersIcon } from '../auth/icons'
 import { addTraveller } from './api'
 import type { Traveller, Trip } from './api'
 import { AccessSection } from './AccessSection'
@@ -45,7 +45,10 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
   return (
     <div className="stack stack-lg">
       <div className="stack stack-sm">
-        <h3 className="text-lg">Travelers</h3>
+        <h3 className="text-lg">
+          <UsersIcon />
+          Travelers
+        </h3>
         <p className="text-muted">
           {trip.is_owner
             ? "Everyone going on this trip. Travellers don't need an account."
@@ -59,7 +62,10 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
             this trip only.
           </p>
           <div className="card traveller">
-            <h2 className="text-lg">You (owner)</h2>
+            <h2 className="text-lg">
+              <UserIcon />
+              You (owner)
+            </h2>
           </div>
           {travellers.length === 0 && (
             <p className="text-muted">
@@ -69,13 +75,17 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
           {travellers.map((traveller) => (
             <div className="card traveller" key={traveller.id}>
               <div className="traveller-actions between">
-                <h2 className="text-lg">{traveller.name}</h2>
+                <h2 className="text-lg">
+                  <UserIcon />
+                  {traveller.name}
+                </h2>
                 <button
                   className="btn btn-ghost btn-sm"
                   type="button"
                   aria-label={`Remove ${traveller.name}`}
                   onClick={() => setPanel({ id: 'remove', traveller })}
                 >
+                  <TrashIcon />
                   Remove
                 </button>
               </div>
@@ -98,6 +108,7 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
                   aria-label={`Edit details for ${traveller.name}`}
                   onClick={() => setPanel({ id: 'edit', traveller })}
                 >
+                  <EditIcon />
                   Edit details
                 </button>
               </div>
@@ -108,18 +119,21 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
               className="btn btn-primary"
               to={`/trips/${encodeURIComponent(trip.id)}/requirements`}
             >
+              <ListIcon />
               View trip requirements
             </Link>{' '}
             <Link
               className="btn btn-secondary"
               to={`/trips/${encodeURIComponent(trip.id)}/medical-guidance`}
             >
+              <InfoIcon />
               Medical guidance
             </Link>
             <Link
               className="btn btn-secondary"
               to={`/trips/${encodeURIComponent(trip.id)}/visa-requirements`}
             >
+              <MapPinIcon />
               Visa requirements
             </Link>
           </div>
@@ -168,6 +182,7 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
               )}
             </div>
             <button className="btn btn-primary" type="submit" disabled={pending}>
+              <PlusIcon />
               {pending ? 'Adding…' : 'Add traveller'}
             </button>
           </div>

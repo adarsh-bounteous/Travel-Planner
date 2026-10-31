@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { SearchIcon } from '../auth/icons'
+import { CompassIcon, MapPinIcon, SearchIcon } from '../auth/icons'
 import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from '../places/api'
 import { PlaceDetails } from '../places/PlaceDetails'
 import { PlacesSourceNote } from '../places/PlacesSourceNote'
@@ -129,6 +129,7 @@ export function ExplorePage() {
       <p className="cluster">
         <span>Places in {destination}</span>
         <Link className="btn btn-ghost" to="/">
+          <MapPinIcon />
           Change destination
         </Link>
       </p>
@@ -147,6 +148,7 @@ export function ExplorePage() {
           />
         </div>
         <button className="btn btn-primary" type="submit">
+          <SearchIcon />
           Search
         </button>
       </form>
@@ -160,6 +162,7 @@ export function ExplorePage() {
       {body}
       <div>
         <Link className="btn btn-secondary" to="/explore/travel">
+          <CompassIcon />
           Search stays, flights and transport
         </Link>
       </div>

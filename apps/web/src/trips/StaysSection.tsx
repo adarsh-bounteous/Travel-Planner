@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { AlertIcon, HomeIcon, PlusIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, EditIcon, HomeIcon, PlusIcon, SearchIcon, TrashIcon } from '../auth/icons'
 import type { Stay } from './api'
 import { formatRange, nights, outsideReason, sortStays, warningFor } from './stays'
 
@@ -19,7 +19,10 @@ export function StaysSection({ tripId, stays, tripStart, tripEnd, canEdit, onAdd
   return (
     <section className="stack" aria-labelledby="stays-heading">
       <div className="title-row">
-        <h2 id="stays-heading">Stays</h2>
+        <h2 id="stays-heading">
+          <HomeIcon />
+          Stays
+        </h2>
         {canEdit && (
           <button className="btn btn-primary" type="button" onClick={onAdd}>
             <PlusIcon />
@@ -76,9 +79,11 @@ export function StaysSection({ tripId, stays, tripStart, tripEnd, canEdit, onAdd
                   {canEdit && (
                     <>
                     <button className="btn btn-secondary" type="button" onClick={() => onEdit(stay)}>
+                      <EditIcon />
                       Edit stay
                     </button>
                     <button className="btn btn-ghost" type="button" onClick={() => onRemove(stay)}>
+                      <TrashIcon />
                       Remove
                     </button>
                     </>

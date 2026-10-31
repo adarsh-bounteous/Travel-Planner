@@ -16,9 +16,13 @@ export function DestinationGate({ tripId, destination, status, children }: Props
     return (
       <div role="status" className="empty-state">
         <MapPinIcon />
-        <h2>Choose a destination</h2>
+        <h2>
+          <MapPinIcon />
+          Choose a destination
+        </h2>
         <p>Choose a country and place for this trip first.</p>
         <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(tripId)}`}>
+          <MapPinIcon />
           Choose a destination
         </Link>
       </div>

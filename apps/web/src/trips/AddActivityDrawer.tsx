@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { AlertIcon, SearchIcon, XIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, PlusIcon, SearchIcon, XIcon } from '../auth/icons'
 import { searchPlaces } from '../places/api'
 import { addActivity, fetchRecommendations } from './api'
 import type { ActivityInput, Day, Trip } from './api'
@@ -47,6 +47,7 @@ function Picker({ label, picks, pending, onAdd }: PickerProps) {
         ))}
       </div>
       <button className="btn btn-secondary" type="button" disabled={pending} onClick={() => onAdd(selected)}>
+        <PlusIcon />
         {`Add ${selected.name}`}
       </button>
     </>
@@ -128,7 +129,10 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
     <Overlay kind="drawer" labelledBy="add-activity-title" onClose={onClose}>
       <div className="stack">
         <div className="title-row">
-          <h2 id="add-activity-title">{`Add activity to ${day.name}`}</h2>
+          <h2 id="add-activity-title">
+            <PlusIcon />
+            {`Add activity to ${day.name}`}
+          </h2>
           <button className="btn btn-ghost" type="button" aria-label="Close add activity" onClick={onClose}>
             <XIcon />
           </button>
@@ -181,6 +185,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
               />
             </div>
             <button className="btn btn-secondary" type="button" disabled={searching} onClick={search}>
+              <SearchIcon />
               {searching ? 'Searching…' : 'Search'}
             </button>
             {searchFailed && (
@@ -226,6 +231,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
               </p>
             )}
             <button className="btn btn-primary" type="button" disabled={pending} onClick={save}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save activity'}
             </button>
           </div>

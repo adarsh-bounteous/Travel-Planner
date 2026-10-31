@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertIcon, XIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, CheckIcon, PlusIcon, XIcon } from '../auth/icons'
 import { fetchProfile, saveProfile } from '../trips/api'
 import type {
   DepartureWindow,
@@ -348,6 +348,7 @@ export function TransportPreferencesPage() {
               }}
             />
             <button className="btn btn-secondary" type="button" onClick={addProvider}>
+              <PlusIcon />
               Add provider
             </button>
           </div>
@@ -363,9 +364,11 @@ export function TransportPreferencesPage() {
 
       <div className="actions">
         <button className="btn btn-primary" type="button" onClick={save}>
+          <CheckIcon />
           Save preferences
         </button>
         <Link className="btn btn-secondary" to="/transport">
+          <ArrowLeftIcon />
           Back to search
         </Link>
       </div>

@@ -1,4 +1,4 @@
-import { CheckIcon } from '../auth/icons'
+import { ArrowRightIcon, CheckIcon, XIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
 import type { InsurancePlan } from './api'
 import { formatMoney } from './TripTotalCard'
@@ -64,9 +64,11 @@ export function InsurancePlanCard({ plan, picked, busy, onPick, onRemove, onOpen
             disabled={busy}
             onClick={picked ? onRemove : onPick}
           >
+            {picked ? <XIcon /> : <CheckIcon />}
             {picked ? 'Remove pick' : 'Pick plan'}
           </button>
           <button className="btn btn-secondary" type="button" onClick={onOpenSite}>
+            <ArrowRightIcon />
             Go to provider site
           </button>
         </>

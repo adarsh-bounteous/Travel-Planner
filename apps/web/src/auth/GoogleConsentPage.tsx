@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { fetchGoogleIdentities, finishGoogle, type GoogleIdentity } from './api'
-import { AlertIcon, CheckIcon } from './icons'
+import { AlertIcon, CheckIcon, UserIcon, XIcon } from './icons'
 
 const EMAIL = /^\S+@\S+\.\S+$/
 
@@ -55,7 +55,10 @@ export function GoogleConsentPage() {
     <div className="consent-col">
       <form className="card consent-card stack" onSubmit={allow} noValidate>
         <div className="consent-head">
-          <h2>Choose an account</h2>
+          <h2>
+            <UserIcon />
+            Choose an account
+          </h2>
           <span className="badge badge-warning">
             <AlertIcon />
             Local only
@@ -130,9 +133,11 @@ export function GoogleConsentPage() {
         </div>
         <div className="consent-actions">
           <button className="btn btn-secondary" type="button" onClick={cancel} disabled={pending}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="submit" disabled={pending || !state}>
+            <CheckIcon />
             {pending ? 'Working…' : 'Allow'}
           </button>
         </div>

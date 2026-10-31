@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { CalendarIcon } from '../auth/icons'
+import { CalendarIcon, HeartIcon, MapPinIcon, PlusIcon } from '../auth/icons'
 import type { RestaurantPick, Trip } from './api'
 import { dayMealLabel, estimateLabel } from './restaurantPicks'
 
@@ -11,7 +11,10 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
   const shortlist = `/trips/${encodeURIComponent(trip.id)}/restaurant-options/shortlist`
   return (
     <section className="card stack" aria-labelledby="overview-restaurants">
-      <h2 id="overview-restaurants">Restaurants</h2>
+      <h2 id="overview-restaurants">
+        <MapPinIcon />
+        Restaurants
+      </h2>
       {picks.length === 0 ? (
         <div className="empty-state">
           <CalendarIcon />
@@ -19,6 +22,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
           <p className="text-muted">Found somewhere you'd love to eat? Add it and we'll slot it into your days.</p>
           {canEdit && (
             <Link className="btn btn-primary" to={shortlist}>
+              <PlusIcon />
               Add a restaurant
             </Link>
           )}
@@ -30,6 +34,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
               <li className="restaurant-pick" key={pick.id}>
                 <span className="text-bold">{pick.name}</span>
                 <span className="restaurant-pick-meta">
+                  <CalendarIcon />
                   {pick.date === null ? (
                     <span className="badge badge-neutral">{dayMealLabel(pick, days)}</span>
                   ) : (
@@ -45,6 +50,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
           </ul>
           <div>
             <Link className="btn btn-secondary" to={shortlist}>
+              <HeartIcon />
               View shortlist
             </Link>
           </div>

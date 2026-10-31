@@ -141,6 +141,7 @@ export function TravelSearchPage() {
 
   const searchButton = (
     <button className="btn btn-primary" type="submit" disabled={pending}>
+      <SearchIcon />
       {pending ? (
         <>
           <span className="spinner" aria-hidden="true" /> Searching…
@@ -195,6 +196,7 @@ export function TravelSearchPage() {
             </div>
             <div className="cluster">
               <button className="btn btn-ghost" type="button" onClick={() => setDone(null)}>
+                <SearchIcon />
                 Change search
               </button>
             </div>
@@ -211,6 +213,7 @@ export function TravelSearchPage() {
             <div className="cluster">
               {searchButton}
               <button className="btn btn-ghost" type="button" onClick={() => setDone(null)}>
+                <SearchIcon />
                 Change search
               </button>
             </div>

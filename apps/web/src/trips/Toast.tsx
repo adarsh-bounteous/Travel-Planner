@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertIcon, CheckIcon, XIcon } from '../auth/icons'
+import { AlertIcon, ArrowRightIcon, CheckIcon, RefreshIcon, XIcon } from '../auth/icons'
 
 const TOAST_MS = 4000
 
@@ -49,6 +49,7 @@ export function Toast({
                 undo()
               }}
             >
+              <RefreshIcon />
               Undo
             </button>
           )}
@@ -61,6 +62,7 @@ export function Toast({
                 action.onAction()
               }}
             >
+              <ArrowRightIcon />
               {action.label}
             </button>
           )}

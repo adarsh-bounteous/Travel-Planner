@@ -32,6 +32,9 @@ a.btn { text-decoration: none; }
 @media (min-width: 48rem) { .shell-main { padding: var(--space-5) var(--space-4); } }
 
 .icon { width: 1.25em; height: 1.25em; flex-shrink: 0; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+h1 > .icon, h2 > .icon, h3 > .icon { margin-right: var(--space-2); color: var(--color-primary); }
+.empty-state h2 > .icon, .empty-state h3 > .icon { display: none; }
+[class*="-meta"] > .icon, .mail-meta dt > .icon { margin-right: var(--space-1); color: var(--color-fg-muted); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);

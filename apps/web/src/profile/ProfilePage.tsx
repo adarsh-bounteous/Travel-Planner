@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PlusIcon } from '../auth/icons'
 import { Link } from 'react-router'
 import { fetchProfile, saveProfile } from '../trips/api'
 import type { Profile } from '../trips/api'
@@ -88,6 +89,7 @@ export function ProfilePage() {
                           aria-label={`Add answer for ${lower}`}
                           onClick={() => setEditing({ key, mode: 'add' })}
                         >
+                          <PlusIcon />
                           Add answer
                         </button>
                       </>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SearchIcon } from '../auth/icons'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -37,6 +38,7 @@ export function DestinationSearch() {
       </div>
       <div>
         <button className="btn btn-primary" type="submit">
+          <SearchIcon />
           Search
         </button>
       </div>

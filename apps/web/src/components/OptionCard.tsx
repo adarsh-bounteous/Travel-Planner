@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { InfoIcon } from '../auth/icons'
+import { InfoIcon, ListIcon } from '../auth/icons'
 
 type OptionCardProps = {
   /** Rendered as the card heading. */
@@ -38,7 +38,10 @@ export function OptionCard({
   return (
     <Tag className={`card option-card${picked ? ' is-picked' : ''}`} aria-label={Tag === 'article' ? label : undefined}>
       <div className="option-card-head">
-        <h3 className="option-card-title">{title}</h3>
+        <h3 className="option-card-title">
+          <ListIcon />
+          {title}
+        </h3>
         {badges && <div className="badges option-card-badges">{badges}</div>}
       </div>
       {meta && (

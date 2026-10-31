@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { AlertIcon, CheckIcon, InfoIcon, UserIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, CheckIcon, InfoIcon, PlusIcon, UserIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import { fetchInsuranceOptions, fetchTrip } from './api'
 import type { InsuranceOptions } from './api'
@@ -56,9 +56,13 @@ export function InsuranceComparePage() {
       {status?.kind === 'too-few' && (
         <div className="empty-state">
           <InfoIcon />
-          <h2>Nothing to compare yet</h2>
+          <h2>
+            <InfoIcon />
+            Nothing to compare yet
+          </h2>
           <p>You need at least 2 plans to compare. Change your trip dates or travellers to see more plans.</p>
           <Link className="btn btn-primary" to={shortlistHref}>
+            <ArrowLeftIcon />
             Back to insurance options
           </Link>
         </div>
@@ -66,7 +70,10 @@ export function InsuranceComparePage() {
       {status?.kind === 'missing-age' && (
         <div className="empty-state">
           <UserIcon />
-          <h2>We need a traveller's age</h2>
+          <h2>
+            <UserIcon />
+            We need a traveller's age
+          </h2>
           <p>
             Add the missing traveller details to compare plans. {status.names.join(', ')}{' '}
             {status.names.length === 1 ? 'has' : 'have'} no age yet.
@@ -75,6 +82,7 @@ export function InsuranceComparePage() {
             className="btn btn-primary"
             to={`${shortlistHref}#${status.names.includes('You') ? 'owner-age' : 'companion-ages'}`}
           >
+            <PlusIcon />
             Add traveller details
           </Link>
         </div>
@@ -134,6 +142,7 @@ export function InsuranceComparePage() {
       {plans.length > 0 && (
         <div>
           <Link className="btn btn-secondary" to={shortlistHref}>
+            <ArrowLeftIcon />
             Back to insurance options
           </Link>
         </div>

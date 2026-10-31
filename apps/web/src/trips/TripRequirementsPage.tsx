@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, EditIcon, RefreshIcon } from '../auth/icons'
 import { fetchRequirements, fetchTrip } from './api'
 import type { Trip, TravellerRequirement } from './api'
 import { CompanionDetailsDrawer } from './CompanionDetailsDrawer'
@@ -63,6 +63,7 @@ export function TripRequirementsPage() {
       <div className="alert alert-danger" role="alert">
         <p>We couldn't load the requirements. Try again.</p>
         <button className="btn btn-secondary" type="button" onClick={reload}>
+          <RefreshIcon />
           Retry
         </button>
       </div>
@@ -116,6 +117,7 @@ export function TripRequirementsPage() {
                             aria-label={`Enter details for ${row.name}`}
                             onClick={() => setEditing(row.traveller_id)}
                           >
+                            <EditIcon />
                             Enter details
                           </button>
                         </>

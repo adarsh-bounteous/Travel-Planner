@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { AuthError, requestConfirmLink } from './api'
-import { AlertIcon, CheckIcon } from './icons'
+import { AlertIcon, CheckIcon, UserIcon } from './icons'
 import { MESSAGES } from './messages'
 import type { Problem } from './messages'
 
@@ -52,6 +52,7 @@ export function ConfirmLinkPage() {
           <p className="text-muted text-sm">Nothing was changed. Ask for a new email to try again.</p>
         )}
         <Link className="btn btn-secondary" to="/sign-in">
+          <UserIcon />
           Sign in
         </Link>
       </div>

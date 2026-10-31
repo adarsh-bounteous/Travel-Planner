@@ -9,11 +9,14 @@ import {
   BellIcon,
   CalendarIcon,
   CheckIcon,
+  ClockIcon,
   EyeIcon,
   HomeIcon,
   ImageIcon,
+  InfoIcon,
   SearchIcon,
   StarIcon,
+  SuitcaseIcon,
 } from '../auth/icons'
 import { fetchItinerary, NotFoundError } from './api'
 import type { Itinerary, ItineraryItem } from './api'
@@ -126,7 +129,10 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       </section>
 
       <section className="card glance" id="at-a-glance" aria-labelledby="glance-h">
-        <h2 id="glance-h">At a glance</h2>
+        <h2 id="glance-h">
+          <InfoIcon />
+          At a glance
+        </h2>
         {nothingBooked ? (
           <NotYetPlanned />
         ) : (
@@ -144,12 +150,18 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       </section>
 
       <div className="stack" id="day-by-day">
-        <h2>Day by day</h2>
+        <h2>
+          <CalendarIcon />
+          Day by day
+        </h2>
         {days.length === 0 && <NotYetPlanned />}
         {days.map((day) => (
           <article className="card day-card" key={day.date} aria-labelledby={`day-${day.number}-h`}>
             <div className="day-head">
-              <h3 id={`day-${day.number}-h`}>Day {day.number}</h3>
+              <h3 id={`day-${day.number}-h`}>
+                <CalendarIcon />
+                Day {day.number}
+              </h3>
               <span className="text-muted text-sm">{formatDay(day.date)}</span>
             </div>
             {day.items.length === 0 ? <NotYetPlanned /> : <ItemRows items={day.items} />}
@@ -159,6 +171,7 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
 
       <section className="card" id="still-to-schedule" aria-labelledby="still-h">
         <h2 id="still-h" className="day-head">
+          <ClockIcon />
           Still to schedule
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
@@ -197,6 +210,7 @@ export function ItineraryPage() {
           add you as an editor.
         </p>
         <Link className="btn btn-primary" to="/">
+          <SuitcaseIcon />
           Go to your trips
         </Link>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { UsersIcon } from '../auth/icons'
+import { PlusIcon, UsersIcon, XIcon } from '../auth/icons'
 import { inviteEditor, revokeEditor } from './api'
 import type { Trip } from './api'
 
@@ -58,7 +58,10 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
   return (
     <div className="stack stack-lg">
       <div className="stack stack-sm">
-        <h3 className="text-lg">Editors</h3>
+        <h3 className="text-lg">
+          <UsersIcon />
+          Editors
+        </h3>
         <p className="text-muted">
           Editors can change the plan. They can't invite people or manage access.
         </p>
@@ -89,6 +92,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
           )}
         </div>
         <button className="btn btn-primary" type="submit" disabled={pending}>
+          <PlusIcon />
           {pending ? 'Inviting…' : 'Invite editor'}
         </button>
       </form>
@@ -119,6 +123,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
                 aria-label={`Revoke access for ${editor.email}`}
                 onClick={() => revoke(editor.email)}
               >
+                <XIcon />
                 Revoke access
               </button>
             </div>

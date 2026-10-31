@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { XIcon } from '../auth/icons'
+import { ListIcon, PlusIcon, UsersIcon, XIcon } from '../auth/icons'
 import { createShareLink, revokeShareLink } from './api'
 import type { Trip } from './api'
 import { Overlay } from './Overlay'
@@ -43,7 +43,10 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
     <Overlay kind="modal" labelledBy="share-title" onClose={onClose}>
       <div className="stack stack-lg">
         <div className="title-row">
-          <h2 id="share-title">Share trip</h2>
+          <h2 id="share-title">
+            <UsersIcon />
+            Share trip
+          </h2>
           <button className="btn btn-ghost" type="button" aria-label="Close" onClick={onClose}>
             <XIcon />
           </button>
@@ -64,6 +67,7 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
                   )
                 }
               >
+                <PlusIcon />
                 {pending ? 'Creating link' : 'Create read-only link'}
               </button>
             </div>
@@ -87,6 +91,7 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
                 </span>
               </div>
               <button className="btn btn-secondary" type="button" onClick={copy}>
+                <ListIcon />
                 Copy link
               </button>
             </div>
@@ -107,6 +112,7 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
                   )
                 }
               >
+                <XIcon />
                 {pending ? 'Turning off link' : 'Turn off link'}
               </button>
             </div>

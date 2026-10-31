@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
-import { CheckIcon } from '../auth/icons'
+import { CheckIcon, ListIcon, SuitcaseIcon } from '../auth/icons'
 import { Toast } from '../trips/Toast'
 import { fetchStarterDestinations } from './starterApi'
 import type { StarterCountry } from './starterApi'
@@ -125,10 +125,12 @@ export function StarterPlannerPage() {
               className="btn btn-ghost"
               to={`${STARTER_PLAN_PATH}/${encodeURIComponent(country.name)}/${encodeURIComponent(place)}`}
             >
+              <ListIcon />
               View place content
             </Link>
           ) : (
             <a className="btn btn-ghost" aria-disabled="true" role="link">
+              <ListIcon />
               View place content
             </a>
           )}
@@ -138,6 +140,7 @@ export function StarterPlannerPage() {
             disabled={!ready || booking}
             onClick={() => setBooking(true)}
           >
+            <SuitcaseIcon />
             {booking ? (
               <>
                 <span className="spinner" aria-hidden="true" /> Booking trip

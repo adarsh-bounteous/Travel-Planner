@@ -6,7 +6,7 @@ import type { DemoAccount } from './api'
 import { AuthForm } from './AuthForm'
 import { useAuth } from './AuthProvider'
 import { GoogleNoAccountModal } from './GoogleNoAccountModal'
-import { InfoIcon } from './icons'
+import { InfoIcon, UserIcon } from './icons'
 import { pageLabel, peekReturnTo } from './returnTo'
 import type { Problem } from './messages'
 
@@ -110,6 +110,7 @@ export function SignInPage() {
                     fillPassword(demo.password)
                   }}
                 >
+                  <UserIcon />
                   Fill in demo details
                 </button>
               </div>

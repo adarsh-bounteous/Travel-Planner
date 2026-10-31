@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ArrowLeftIcon } from '../auth/icons'
 import { Link } from 'react-router'
 import { fetchLocalMode, LocalModeNotAllowedError, setLocalMode } from '../travel/api'
 
@@ -65,6 +66,7 @@ export function LocalModePage() {
       )}
       <div className="cluster">
         <Link className="btn btn-secondary" to="/explore/travel">
+          <ArrowLeftIcon />
           Back to search
         </Link>
       </div>

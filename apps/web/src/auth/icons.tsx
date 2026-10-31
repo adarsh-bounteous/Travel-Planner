@@ -193,6 +193,36 @@ export const UsersIcon = () => (
   </Icon>
 )
 
+export const CoinsIcon = () => (
+  <Icon>
+    <circle cx="8" cy="8" r="6" />
+    <path d="M18.1 10.4A6 6 0 1 1 10.4 18.1" />
+    <path d="M7 6h1v4" />
+  </Icon>
+)
+
+export const RefreshIcon = () => (
+  <Icon>
+    <path d="M21 12a9 9 0 0 0-15-6.7L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7" />
+    <path d="M21 21v-5h-5" />
+  </Icon>
+)
+
+export const MinusIcon = () => (
+  <Icon>
+    <path d="M5 12h14" />
+  </Icon>
+)
+
+export const ListIcon = () => (
+  <Icon>
+    <path d="M8 6h13M8 12h13M8 18h13" />
+    <path d="M3 6h.01M3 12h.01M3 18h.01" />
+  </Icon>
+)
+
 export const CloseIcon = XIcon
 
 /** The single icon set, keyed by the names the design uses. */
@@ -212,4 +242,8 @@ export const ICONS = {
   users: UsersIcon,
   heart: HeartIcon,
   user: UserIcon,
+  list: ListIcon,
+  minus: MinusIcon,
+  coins: CoinsIcon,
+  refresh: RefreshIcon,
 } as const

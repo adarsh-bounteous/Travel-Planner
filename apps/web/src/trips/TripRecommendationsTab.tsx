@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { fetchLocalMode } from '../auth/api'
-import { AlertIcon, HeartIcon, InfoIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, HeartIcon, InfoIcon, MapPinIcon, SearchIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
 import type { Place } from '../places/api'
@@ -98,6 +98,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
               <h2>No recommendations for this destination yet</h2>
               <p>Try another destination, or plan your days in the meantime.</p>
               <button type="button" className="btn btn-primary" onClick={onBack}>
+                <ArrowLeftIcon />
                 Back to itinerary
               </button>
             </div>
@@ -114,7 +115,10 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             return (
               <li key={r.id} className="card stack">
                 <PlaceCover seed={r.place?.id ?? r.id} />
-                <h3>{r.name}</h3>
+                <h3>
+                  <MapPinIcon />
+                  {r.name}
+                </h3>
                 {r.interest && <span className="badge badge-neutral">{r.interest}</span>}
                 <p className="text-sm text-muted">{r.detail}</p>
                 <div className="cluster">
@@ -124,6 +128,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
                     aria-label={`Open ${r.name}`}
                     onClick={() => open(r.name)}
                   >
+                    <ArrowRightIcon />
                     Open
                   </button>
                   {r.place?.source === 'osm' && (
@@ -133,6 +138,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
                       aria-label={`Details for ${r.name}`}
                       onClick={() => setDetailsOf(r.place!)}
                     >
+                      <InfoIcon />
                       Details
                     </button>
                   )}

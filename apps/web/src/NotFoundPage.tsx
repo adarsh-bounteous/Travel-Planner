@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router'
-import { SearchIcon } from './auth/icons'
+import { SearchIcon, SuitcaseIcon } from './auth/icons'
 
 export function NotFoundPage() {
   const { pathname, search } = useLocation()
@@ -21,6 +21,7 @@ export function NotFoundPage() {
           {pathname + search}
         </code>
         <Link className="btn btn-primary" to="/">
+          <SuitcaseIcon />
           Go to Trips
         </Link>
       </div>

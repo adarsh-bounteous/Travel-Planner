@@ -1,0 +1,71 @@
+{
+  "beforeRef": "2b1c9e9",
+  "afterRef": "current tree",
+  "sameChunk": true,
+  "before": {
+    "main": {
+      "file": "index-CvWmbNhF.js",
+      "bytes": 548766,
+      "gzipBytes": 155641
+    },
+    "largestRoute": {
+      "file": "index-CvWmbNhF.js",
+      "bytes": 548766,
+      "gzipBytes": 155641
+    },
+    "illustrations": {
+      "bytes": 0,
+      "gzipBytes": 0,
+      "count": 0
+    },
+    "sameChunk": true
+  },
+  "after": {
+    "main": {
+      "file": "index-LGD5AFKG.js",
+      "bytes": 598063,
+      "gzipBytes": 168834
+    },
+    "largestRoute": {
+      "file": "index-LGD5AFKG.js",
+      "bytes": 598063,
+      "gzipBytes": 168834
+    },
+    "illustrations": {
+      "bytes": 5030,
+      "gzipBytes": 3440,
+      "count": 20
+    },
+    "sameChunk": true
+  },
+  "report": {
+    "ceilingPct": 10,
+    "main": {
+      "beforeBytes": 548766,
+      "afterBytes": 598063,
+      "beforeGzipBytes": 155641,
+      "afterGzipBytes": 168834,
+      "growthPct": 8.983246046584519,
+      "withinCeiling": true
+    },
+    "largestRoute": {
+      "beforeBytes": 548766,
+      "afterBytes": 598063,
+      "beforeGzipBytes": 155641,
+      "afterGzipBytes": 168834,
+      "growthPct": 8.983246046584519,
+      "withinCeiling": true
+    },
+    "illustrations": {
+      "beforeBytes": 0,
+      "afterBytes": 5030,
+      "beforeGzipBytes": 0,
+      "afterGzipBytes": 3440,
+      "growthPct": null,
+      "withinCeiling": true,
+      "beforeCount": 0,
+      "afterCount": 20
+    },
+    "ok": true
+  }
+}

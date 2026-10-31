@@ -13,12 +13,16 @@
     "preview": "vite preview",
     "brand:assets": "node --experimental-strip-types scripts/build-brand-assets.ts",
     "bundle:measure": "node scripts/measure-bundle.mjs",
+    "phase2:bundle": "node scripts/bundle-compare.mjs",
+    "phase2:lighthouse": "node scripts/lighthouse-compare.mjs",
+    "phase2:screenshots": "node scripts/capture-phase2.mjs",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "devloop": "tsc -b && vitest run",
     "e2e": "playwright test"
   },
   "dependencies": {
+    "lighthouse": "^12.8.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.18.4"

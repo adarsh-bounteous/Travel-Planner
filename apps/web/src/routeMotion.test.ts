@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { ROUTE_DURATION_MS, routeDirection, supportsViewTransitions } from './routeTransition'
+import { ROUTE_DURATION_MS, routeDirection, supportsViewTransitions } from './routeMotion'
 
 afterEach(() => {
   delete (document as unknown as Record<string, unknown>).startViewTransition
 })
 
-describe('routeTransition', () => {
+describe('routeMotion', () => {
   it('lasts 250 ms (AC5)', () => {
     expect(ROUTE_DURATION_MS).toBe(250)
   })

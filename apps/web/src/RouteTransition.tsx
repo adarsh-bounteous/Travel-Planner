@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { useLocation, useNavigationType } from 'react-router'
 import type { Location } from 'react-router'
-import { routeDirection, supportsViewTransitions } from './routeTransition'
+import { routeDirection, supportsViewTransitions } from './routeMotion'
 
 /**
  * Fades and slides the page when the route changes: with the View Transitions API where the

@@ -20,7 +20,30 @@ const invite = {
   sent_at: '2026-01-02T03:05:05+00:00',
 }
 
+const itinerary = {
+  to: 'maya@example.com',
+  trip_name: 'Lisbon',
+  link: 'itinerary:abc',
+  kind: 'itinerary',
+  subject: 'Your Lisbon itinerary',
+  sent_at: '2026-01-02T03:06:05+00:00',
+  html: '<h1>Day by day</h1>',
+}
+
 describe('local inbox page', () => {
+  it('opens an emailed itinerary as sandboxed HTML (AC4)', async () => {
+    stubApi({ 'GET /local/inbox': { status: 200, body: [itinerary] } }, { signedOut: true })
+    renderAt('/local/inbox')
+    expect(await screen.findByText('Itinerary')).toHaveClass('badge')
+    fireEvent.click(screen.getByRole('button', { name: 'Open email' }))
+    const frame = screen.getByTitle('Your Lisbon itinerary')
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame).toHaveAttribute('sandbox', '')
+    expect(frame).toHaveAttribute('srcdoc', '<h1>Day by day</h1>')
+    expect(screen.getByText('Pretend email. Nothing was sent to maya@example.com.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'itinerary:abc' })).not.toBeInTheDocument()
+  })
+
   it('lists a card per email with its type badge, without signing in', async () => {
     stubApi({ 'GET /local/inbox': { status: 200, body: [invite, confirmation] } }, { signedOut: true })
     renderAt('/local/inbox')

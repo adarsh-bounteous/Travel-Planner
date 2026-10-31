@@ -124,6 +124,10 @@ class EditorEmail(BaseModel):
     email: str
 
 
+class ShowItinerary(BaseModel):
+    show: bool
+
+
 class TripView(Trip):
     """A Trip as shown to one traveller: the owner, or an editor who can change the plan only."""
 
@@ -157,6 +161,7 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
         "reminders": visible_reminders(trip),
         "editors": editors,
         "share_token": None,
+        "share_itinerary": trip.share_itinerary if is_owner else False,
         "visa_self_checks": trip.visa_self_checks if is_owner else [],  # the owner's alone
     }
     return TripView(
@@ -295,7 +300,7 @@ def list_trips(
         trip = trips.get_trip(owner_id, trip_id)
         if trip is not None and can_edit_trip(trip, user, owner_id, email):  # stale index rows are skipped
             trip = _converted(trips, owner_id, trip)
-            shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token"}), shared=True))
+            shared.append(TripListItem(**trip.model_dump(exclude={"editors", "share_token", "share_itinerary"}), shared=True))
     return sorted([*mine, *shared], key=_updated_key, reverse=True)
 
 
@@ -717,10 +722,32 @@ def revoke_share_link(
 ) -> TripView:
     trip = _owned_trip(trips, identity, owner, trip_id)
     token, trip.share_token = trip.share_token, None
+    trip.share_itinerary = False  # a re-created link starts Off again
     if token is not None:
         trip.updated_at = now
         trips.save_trip(owner, trip)  # the Trip item decides access, so it goes first
         trips.delete_share_link(token)
+    return _view(trip, rates, owner)
+
+
+@router.put("/{trip_id}/share-link/itinerary")
+def set_share_itinerary(
+    trip_id: str,
+    body: ShowItinerary,
+    owner: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    rates: RateSource = Depends(get_rates),
+    now: datetime = Depends(get_now),
+) -> TripView:
+    """Owner only: whether the read-only link shows the full itinerary. Editors and strangers get the missing-trip 404."""
+    trip = trips.get_trip(owner, trip_id)
+    if trip is None:
+        raise NOT_FOUND
+    if trip.share_token is None:
+        raise ApiError(409, "no_share_link")
+    trip.share_itinerary = body.show
+    trip.updated_at = now
+    trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 
 

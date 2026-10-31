@@ -45,3 +45,12 @@ def test_unreadable_or_wrong_version_file_raises(tmp_path, content):
     path.write_text(content)
     with pytest.raises(LocalDataFileError):
         sender(path)
+
+
+def test_itinerary_html_survives_a_restart_and_old_files_load_without_it(tmp_path):
+    path = tmp_path / "inbox.json"
+    a = PersistentInviteSender(LocalDataFile(path))
+    a.send_itinerary("maya@example.com", "Lisbon", "<p>Hi</p>")
+    [(_, _, link)] = a.sent
+    b = PersistentInviteSender(LocalDataFile(path))
+    assert b.bodies == {link: "<p>Hi</p>"} and b.kinds == {link: "itinerary"}

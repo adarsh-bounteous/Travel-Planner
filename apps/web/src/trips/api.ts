@@ -396,6 +396,8 @@ export type Trip = {
   can_edit?: boolean
   /** Owner only: a path on this site that opens the trip read-only; null when there is no link. */
   share_url?: string | null
+  /** Owner only: whether the read-only link shows the full itinerary. Off until the owner switches it on. */
+  share_itinerary?: boolean
   /** Set by GET /trips: shared with this traveller by another traveller. */
   shared?: boolean
   /** Extra dining needs for this trip only (halal, gluten-free, ...). */
@@ -573,6 +575,10 @@ export type Itinerary = {
 
 export const fetchItinerary = (tripId: string) =>
   call<Itinerary>(`/trips/${encodeURIComponent(tripId)}/itinerary`)
+
+/** Emails the complete itinerary, as HTML, to the signed-in traveller. */
+export const emailItinerary = (tripId: string) =>
+  call<void>(`/trips/${encodeURIComponent(tripId)}/itinerary/email`, 'POST')
 
 export const updateTrip = (id: string, trip: TripInput) =>
   call<Trip>(`/trips/${encodeURIComponent(id)}`, 'PUT', trip)
@@ -822,9 +828,16 @@ export const createShareLink = (tripId: string) =>
 export const revokeShareLink = (tripId: string) =>
   call<Trip>(`/trips/${encodeURIComponent(tripId)}/share-link`, 'DELETE')
 
-/** Public, no session: the itinerary behind a read-only link, in the Trip shape with is_owner and can_edit false. */
+/** Owner only: show or hide the complete itinerary on the read-only link. */
+export const setShareItinerary = (tripId: string, show: boolean) =>
+  call<Trip>(`/trips/${encodeURIComponent(tripId)}/share-link/itinerary`, 'PUT', { show })
+
+/** What a visitor gets: the Trip fields, plus the complete itinerary only while the owner has it switched on. */
+export type SharedTrip = Trip & { itinerary_shared?: boolean; itinerary?: Itinerary | null }
+
+/** Public, no session: the trip behind a read-only link, with is_owner and can_edit false. */
 export const fetchSharedTrip = (token: string) =>
-  call<Trip>(`/shared/${encodeURIComponent(token)}`)
+  call<SharedTrip>(`/shared/${encodeURIComponent(token)}`)
 
 export const fetchInvite = (token: string) => call<Invite>(`/invites/${encodeURIComponent(token)}`)
 

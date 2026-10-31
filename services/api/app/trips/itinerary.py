@@ -133,3 +133,26 @@ def build_itinerary(trip: Trip, owner_profile: Profile | None, visa_rules: VisaR
         checklist=checklist,
         notes=notes,
     )
+
+
+def redact_for_share(itinerary: Itinerary) -> Itinerary:
+    """The document for a read-only visitor: nothing in it links back into editing or booking."""
+    money = itinerary.money
+    redacted_money = money.model_copy(
+        update={
+            "bookings": [b.model_copy(update={"link_url": None}) for b in money.bookings],
+            "included": [b.model_copy(update={"link_url": None}) for b in money.included],
+            "not_included": [n.model_copy(update={"add_path": None}) for n in money.not_included],
+        }
+    )
+
+    def plain(item: ItineraryItem) -> ItineraryItem:
+        return item.model_copy(update={"link_text": None, "link_url": None})
+
+    return itinerary.model_copy(
+        update={
+            "money": redacted_money,
+            "days": [d.model_copy(update={"items": [plain(i) for i in d.items]}) for d in itinerary.days],
+            "still_to_schedule": [plain(i) for i in itinerary.still_to_schedule],
+        }
+    )

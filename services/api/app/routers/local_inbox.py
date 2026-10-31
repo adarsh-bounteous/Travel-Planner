@@ -9,6 +9,7 @@ SUBJECTS = {
     "invite": "You are invited to a trip",
     "confirmation": "Confirm your sign-in",
     "email_change": "Confirm your new email address",
+    "itinerary": "Your itinerary",
 }
 
 
@@ -20,9 +21,10 @@ def read_inbox(inbox: InMemoryInviteSender = Depends(get_local_inbox)) -> list[d
             "to": to,
             "trip_name": trip_name,
             "link": link,
-            "kind": (kind := "invite" if trip_name else inbox.kinds.get(link, "confirmation")),
+            "kind": (kind := inbox.kinds.get(link) or ("invite" if trip_name else "confirmation")),
             "subject": SUBJECTS[kind],
             "sent_at": sent_at.isoformat(),
+            **({"html": inbox.bodies[link]} if kind == "itinerary" else {}),
         }
         for (to, trip_name, link), sent_at in zip(reversed(inbox.sent), reversed(inbox.sent_at))
     ]

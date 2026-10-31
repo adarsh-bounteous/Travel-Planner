@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { Trip } from './api'
 
@@ -69,6 +69,63 @@ describe('Share trip modal', () => {
     expect(screen.queryByLabelText('Read-only link')).not.toBeInTheDocument()
     expect(await screen.findByText('Link turned off.')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith('/trips/t1/share-link', expect.objectContaining({ method: 'DELETE' }))
+  })
+
+  it('starts with the itinerary Off for a new link (AC9)', async () => {
+    stubApi({ 'GET /trips/t1': { status: 200, body: withLink } })
+    renderAt('/trips/t1')
+    await openModal()
+    const group = screen.getByRole('group', { name: 'Show itinerary on share link' })
+    expect(within(group).getByRole('radio', { name: /Off/ })).toBeChecked()
+    expect(within(group).getByRole('radio', { name: /On/ })).not.toBeChecked()
+    expect(screen.getByText(/Switching off applies to new visits/)).toBeInTheDocument()
+  })
+
+  it('switches the itinerary on for the link and says so (AC7)', async () => {
+    const fetchMock = stubApi({
+      'GET /trips/t1': { status: 200, body: withLink },
+      'PUT /trips/t1/share-link/itinerary': { status: 200, body: { ...withLink, share_itinerary: true } },
+    })
+    renderAt('/trips/t1')
+    await openModal()
+    fireEvent.click(screen.getByRole('radio', { name: /On/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Saved. The share link now shows the full itinerary.')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/trips/t1/share-link/itinerary',
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify({ show: true }) }),
+    )
+    expect(screen.getByRole('radio', { name: /On/ })).toBeChecked()
+  })
+
+  it('switches the itinerary off again (AC10)', async () => {
+    const on = { ...withLink, share_itinerary: true }
+    const fetchMock = stubApi({
+      'GET /trips/t1': { status: 200, body: on },
+      'PUT /trips/t1/share-link/itinerary': { status: 200, body: withLink },
+    })
+    renderAt('/trips/t1')
+    await openModal()
+    expect(screen.getByRole('radio', { name: /On/ })).toBeChecked()
+    fireEvent.click(screen.getByRole('radio', { name: /Off/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Saved. The share link hides the itinerary.')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/trips/t1/share-link/itinerary',
+      expect.objectContaining({ body: JSON.stringify({ show: false }) }),
+    )
+  })
+
+  it('says what happened when the switch cannot be saved', async () => {
+    stubApi({
+      'GET /trips/t1': { status: 200, body: withLink },
+      'PUT /trips/t1/share-link/itinerary': { status: 500 },
+    })
+    renderAt('/trips/t1')
+    await openModal()
+    fireEvent.click(screen.getByRole('radio', { name: /On/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't save that. Try again.")
   })
 
   it('says what happened when the link cannot be created', async () => {

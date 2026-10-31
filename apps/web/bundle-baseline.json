@@ -1,0 +1,16 @@
+{
+  "measuredAt": "2026-10-31T09:04:09.302Z",
+  "commit": "2b1c9e9",
+  "unit": "bytes",
+  "main": {
+    "file": "index-CvWmbNhF.js",
+    "bytes": 548766,
+    "gzipBytes": 155641
+  },
+  "largestRoute": {
+    "file": "index-CvWmbNhF.js",
+    "bytes": 548766,
+    "gzipBytes": 155641,
+    "note": "No route-level code splitting yet: the entry chunk is the largest route."
+  }
+}

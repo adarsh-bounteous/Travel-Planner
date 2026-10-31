@@ -74,6 +74,13 @@
   --z-toast: 120; /** Toast and tooltip layer */
   --duration-fast: [object Object]; /** Transitions */
   --duration-spin: [object Object]; /** Spinner and skeleton cycle */
+  --motion-duration-fast: 150ms; /** Hover and press feedback */
+  --motion-duration-base: 220ms; /** Default transition and fades */
+  --motion-duration-slow: 400ms; /** Large movements */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /** Entering and settling */
+  --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /** Moving between two places */
+  --motion-distance: 24px; /** Travel distance of a moved element (zero under reduced motion) */
+  --blur-placeholder: 12px; /** Blur of an image placeholder */
   --button-primary-background: var(--color-primary); /** Primary button fill */
   --button-primary-foreground: var(--color-on-primary); /** Primary button text */
   --button-primary-hover: var(--color-primary-hover); /** Primary button hover fill */

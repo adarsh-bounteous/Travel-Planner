@@ -1,4 +1,4 @@
-import { InfoIcon } from '../auth/icons'
+import { ArrowRightIcon, InfoIcon, XIcon } from '../auth/icons'
 import type { ChosenOption, ChosenSim, InsurancePick, RestaurantPick } from './api'
 import { formatDay } from './ItineraryTab'
 import { Overlay } from './Overlay'
@@ -8,6 +8,7 @@ import { safeHref } from './safeHref'
 function BookLink({ href }: { href: string | null }) {
   return href ? (
     <a className="btn btn-secondary" href={href} target="_blank" rel="noopener noreferrer">
+      <ArrowRightIcon />
       Open booking page<span className="text-sm"> (opens in a new tab)</span>
     </a>
   ) : (
@@ -89,6 +90,7 @@ export function BookTripDrawer({
         </p>
         <div className="overlay-actions end">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Close
           </button>
         </div>

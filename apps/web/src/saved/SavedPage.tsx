@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { HeartIcon } from '../auth/icons'
+import { HeartIcon, SearchIcon } from '../auth/icons'
 import type { Place } from '../places/api'
 import { PlaceCard } from '../places/PlaceCard'
 import { PlacesMap } from '../places/PlacesMap'
@@ -43,6 +43,7 @@ export function SavedPage() {
         <h2>No places are saved yet</h2>
         <p>Save places from Destination results to see them here.</p>
         <Link className="btn btn-primary" to="/">
+          <SearchIcon />
           Find places
         </Link>
       </div>

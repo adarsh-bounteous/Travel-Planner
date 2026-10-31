@@ -11,10 +11,12 @@ import {
   BellIcon,
   CalendarIcon,
   CheckIcon,
+  ClockIcon,
   EyeIcon,
   HomeIcon,
   ImageIcon,
   InfoIcon,
+  ListIcon,
   MinusIcon,
   SearchIcon,
   StarIcon,
@@ -90,6 +92,7 @@ function FactCard({ fact }: { fact: EssentialFact }) {
 function NotYetPlanned() {
   return (
     <div className="empty-state">
+      <ClockIcon />
       <p>Not yet planned</p>
     </div>
   )
@@ -168,7 +171,10 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       </section>
 
       <section className="card glance" id="at-a-glance" aria-labelledby="glance-h">
-        <h2 id="glance-h">At a glance</h2>
+        <h2 id="glance-h">
+          <EyeIcon />
+          At a glance
+        </h2>
         {nothingBooked ? (
           <NotYetPlanned />
         ) : (
@@ -186,12 +192,18 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       </section>
 
       <div className="stack" id="day-by-day">
-        <h2>Day by day</h2>
+        <h2>
+          <CalendarIcon />
+          Day by day
+        </h2>
         {days.length === 0 && <NotYetPlanned />}
         {days.map((day) => (
           <article className="card day-card" key={day.date} aria-labelledby={`day-${day.number}-h`}>
             <div className="day-head">
-              <h3 id={`day-${day.number}-h`}>Day {day.number}</h3>
+              <h3 id={`day-${day.number}-h`}>
+                <CalendarIcon />
+                Day {day.number}
+              </h3>
               <span className="text-muted text-sm">{formatDay(day.date)}</span>
             </div>
             {day.items.length === 0 ? <NotYetPlanned /> : <ItemRows items={day.items} />}
@@ -201,13 +213,17 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
 
       <section className="card" id="still-to-schedule" aria-labelledby="still-h">
         <h2 id="still-h" className="day-head">
+          <ListIcon />
           Still to schedule
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
       </section>
 
       <section id="essentials" aria-labelledby="essentials-h">
-        <h2 id="essentials-h">Travel essentials</h2>
+        <h2 id="essentials-h">
+          <BagIcon />
+          Travel essentials
+        </h2>
         <div className="grid">
           {essentials.map((fact) => (
             <FactCard key={fact.key} fact={fact} />
@@ -217,7 +233,10 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
 
       <section id="before-you-go" aria-labelledby="before-h">
         <div className="section-head">
-          <h2 id="before-h">Before you go</h2>
+          <h2 id="before-h">
+            <CheckIcon />
+            Before you go
+          </h2>
           <span className="text-muted text-sm" role="status" aria-label={`${doneCount} of 6 done`}>
             {doneCount} of 6 done
           </span>
@@ -246,7 +265,10 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
       </section>
 
       <section id="important-notes" aria-labelledby="notes-h">
-        <h2 id="notes-h">Important notes</h2>
+        <h2 id="notes-h">
+          <InfoIcon />
+          Important notes
+        </h2>
         <div className="stack">
           <div className="alert alert-warning">
             <AlertIcon />
@@ -262,7 +284,10 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
             </p>
           </div>
           <div className="card">
-            <h3>Data sources and dates used</h3>
+            <h3>
+              <ListIcon />
+              Data sources and dates used
+            </h3>
             <ul className="sources text-sm">
               {sources.map((s) => (
                 <li key={s.label}>
@@ -309,6 +334,7 @@ export function ItineraryPage() {
           add you as an editor.
         </p>
         <Link className="btn btn-primary" to="/">
+          <ArrowRightIcon />
           Go to your trips
         </Link>
       </div>

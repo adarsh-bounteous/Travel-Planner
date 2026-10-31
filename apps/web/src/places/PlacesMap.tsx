@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent, ReactNode } from 'react'
+import { MinusIcon, PlusIcon } from '../auth/icons'
 import type { Place } from './api'
 import {
   MAX_ZOOM,
@@ -145,9 +146,11 @@ function TileLayerSvg({
       {zoomControls(
         <div className="cluster" style={{ gap: 'var(--space-1)' }}>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => zoomBy(1)}>
+            <PlusIcon />
             Zoom in
           </button>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => zoomBy(-1)}>
+            <MinusIcon />
             Zoom out
           </button>
         </div>,

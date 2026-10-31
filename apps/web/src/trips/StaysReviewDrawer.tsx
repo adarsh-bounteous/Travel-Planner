@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CalendarIcon, CheckIcon } from '../auth/icons'
 import { updateStay } from './api'
 import type { Stay, Trip } from './api'
 import { FieldError } from './FieldError'
@@ -89,6 +89,7 @@ function ReviewCard({ trip, stay, onSaved }: ReviewCardProps) {
               )}
               <div>
                 <button className="btn btn-primary btn-sm" type="button" disabled={pending} onClick={apply}>
+                  <CheckIcon />
                   {pending ? 'Saving…' : 'Apply dates'}
                 </button>
               </div>
@@ -96,9 +97,11 @@ function ReviewCard({ trip, stay, onSaved }: ReviewCardProps) {
           ) : (
             <div className="cluster">
               <button className="btn btn-secondary" type="button" onClick={() => setMode('kept')}>
+                <CheckIcon />
                 Keep dates
               </button>
               <button className="btn btn-secondary" type="button" onClick={() => setMode('adjusting')}>
+                <CalendarIcon />
                 Adjust dates
               </button>
             </div>
@@ -130,6 +133,7 @@ export function StaysReviewDrawer({ trip, onSaved, onClose }: StaysReviewDrawerP
           ))}
         </div>
         <button className="btn btn-primary" type="button" onClick={onClose}>
+          <CheckIcon />
           Done
         </button>
       </div>

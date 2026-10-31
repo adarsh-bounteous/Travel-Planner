@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react'
+import { SearchIcon } from '../auth/icons'
 import type { Amenity, StayCriteria } from './api'
 import { AMENITIES, PROPERTY_TYPES, ROOM_COUNTS, STAR_RATINGS, starsLabel } from './stayOptions'
 
@@ -121,6 +122,7 @@ export function StayFilters({ criteria, currency, loading, onChange, onApply }: 
         </fieldset>
       </div>
       <button className="btn btn-primary" type="submit" disabled={loading}>
+        <SearchIcon />
         {loading ? 'Applying…' : 'Apply filters'}
       </button>
     </form>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon, MapPinIcon, ShieldIcon, SuitcaseIcon } from '../auth/icons'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
 import type { Activity, Day, Reminder, RestaurantPick, Stay, Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -201,6 +201,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
               aria-describedby={bookable ? undefined : 'book-hint'}
               onClick={() => setPanel({ id: 'book' })}
             >
+              <SuitcaseIcon />
               Book trip
             </button>
             {!bookable && (
@@ -280,6 +281,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             className="btn btn-secondary"
             to={`/trips/${encodeURIComponent(trip.id)}/insurance-options`}
           >
+            <ShieldIcon />
             Insurance options
           </Link>
         )}
@@ -337,7 +339,10 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       </PanelFade>
       {(trip.destination_unmatched || (trip.country && trip.place)) && (
         <section className="card stack" aria-labelledby="destination-heading">
-          <h2 id="destination-heading">Destination</h2>
+          <h2 id="destination-heading">
+            <MapPinIcon />
+            Destination
+          </h2>
           <div className="field">
             <label className="field-label" htmlFor="d-typed">
               Destination (typed)

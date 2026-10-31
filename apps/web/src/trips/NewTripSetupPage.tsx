@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { AlertIcon, ArrowLeftIcon, CheckIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, CheckIcon, EditIcon } from '../auth/icons'
 import type { Place } from '../places/api'
 import { addPlaceToTrip, createTrip, fetchProfile, saveProfile } from './api'
 import type { Profile } from './api'
@@ -334,9 +334,11 @@ export function NewTripSetupPage() {
           )}
           <div className="form-actions">
             <button className="btn btn-secondary" type="button" onClick={() => setStep('profile')}>
+              <ArrowLeftIcon />
               Back to profile
             </button>
             <button className="btn btn-primary" type="submit" disabled={pending}>
+              <CheckIcon />
               {pending ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
@@ -358,9 +360,11 @@ export function NewTripSetupPage() {
             <p>Your trip is not saved until you finish set-up.</p>
             <div className="overlay-actions end">
               <button className="btn btn-secondary" type="button" onClick={() => setLeaving(false)}>
+                <EditIcon />
                 Keep editing
               </button>
               <button className="btn btn-primary" type="button" onClick={() => navigate('/')}>
+                <ArrowRightIcon />
                 Leave
               </button>
             </div>

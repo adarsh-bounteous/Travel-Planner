@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { CheckIcon, EditIcon, TrashIcon, XIcon } from '../auth/icons'
 import { FieldError } from '../trips/FieldError'
 import { Overlay } from '../trips/Overlay'
 import { SELECT_QUESTIONS, TASTES } from '../trips/profileQuestions'
@@ -71,6 +72,7 @@ export function ProfileAnswerDrawer({
       <form className="stack" onSubmit={submit} noValidate>
         <div className="stack stack-sm">
           <h2 id={`${id}-title`}>
+            <EditIcon />
             {mode === 'edit' ? 'Edit' : 'Add'} {label.toLowerCase()}
           </h2>
           <p className="text-muted text-sm">
@@ -166,13 +168,16 @@ export function ProfileAnswerDrawer({
                 void save(empty)
               }}
             >
+              <TrashIcon />
               Clear answer
             </button>
           )}
           <button className="btn btn-secondary" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <CheckIcon />
             {pending ? (
               <>
                 <span className="spinner" aria-hidden="true" /> Saving

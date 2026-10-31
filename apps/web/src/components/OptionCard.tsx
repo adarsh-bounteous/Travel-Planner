@@ -1,11 +1,16 @@
 import type { ReactNode } from 'react'
+import { InfoIcon, ListIcon } from '../auth/icons'
 
 type OptionCardProps = {
   /** Rendered as the card heading. */
   title: ReactNode
+  /** Icon in front of the heading; a set icon, `ListIcon` by default. */
+  icon?: ReactNode
   badges?: ReactNode
   /** Muted facts under the heading. */
   meta?: ReactNode
+  /** Icon in front of the meta row; a set icon, `InfoIcon` by default. */
+  metaIcon?: ReactNode
   /** Right-hand price block; stacks under the facts on phones. */
   price?: ReactNode
   /** Footer row of buttons or links. */
@@ -21,8 +26,10 @@ type OptionCardProps = {
 /** The one look for every option in a list: title and badges, facts, price, then actions. */
 export function OptionCard({
   title,
+  icon = <ListIcon />,
   badges,
   meta,
+  metaIcon = <InfoIcon />,
   price,
   actions,
   picked = false,
@@ -34,10 +41,18 @@ export function OptionCard({
   return (
     <Tag className={`card option-card${picked ? ' is-picked' : ''}`} aria-label={Tag === 'article' ? label : undefined}>
       <div className="option-card-head">
-        <h3 className="option-card-title">{title}</h3>
+        <h3 className="option-card-title">
+          {icon}
+          {title}
+        </h3>
         {badges && <div className="badges option-card-badges">{badges}</div>}
       </div>
-      {meta && <div className="option-card-meta">{meta}</div>}
+      {meta && (
+        <div className="option-card-meta">
+          {metaIcon}
+          <span>{meta}</span>
+        </div>
+      )}
       {(children || price) && (
         <div className="option-card-body">
           {children && <div className="option-card-facts">{children}</div>}

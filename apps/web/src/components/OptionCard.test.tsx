@@ -3,6 +3,20 @@ import { describe, expect, it } from 'vitest'
 import { OptionCard } from './OptionCard'
 
 describe('OptionCard', () => {
+  it('puts an icon in the heading and in front of the meta row', () => {
+    render(<OptionCard title="Hotel Sol" meta="Lisbon, 2 nights" />)
+    const card = screen.getByRole('article', { name: 'Hotel Sol' })
+    expect(card.querySelector('h3 svg.icon')).not.toBeNull()
+    expect(card.querySelector('.option-card-meta svg.icon')).not.toBeNull()
+  })
+
+  it('lets a caller choose the heading and meta icons', () => {
+    render(<OptionCard title="Hotel Sol" meta="Lisbon" icon={<i data-testid="own-icon" />} metaIcon={<i data-testid="own-meta" />} />)
+    const card = screen.getByRole('article', { name: 'Hotel Sol' })
+    expect(card.querySelector('h3 [data-testid="own-icon"]')).not.toBeNull()
+    expect(card.querySelector('.option-card-meta [data-testid="own-meta"]')).not.toBeNull()
+  })
+
   it('shows the title, badges, body and actions in the shared layout', () => {
     render(
       <OptionCard

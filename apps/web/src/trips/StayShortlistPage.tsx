@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
-import { AlertIcon, ArrowLeftIcon, EyeIcon, InfoIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, CheckIcon, EyeIcon, InfoIcon, RefreshIcon, SearchIcon } from '../auth/icons'
 import { chooseStay, clearChosenStay, fetchStayShortlist, fetchTrip } from './api'
 import type { Shortlist, Stay, Trip } from './api'
 import { ChosenStayCard } from './ChosenStayCard'
@@ -193,6 +193,7 @@ export function StayShortlistPage() {
             We couldn't load your shortlist. Check your connection and try again.
           </span>
           <button className="btn btn-secondary" type="button" onClick={load}>
+            <RefreshIcon />
             Retry
           </button>
         </div>
@@ -203,6 +204,7 @@ export function StayShortlistPage() {
           <h2>No stays to shortlist</h2>
           <p>No stays match your property type and rooms in {stay.place}.</p>
           <Link className="btn btn-primary" to={optionsHref}>
+            <ArrowLeftIcon />
             Back to stay options
           </Link>
         </div>
@@ -241,7 +243,10 @@ export function StayShortlistPage() {
           </div>
           {within.length > 0 && (
             <section className="shortlist-group" aria-labelledby="shortlist-within">
-              <h3 id="shortlist-within">Within budget</h3>
+              <h3 id="shortlist-within">
+                <CheckIcon />
+                Within budget
+              </h3>
               <div className="stack">
                 {within.map((s) => (
                   <StayShortlistCard
@@ -259,7 +264,10 @@ export function StayShortlistPage() {
           {within.length > 0 && over.length > 0 && <hr className="divider" />}
           {over.length > 0 && (
             <section className="shortlist-group" aria-labelledby="shortlist-over">
-              <h3 id="shortlist-over">Over budget</h3>
+              <h3 id="shortlist-over">
+                <AlertIcon />
+                Over budget
+              </h3>
               <div className="stack">
                 {over.map((s) => (
                   <StayShortlistCard

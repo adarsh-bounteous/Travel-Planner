@@ -37,6 +37,23 @@ describe('AppHeader', () => {
     )
   })
 
+  it('shows an icon beside every navigation link and the sign-in entry', async () => {
+    mockMe(401)
+    renderAt('/sign-up')
+    const header = await screen.findByRole('banner')
+    const signIn = await within(header).findByRole('link', { name: 'Sign in' })
+    expect(signIn.querySelector('svg.icon')).not.toBeNull()
+  })
+
+  it('shows an icon beside every main, saved and account link when signed in', async () => {
+    mockMe(200, { email: 'maya@example.com', method: 'email' })
+    renderAt('/')
+    const nav = await screen.findByRole('navigation', { name: 'Main' })
+    const links = within(nav).getAllByRole('link')
+    expect(links.length).toBeGreaterThanOrEqual(4)
+    for (const link of links) expect(link.querySelector('svg.icon')).not.toBeNull()
+  })
+
   it('shows the logo in the header link (AC1)', async () => {
     mockMe(401)
     renderAt('/sign-up')

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PlusIcon, SuitcaseIcon, XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 import type { Trip } from '../trips/api'
 
@@ -16,7 +17,10 @@ export function TripChoiceDrawer({ trips, pending, onChoose, onClose }: TripChoi
   return (
     <Overlay kind="drawer" labelledBy="trip-choice-title" onClose={onClose}>
       <div className="stack">
-        <h2 id="trip-choice-title">Choose a trip</h2>
+        <h2 id="trip-choice-title">
+          <SuitcaseIcon />
+          Choose a trip
+        </h2>
         <div className="pick-list" role="radiogroup" aria-label="Trips">
           {trips.map((trip) => (
             <label key={trip.id} className="pick">
@@ -40,9 +44,11 @@ export function TripChoiceDrawer({ trips, pending, onChoose, onClose }: TripChoi
             disabled={pending}
             onClick={() => onChoose(selected)}
           >
+            <PlusIcon />
             {`Add to ${selected.name}`}
           </button>
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
         </div>

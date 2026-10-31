@@ -27,6 +27,13 @@ function renderAt(url: string) {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('NotFoundPage', () => {
+  it('shows a set icon in the empty state', async () => {
+    mockMe(401)
+    renderAt('/no-such-page')
+    await screen.findByRole('heading', { name: 'Page not found' })
+    expect(document.querySelector('.empty-state svg.icon')).not.toBeNull()
+  })
+
   it('shows a not-found page for a URL that matches no route (AC1)', async () => {
     mockMe(200, { email: 'maya@example.com', method: 'email' })
     renderAt('/no/such/page')

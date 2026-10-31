@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { AlertIcon, TrashIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, TrashIcon, XIcon } from '../auth/icons'
 import { ForbiddenError, addReminder, deleteReminder, updateReminder } from './api'
 import type { Reminder, Trip } from './api'
 import { formatDay } from './ItineraryTab'
@@ -181,9 +181,11 @@ export function ReminderModal({
           )}
           <div className="overlay-actions">
             <button className="btn btn-ghost" type="button" onClick={onClose}>
+              <XIcon />
               Cancel
             </button>
             <button className="btn btn-primary" type="submit" disabled={pending}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save'}
             </button>
           </div>

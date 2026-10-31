@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { SearchIcon } from '../auth/icons'
+import { ArrowLeftIcon, SearchIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import type { ShortlistEntry } from './api'
 import { canCompare } from './restaurantShortlist'
@@ -15,6 +15,7 @@ export function RestaurantCompare({ entries, optionsHref }: { entries: Shortlist
         <p>This trip has fewer than 2 matching restaurants. Check the shortlist, or relax a filter to find more.</p>
         <div className="cluster">
           <Link className="btn btn-primary" to={optionsHref}>
+            <ArrowLeftIcon />
             Back to restaurant options
           </Link>
         </div>

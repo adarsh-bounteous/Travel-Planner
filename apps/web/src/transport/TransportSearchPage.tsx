@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
+import { SearchIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
 import { fetchProfile } from '../trips/api'
 import type { TransportPreferences } from '../trips/api'
@@ -74,6 +75,7 @@ export function TransportSearchPage() {
         </div>
         <div>
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <SearchIcon />
             Search
           </button>
         </div>

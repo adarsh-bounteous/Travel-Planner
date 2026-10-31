@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { ArrowRightIcon, CompassIcon, PlusIcon, RefreshIcon, SuitcaseIcon } from '../auth/icons'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
 import { Toast } from './Toast'
@@ -35,7 +36,10 @@ function TripRow({ trip }: { trip: Trip }) {
       <div className="trip-cover" aria-hidden="true" />
       <div className="trip-info">
         <div className="trip-title">
-          <h2>{trip.name}</h2>
+          <h2>
+            <SuitcaseIcon />
+            {trip.name}
+          </h2>
           {trip.shared && <span className="badge">Shared</span>}
           {trip.destination_unmatched && <UnmatchedBadge />}
         </div>
@@ -46,6 +50,7 @@ function TripRow({ trip }: { trip: Trip }) {
         </span>
       </div>
       <Link className="btn btn-secondary" to={`/trips/${trip.id}`} aria-label={`Open ${trip.name}`}>
+        <ArrowRightIcon />
         Open
       </Link>
     </li>
@@ -97,10 +102,12 @@ export function MyTripsPage() {
         <h1>My trips</h1>
         <div className="cluster">
           <Link className="btn btn-secondary" to="/trips/plan">
+            <CompassIcon />
             Plan from a starter destination
           </Link>
           {trips && trips.length > 0 && (
             <Link className="btn btn-primary" to={GUIDED_SETUP_PATH}>
+              <PlusIcon />
               New trip
             </Link>
           )}
@@ -119,6 +126,7 @@ export function MyTripsPage() {
           <p>Check your connection and try again.</p>
           <div>
             <button className="btn btn-secondary" type="button" onClick={retry}>
+              <RefreshIcon />
               Retry
             </button>
           </div>
@@ -126,9 +134,11 @@ export function MyTripsPage() {
       )}
       {trips && trips.length === 0 && (
         <div className="empty-state">
+          <SuitcaseIcon />
           <h2>No trips yet</h2>
           <p>Where to next? Plan your first trip and it will show up here.</p>
           <Link className="btn btn-primary btn-lg" to={GUIDED_SETUP_PATH}>
+            <PlusIcon />
             Plan your first trip
           </Link>
         </div>

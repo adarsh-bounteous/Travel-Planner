@@ -1,7 +1,14 @@
 import { Link, NavLink, useLocation } from 'react-router'
 import { useAuth } from './auth/AuthProvider'
+import { HeartIcon, ICONS, UserIcon } from './auth/icons'
+import type { IconName } from './auth/icons'
 import { BrandLogo } from './components/BrandLogo'
 import { MAIN_SECTIONS, mainSectionFor } from './navSections'
+
+function NavIcon({ name }: { name: IconName }) {
+  const Glyph = ICONS[name]
+  return <Glyph />
+}
 
 // Top bar: logo, main sections, then utility links. Never collapses behind a menu button.
 export function AppHeader() {
@@ -24,6 +31,7 @@ export function AppHeader() {
                     to={section.to}
                     aria-current={current === section.id ? 'page' : undefined}
                   >
+                    <NavIcon name={section.icon} />
                     {section.label}
                   </Link>
                 </li>
@@ -32,11 +40,13 @@ export function AppHeader() {
             <ul className="shell-nav-utility">
               <li>
                 <NavLink className="shell-link" to="/saved">
+                  <HeartIcon />
                   Saved
                 </NavLink>
               </li>
               <li>
                 <NavLink className="shell-link" to="/account">
+                  <UserIcon />
                   Account
                 </NavLink>
               </li>
@@ -45,6 +55,7 @@ export function AppHeader() {
         )}
         {status === 'signedOut' && (
           <Link className="btn btn-secondary" to="/sign-in">
+            <UserIcon />
             Sign in
           </Link>
         )}

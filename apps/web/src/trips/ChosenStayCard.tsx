@@ -1,4 +1,4 @@
-import { CheckIcon } from '../auth/icons'
+import { BedIcon, CheckIcon, EditIcon, TrashIcon } from '../auth/icons'
 import { BookingLink, isLocalBooking } from '../travel/BookingLink'
 import type { ChosenStay } from './api'
 import { formatMoney } from './stayOptions'
@@ -20,7 +20,10 @@ export function ChosenStayCard({ chosen, canEdit, onChange, onClear }: Props) {
             <CheckIcon />
             Chosen
           </span>
-          <h3>{chosen.name}</h3>
+          <h3>
+            <BedIcon />
+            {chosen.name}
+          </h3>
           <p>
             Cost for these dates: <span className="stay-total">{formatMoney(chosen.total, chosen.currency)}</span>
           </p>
@@ -37,9 +40,11 @@ export function ChosenStayCard({ chosen, canEdit, onChange, onClear }: Props) {
             {canEdit && (
               <>
                 <button className="btn btn-secondary" type="button" onClick={onChange}>
+                  <EditIcon />
                   Change stay
                 </button>
                 <button className="btn btn-ghost" type="button" onClick={onClear}>
+                  <TrashIcon />
                   Clear chosen stay
                 </button>
               </>
@@ -48,6 +53,7 @@ export function ChosenStayCard({ chosen, canEdit, onChange, onClear }: Props) {
         </>
       ) : (
         <div className="empty-state">
+          <BedIcon />
           <h3>No stay chosen yet</h3>
           <p className="text-muted">
             Pick one from the shortlist below to see its booking link and add it to your itinerary.

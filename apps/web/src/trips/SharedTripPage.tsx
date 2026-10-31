@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
-import { EyeIcon } from '../auth/icons'
+import { EyeIcon, UtensilsIcon } from '../auth/icons'
 import { NotFoundError, fetchSharedTrip } from './api'
 import type { Trip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
@@ -79,7 +79,10 @@ export function SharedTripPage() {
       />
       {(trip.restaurants ?? []).length > 0 && (
         <section className="card stack" aria-labelledby="shared-restaurants">
-          <h2 id="shared-restaurants">Restaurants</h2>
+          <h2 id="shared-restaurants">
+            <UtensilsIcon />
+            Restaurants
+          </h2>
           <ul className="restaurant-picks">
             {(trip.restaurants ?? []).map((pick) => (
               <li className="restaurant-pick" key={pick.id}>

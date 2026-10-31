@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { ArrowLeftIcon } from '../auth/icons'
+import { ArrowLeftIcon, BedIcon, CompassIcon, MapPinIcon, ShieldIcon, UtensilsIcon } from '../auth/icons'
 import { fetchStarterPlace } from './starterApi'
 import type { SampleItem, StarterPlaceContent } from './starterApi'
 import { STARTER_PLAN_PATH } from './StarterPlannerPage'
@@ -46,7 +46,10 @@ export function StarterPlaceContentPage() {
           <ArrowLeftIcon />
           Back to trip
         </Link>
-        <h2>{place}</h2>
+        <h2>
+          <MapPinIcon />
+          {place}
+        </h2>
         <nav aria-label="Breadcrumb">
           <ol className="crumbs">
             <li>Destinations</li>
@@ -75,15 +78,24 @@ export function StarterPlaceContentPage() {
       {load.status === 'loaded' && (
         <div className="stack">
           <section className="card stack">
-            <h3>Sample places</h3>
+            <h3>
+              <MapPinIcon />
+              Sample places
+            </h3>
             <Items items={load.content.places} />
           </section>
           <section className="card stack">
-            <h3>Sample restaurants</h3>
+            <h3>
+              <UtensilsIcon />
+              Sample restaurants
+            </h3>
             <Items items={load.content.restaurants} />
           </section>
           <section className="card stack">
-            <h3>Sample stays</h3>
+            <h3>
+              <BedIcon />
+              Sample stays
+            </h3>
             <Items
               items={load.content.stays.map((stay) => ({
                 ...stay,
@@ -92,11 +104,17 @@ export function StarterPlaceContentPage() {
             />
           </section>
           <section className="card stack">
-            <h3>Sample activities</h3>
+            <h3>
+              <CompassIcon />
+              Sample activities
+            </h3>
             <Items items={load.content.activities} />
           </section>
           <section className="card stack">
-            <h3>Medical guidance</h3>
+            <h3>
+              <ShieldIcon />
+              Medical guidance
+            </h3>
             <p>{load.content.medical_guidance}</p>
           </section>
         </div>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { ArrowRightIcon, MapPinIcon } from '../auth/icons'
 import type { DestinationRef, DestinationStatus } from './destination'
 
 type Props = {
@@ -14,9 +15,11 @@ export function DestinationGate({ tripId, destination, status, children }: Props
   if (status === 'no_destination' || !destination)
     return (
       <div role="status" className="empty-state">
+        <MapPinIcon />
         <h2>Choose a destination</h2>
         <p>Choose a country and place for this trip first.</p>
         <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(tripId)}`}>
+          <ArrowRightIcon />
           Choose a destination
         </Link>
       </div>

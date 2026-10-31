@@ -1,4 +1,4 @@
-import { HeartIcon } from '../auth/icons'
+import { HeartIcon, InfoIcon, PlusIcon } from '../auth/icons'
 import type { Place } from './api'
 import { PlaceCover } from './PlaceCover'
 
@@ -51,6 +51,7 @@ export function PlaceCard({
           aria-label={`Details for ${place.name}`}
           onClick={() => onDetails(place)}
         >
+          <InfoIcon />
           Details
         </button>
       )}
@@ -62,6 +63,7 @@ export function PlaceCard({
           disabled={pending}
           onClick={() => onAdd(place)}
         >
+          <PlusIcon />
           Add to trip
         </button>
       )}

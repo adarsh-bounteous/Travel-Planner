@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { startGoogle } from './api'
 import type { GoogleMode } from './api'
-import { AlertIcon, InfoIcon } from './icons'
+import { AlertIcon, ArrowRightIcon, InfoIcon, RefreshIcon, UserIcon } from './icons'
 import { MESSAGES } from './messages'
 import type { Problem } from './messages'
 import { PasswordField } from './PasswordField'
@@ -77,6 +77,7 @@ export function AuthForm(props: Props) {
                   onClick={props.onResend}
                   disabled={props.resent}
                 >
+                  <RefreshIcon />
                   {props.resent ? 'Email sent' : 'Resend email'}
                 </button>
               </>
@@ -115,6 +116,7 @@ export function AuthForm(props: Props) {
           hint={props.passwordHint}
         />
         <button className="btn btn-primary fill" type="submit" disabled={pending}>
+          <ArrowRightIcon />
           {pending ? (
             <>
               <span className="spinner" aria-hidden="true" />
@@ -135,6 +137,7 @@ export function AuthForm(props: Props) {
               onClick={google}
               disabled={waitingForGoogle}
             >
+              <UserIcon />
               {waitingForGoogle ? (
                 <>
                   <span className="spinner" aria-hidden="true" />

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { CheckIcon, XIcon } from '../auth/icons'
 import { saveTravellerDetails } from './api'
 import type { CompanionDetailsInput, Trip, Traveller } from './api'
 import { COMPANION_FIELDS, companionErrors } from './companionDetails'
@@ -91,9 +92,11 @@ export function CompanionDetailsDrawer({
         )}
         <div className="form-actions">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save'}
           </button>
         </div>

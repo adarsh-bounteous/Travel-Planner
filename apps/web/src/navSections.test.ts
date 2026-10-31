@@ -1,4 +1,11 @@
-import { mainSectionFor } from './navSections'
+import { ICONS } from './auth/icons'
+import { MAIN_SECTIONS, mainSectionFor } from './navSections'
+
+describe('MAIN_SECTIONS', () => {
+  it('gives every main section an icon from the set', () => {
+    expect(MAIN_SECTIONS.every((section) => section.icon in ICONS)).toBe(true)
+  })
+})
 
 describe('mainSectionFor', () => {
   it('maps Trips screens to trips (AC9)', () => {

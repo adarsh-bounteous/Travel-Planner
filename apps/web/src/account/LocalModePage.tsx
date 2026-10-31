@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { InfoIcon } from '../auth/icons'
+import { ArrowLeftIcon, InfoIcon, ListIcon } from '../auth/icons'
 import {
   fetchLocalMode,
   fetchProviderStatuses,
@@ -157,11 +157,15 @@ export function LocalModePage() {
         </div>
       )}
       <section className="stack stack-sm" aria-labelledby="providers-title">
-        <h2 id="providers-title">Registered providers</h2>
+        <h2 id="providers-title">
+          <ListIcon />
+          Registered providers
+        </h2>
         <ProviderList providers={providers} />
       </section>
       <div className="cluster">
         <Link className="btn btn-secondary" to="/explore/travel">
+          <ArrowLeftIcon />
           Back to search
         </Link>
       </div>

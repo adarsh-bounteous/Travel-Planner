@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { fetchLocalMode } from './api'
-import { BellIcon } from './icons'
+import { ArrowLeftIcon, BellIcon } from './icons'
 
 export function ConfirmEmailPage() {
   const [localMode, setLocalMode] = useState(false)
@@ -23,6 +23,7 @@ export function ConfirmEmailPage() {
         <h1>Confirm your email</h1>
         <p>Open the link we sent to your email address, then sign in.</p>
         <Link className="btn btn-secondary" to="/sign-in">
+          <ArrowLeftIcon />
           Back to sign in
         </Link>
         {localMode && (

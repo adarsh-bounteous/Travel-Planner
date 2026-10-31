@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { AlertIcon, CheckIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, InfoIcon, WalletIcon } from '../auth/icons'
 import type { CostSummary, InsurancePick } from './api'
 
 const amountFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 })
@@ -33,7 +33,10 @@ export function TripTotalCard({
   return (
     <section className="card stack stack-sm" aria-label="Trip total">
       <div className="total-row">
-        <h2 aria-live="polite">{formatMoney(cost.total, currency)}</h2>
+        <h2 aria-live="polite">
+          <WalletIcon />
+          {formatMoney(cost.total, currency)}
+        </h2>
         <span className="fx-rate">
           {cost.rates.length > 0
             ? cost.rates
@@ -53,6 +56,7 @@ export function TripTotalCard({
       )}
       {costsHref && (
         <Link className="btn btn-ghost" to={costsHref}>
+          <WalletIcon />
           View costs in another currency
         </Link>
       )}

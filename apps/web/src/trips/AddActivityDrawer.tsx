@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { AlertIcon, XIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, PlusIcon, SearchIcon, XIcon } from '../auth/icons'
 import { searchPlaces } from '../places/api'
 import { addActivity, fetchRecommendations } from './api'
 import type { ActivityInput, Day, Trip } from './api'
@@ -47,6 +47,7 @@ function Picker({ label, picks, pending, onAdd }: PickerProps) {
         ))}
       </div>
       <button className="btn btn-secondary" type="button" disabled={pending} onClick={() => onAdd(selected)}>
+        <PlusIcon />
         {`Add ${selected.name}`}
       </button>
     </>
@@ -156,6 +157,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
             </div>
           ) : recs.length === 0 ? (
             <div className="empty-state" role="status">
+              <SearchIcon />
               <p>No recommendations are available for this day.</p>
               <p className="note-for">Search places or add a custom activity instead.</p>
             </div>
@@ -180,6 +182,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
               />
             </div>
             <button className="btn btn-secondary" type="button" disabled={searching} onClick={search}>
+              <SearchIcon />
               {searching ? 'Searching…' : 'Search'}
             </button>
             {searchFailed && (
@@ -225,6 +228,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
               </p>
             )}
             <button className="btn btn-primary" type="button" disabled={pending} onClick={save}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save activity'}
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
-import { AlertIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, RefreshIcon, SearchIcon } from '../auth/icons'
 import { fetchRestaurantShortlist, fetchTrip } from './api'
 import type { RestaurantShortlist, ShortlistEntry, Trip } from './api'
 import { RestaurantCompare } from './RestaurantCompare'
@@ -112,6 +112,7 @@ export function RestaurantShortlistPage() {
             We couldn't load the restaurants. Check your connection and try again.
           </span>
           <button className="btn btn-secondary" type="button" onClick={load}>
+            <RefreshIcon />
             Retry
           </button>
         </div>
@@ -156,6 +157,7 @@ export function RestaurantShortlistPage() {
                   <p>No restaurants match this trip yet. Relax a filter to find more.</p>
                   <div className="cluster">
                     <Link className="btn btn-primary" to={optionsHref}>
+                      <ArrowLeftIcon />
                       Back to restaurant options
                     </Link>
                   </div>
@@ -165,6 +167,7 @@ export function RestaurantShortlistPage() {
                   <p>You removed every restaurant, so there is nothing to choose from. Restore the matches to pick again.</p>
                   <div className="cluster">
                     <button className="btn btn-primary" type="button" onClick={restore}>
+                      <RefreshIcon />
                       Restore shortlist
                     </button>
                   </div>

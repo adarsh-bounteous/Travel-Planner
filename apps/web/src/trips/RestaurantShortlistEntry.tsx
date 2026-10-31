@@ -1,4 +1,4 @@
-import { AlertIcon, CheckIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, PlusIcon, TrashIcon, UtensilsIcon } from '../auth/icons'
 import type { ShortlistEntry } from './api'
 import { RestaurantLink } from './RestaurantLink'
 import { shortlistReason } from './restaurantShortlist'
@@ -18,7 +18,10 @@ export function RestaurantShortlistEntry({ entry, budget, currency, added, onRem
   return (
     <article className={added ? 'card entry is-chosen' : 'card entry'} aria-label={name}>
       <div className="row-between">
-        <h3>{name}</h3>
+        <h3>
+          <UtensilsIcon />
+          {name}
+        </h3>
         {entry.fits_budget ? (
           <span className="badge badge-success">
             <CheckIcon />
@@ -35,6 +38,7 @@ export function RestaurantShortlistEntry({ entry, budget, currency, added, onRem
       <RestaurantLink name={name} url={entry.restaurant.url} />
       <div className="row-end">
         <button className="btn btn-ghost" type="button" aria-label={`Remove ${name} from shortlist`} onClick={onRemove}>
+          <TrashIcon />
           Remove
         </button>
         {added ? (
@@ -44,6 +48,7 @@ export function RestaurantShortlistEntry({ entry, budget, currency, added, onRem
           </button>
         ) : (
           <button className="btn btn-primary" type="button" aria-label={`Add ${name} to trip`} onClick={onAdd}>
+            <PlusIcon />
             Add to trip
           </button>
         )}

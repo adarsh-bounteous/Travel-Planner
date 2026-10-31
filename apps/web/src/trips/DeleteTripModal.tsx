@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AlertIcon, TrashIcon, XIcon } from '../auth/icons'
 import { deleteTrip } from './api'
 import type { Trip } from './api'
 import { Overlay } from './Overlay'
@@ -36,6 +37,7 @@ export function DeleteTripModal({ trip, onCancel, onDeleted }: DeleteTripModalPr
     >
       <div className="stack stack-lg">
         <h3 className="text-lg" id="delete-heading">
+          <AlertIcon />
           Delete this trip?
         </h3>
         <div className="stack stack-sm" id="delete-text">
@@ -52,9 +54,11 @@ export function DeleteTripModal({ trip, onCancel, onDeleted }: DeleteTripModalPr
         )}
         <div className="overlay-actions end">
           <button className="btn btn-ghost" type="button" onClick={onCancel}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-danger" type="button" disabled={pending} onClick={confirm}>
+            <TrashIcon />
             {pending ? 'Deleting…' : 'Delete trip'}
           </button>
         </div>

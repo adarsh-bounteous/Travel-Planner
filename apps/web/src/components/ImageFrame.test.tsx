@@ -111,3 +111,16 @@ describe('ImageFrame photo and illustration', () => {
     expect(container.querySelectorAll('img')).toHaveLength(1)
   })
 })
+
+describe('ImageFrame palette scene', () => {
+  it('draws an inline SVG that reads the --pal variables, not an img (AC1, AC5)', () => {
+    const { container } = render(<ImageFrame ratio="16/9" illustration={landmark} palette />)
+    expect(container.querySelector('img')).toBeNull()
+    const scene = screen.getByRole('img', { name: "Illustration in the trip's palette" })
+    expect(scene.tagName.toLowerCase()).toBe('svg')
+    for (const c of ['art-sky', 'art-sun', 'art-hill', 'art-deep', 'art-line']) {
+      expect(scene.querySelector(`.${c}`)).not.toBeNull()
+    }
+    expect(scene).toHaveTextContent('')
+  })
+})

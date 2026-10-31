@@ -50,3 +50,19 @@ describe('ImageHero', () => {
     expect(text).toContain('var(--color-on-primary)')
   })
 })
+
+describe('ImageHero palette variant', () => {
+  it('puts the title on a solid text panel, apart from the art, with no scrim (AC7)', () => {
+    const { container } = render(
+      <ImageHero variant="palette" illustration={{ destination: 'Lisbon' }} title={<h1>Fake trip</h1>} dates="3 – 5 Mar" />,
+    )
+    const text = container.querySelector('.hero-text') as HTMLElement
+    expect(text).toContainElement(screen.getByRole('heading', { name: 'Fake trip' }))
+    expect(text).toHaveTextContent('3 – 5 Mar')
+    expect(container.querySelector('.hero')).toHaveClass('hero-palette')
+    expect(container.querySelector('.scrim')).toBeNull()
+    const art = screen.getByRole('img', { name: "Illustration in the trip's palette" })
+    expect(text).not.toContainElement(art)
+    expect(art).toHaveTextContent('')
+  })
+})

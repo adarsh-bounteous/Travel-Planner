@@ -23,6 +23,7 @@ from app.routers import (
     place_tiles,
     places,
     profile,
+    providers_status,
     rates,
     restaurant_options,
     restaurant_picks,
@@ -57,6 +58,7 @@ app = FastAPI(title="Trip Planner API", lifespan=lifespan)
 app.include_router(health.router)
 app.include_router(availability.router)
 app.include_router(startup_status.router)
+app.include_router(providers_status.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)

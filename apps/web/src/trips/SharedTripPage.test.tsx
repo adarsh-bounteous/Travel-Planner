@@ -20,6 +20,18 @@ const shared: Trip = {
     { id: '', title: 'Hotel Avenida, 2 nights', category: 'Stays', date: '2027-03-03' },
   ],
   activities: [],
+  restaurants: [
+    {
+      id: 'p1',
+      name: 'Casa Lima',
+      city: 'Lisbon',
+      cuisine: 'Portuguese',
+      typical_price: '19',
+      currency: 'EUR',
+      date: null,
+      meal: null,
+    },
+  ],
 }
 
 const visit = (token = 'k7Qm2xVd9') => {
@@ -37,6 +49,12 @@ describe('read-only trip page', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon trip' })).toBeInTheDocument()
     expect(screen.getByText('Hotel Avenida, 2 nights')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Sign in' })).not.toBeInTheDocument()
+  })
+
+  it('lists the restaurant picks by name (AC6)', async () => {
+    visit()
+    const card = within(await screen.findByRole('region', { name: 'Restaurants' }))
+    expect(card.getByText('Casa Lima')).toBeInTheDocument()
   })
 
   it('shows no control to change the plan (AC3)', async () => {

@@ -4,7 +4,7 @@ import { AlertIcon } from '../auth/icons'
 import { moveRestaurant, pickRestaurant } from './api'
 import type { Day, Meal, RestaurantPick, Trip } from './api'
 import { Overlay } from './Overlay'
-import { estimateLabel, MEALS, mealLabel } from './restaurantPicks'
+import { defaultDay, estimateLabel, MEALS, mealLabel } from './restaurantPicks'
 import { formatMoney } from './TripTotalCard'
 
 type Shared = {
@@ -26,8 +26,11 @@ type Props =
 export function RestaurantPickDialog(props: Props) {
   const { tripId, days, travellers, onClose, onDone } = props
   const subject = props.mode === 'add' ? props.restaurant : props.pick
-  const [day, setDay] = useState(props.mode === 'move' ? (props.pick.date ?? '') : '')
-  const [meal, setMeal] = useState<Meal | null>(props.mode === 'move' ? props.pick.meal : null)
+  // A new pick starts on the first day at dinner so it lands in the itinerary; a move keeps the pick's own place.
+  const [day, setDay] = useState(props.mode === 'move' ? (props.pick.date ?? '') : defaultDay(days))
+  const [meal, setMeal] = useState<Meal | null>(
+    props.mode === 'move' ? props.pick.meal : defaultDay(days) ? 'dinner' : null,
+  )
   const [error, setError] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
   const [pending, setPending] = useState(false)
@@ -38,6 +41,7 @@ export function RestaurantPickDialog(props: Props) {
     setDay(value)
     setError(null)
     if (value === '') setMeal(null)
+    else if (meal === null) setMeal('dinner')
   }
 
   const submit = async (event: FormEvent) => {
@@ -69,7 +73,7 @@ export function RestaurantPickDialog(props: Props) {
   const adding = props.mode === 'add'
   const price = subject.typical_price
   return (
-    <Overlay kind="modal" labelledBy="pick-title" onClose={onClose}>
+    <Overlay kind="drawer" labelledBy="pick-title" onClose={onClose}>
       <form className="stack" noValidate onSubmit={submit}>
         <h2 className="text-lg" id="pick-title">
           {adding ? 'Add to trip' : 'Move restaurant'}
@@ -86,15 +90,17 @@ export function RestaurantPickDialog(props: Props) {
             value={day}
             onChange={(event) => changeDay(event.target.value)}
           >
-            <option value="">Unscheduled</option>
             {days.map((d) => (
               <option key={d.date} value={d.date}>
                 {d.name}
               </option>
             ))}
+            <option value="">Unscheduled</option>
           </select>
           <span className="field-hint" id="pick-day-hint">
-            Leave it on Unscheduled if you haven't decided. You can move it to a day later.
+            {days.length === 0
+              ? 'This trip has no dates yet, so picks go to Unscheduled.'
+              : "Choose Unscheduled if you haven't decided. You can give it a day later."}
           </span>
         </div>
         <div className={`field${error ? ' is-invalid' : ''}`}>

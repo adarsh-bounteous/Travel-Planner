@@ -1,4 +1,5 @@
 import time
+from collections.abc import Callable
 from datetime import UTC, date, datetime
 from functools import lru_cache
 
@@ -8,6 +9,8 @@ from app.auth.session import read_session
 from app.availability.store import DynamoProbeStore, InMemoryProbeStore, ProbeStore
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
+from app.providers.registry import ProviderRegistry, default_registry
+from app.secrets import get_secret
 from app.locations.cache import DynamoLocationCache
 from app.locations.nominatim import NominatimResolver
 from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
@@ -260,6 +263,17 @@ def _local_invite_sender() -> PersistentInviteSender:
 def require_local_mode() -> None:
     if not get_settings().local_mode:
         raise ApiError(404, "not_found")
+
+
+@lru_cache
+def get_provider_registry() -> ProviderRegistry:
+    return default_registry()
+
+
+def secret_reader() -> Callable[[str], str | None]:
+    """Reads a provider key for the current mode: None when it is not configured."""
+    local_mode = get_settings().local_mode
+    return lambda name: get_secret(name, local_mode=local_mode)
 
 
 def get_local_inbox() -> PersistentInviteSender:

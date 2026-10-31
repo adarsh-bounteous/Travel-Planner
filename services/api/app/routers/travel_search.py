@@ -49,7 +49,7 @@ def search(
             stays=stays,
             flights=flights,
             transports=transports,
-            local=get_settings().local_mode,
+            local=not get_settings().is_live("hotels" if type == "stay" else "flights"),
         )
     except ReturnBeforeDepartError:
         raise ApiError(422, "return_before_depart")

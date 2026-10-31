@@ -41,11 +41,16 @@ class Settings:
     @property
     def osm_places_enabled(self) -> bool:
         """Real OpenStreetMap places only where the places source is live: always outside local mode, opt-in inside it."""
-        return (not self.local_mode) or "places" in self.live_providers
+        return self.is_live("places")
+
+    def is_live(self, provider: str) -> bool:
+        """Outside local mode every provider is live; in local mode only the opted-in ones are."""
+        return (not self.local_mode) or provider in self.live_providers
 
     @property
     def map_tiles_enabled(self) -> bool:
-        return self.osm_places_enabled
+        """Real map tiles only where the places source is live."""
+        return self.is_live("places")
 
 
 def session_secret() -> bytes:

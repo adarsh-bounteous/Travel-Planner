@@ -107,3 +107,12 @@ def test_messages_sent_outside_local_mode_are_not_kept(monkeypatch, tmp_path):
     restart()
     assert deps.get_local_inbox().sent == []
     restart()
+
+
+def test_inbox_lists_an_emailed_itinerary_with_its_html(local_client):
+    local_client.post("/auth/sign-in", json={"email": DEMO_EMAIL, "password": DEMO_PASSWORD})
+    trip = local_client.get("/trips").json()[0]
+    assert local_client.post(f"/trips/{trip['id']}/itinerary/email").status_code == 204
+    [message] = local_client.get("/local/inbox").json()
+    assert (message["kind"], message["subject"], message["to"]) == ("itinerary", "Your itinerary", DEMO_EMAIL)
+    assert message["trip_name"] == trip["name"] and "Travel essentials" in message["html"]

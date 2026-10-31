@@ -1,22 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
-import { EyeIcon } from '../auth/icons'
+import { EyeIcon, InfoIcon } from '../auth/icons'
 import { NotFoundError, fetchSharedTrip } from './api'
-import type { Trip } from './api'
+import type { SharedTrip } from './api'
 import { AccessRemovedModal } from './AccessRemovedModal'
-import { ItineraryTab } from './ItineraryTab'
+import { ItineraryDocument } from './ItineraryDocument'
 import { LinkUnavailable } from './LinkUnavailable'
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'failed'
 
 const REFRESH_MS = 30_000
 
-const noop = () => {}
-
 /** The itinerary behind a read-only link, for anyone, with nothing to change it. */
 export function SharedTripPage() {
   const { token = '' } = useParams()
-  const [trip, setTrip] = useState<Trip | null>(null)
+  const [trip, setTrip] = useState<SharedTrip | null>(null)
   const [load, setLoad] = useState<LoadState>('loading')
   const [removed, setRemoved] = useState(false)
 
@@ -36,9 +34,13 @@ export function SharedTripPage() {
   useEffect(() => {
     if (!open) return
     const recheck = () =>
-      fetchSharedTrip(token).then(setTrip, (reason) => {
-        if (reason instanceof NotFoundError) setRemoved(true)
-      })
+      fetchSharedTrip(token).then(
+        // An itinerary the visitor already has stays until they reload, even if the owner switched it off.
+        (next) => setTrip((prev) => (prev?.itinerary_shared && !next.itinerary_shared ? prev : next)),
+        (reason) => {
+          if (reason instanceof NotFoundError) setRemoved(true)
+        },
+      )
     const timer = setInterval(recheck, REFRESH_MS)
     window.addEventListener('focus', recheck)
     return () => {
@@ -59,35 +61,34 @@ export function SharedTripPage() {
   if (load === 'failed' || trip === null)
     return <p role="alert">We couldn't load this trip. Reload to try again.</p>
 
+  const badge = (
+    <span className="badge badge-neutral">
+      <EyeIcon />
+      Read-only
+    </span>
+  )
+
   return (
     <div className="stack stack-lg">
-      <div className="stack stack-sm">
-        <span className="badge badge-neutral">
-          <EyeIcon />
-          Read-only
-        </span>
-        <h1>{trip.name}</h1>
-      </div>
-      <ItineraryTab
-        trip={trip}
-        onRename={noop}
-        onAddReminder={noop}
-        onEditReminder={noop}
-        onAddActivity={noop}
-        onMoveActivity={async () => {}}
-        onRemoveActivity={noop}
-      />
-      {(trip.restaurants ?? []).length > 0 && (
-        <section className="card stack" aria-labelledby="shared-restaurants">
-          <h2 id="shared-restaurants">Restaurants</h2>
-          <ul className="restaurant-picks">
-            {(trip.restaurants ?? []).map((pick) => (
-              <li className="restaurant-pick" key={pick.id}>
-                <span className="text-bold">{pick.name}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {trip.itinerary_shared && trip.itinerary ? (
+        <>
+          {badge}
+          <ItineraryDocument itinerary={trip.itinerary} readOnly />
+        </>
+      ) : (
+        <>
+          <div className="stack stack-sm">
+            {badge}
+            <h1>{trip.name}</h1>
+          </div>
+          <div className="alert alert-info" role="status">
+            <InfoIcon />
+            <p>
+              <span className="alert-title">The itinerary isn’t shared.</span> Ask the trip owner if you’d like
+              to see the day-by-day plan.
+            </p>
+          </div>
+        </>
       )}
       {removed && (
         <AccessRemovedModal

@@ -571,6 +571,7 @@ fieldset.radio-group legend { font-weight: var(--font-weight-medium); padding: 0
 .mail-meta { padding: var(--space-3); background: var(--color-surface); border-bottom: var(--border-width) solid var(--color-border); display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
 .mail-meta dt { color: var(--color-fg-muted); }
 .mail-meta dd { margin: 0; overflow-wrap: anywhere; }
+.mail-frame { display: block; width: 100%; height: 70vh; border: 0; background: var(--color-bg); }
 .mail-body { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); max-width: 65ch; overflow-wrap: anywhere; }
 .mail-link { overflow-wrap: anywhere; font-family: var(--font-family-mono); font-size: var(--font-size-sm); }
 .form-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
@@ -743,7 +744,14 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
 .check-row .badge .icon { width: var(--space-3); height: var(--space-3); margin-right: var(--space-1); }
 .sources { margin: var(--space-2) 0 0; padding-left: var(--space-4); }
 .sources li { overflow-wrap: anywhere; }
-.print-fab { position: sticky; bottom: var(--space-3); align-self: flex-end; margin-top: var(--space-3); }
+.itin-foot { margin-top: var(--space-3); }
+.itin-back { display: inline-flex; align-items: center; gap: var(--space-1); min-height: var(--size-control-md); }
+.actions .btn { flex: 1 1 auto; }
+@media (min-width: 48rem) { .actions .btn { flex: 0 0 auto; } }
+.btn[aria-disabled="true"] { opacity: var(--opacity-disabled); cursor: not-allowed; }
+fieldset.share-itinerary { border: 0; margin: 0; padding: 0; min-width: 0; }
+fieldset.share-itinerary legend { padding: 0; margin-bottom: var(--space-2); font-weight: var(--font-weight-medium); }
+.share-itinerary .check { align-items: flex-start; }
 
 /* Money and inclusions. .note is also a boxed note elsewhere, so the document's plain one is scoped. */
 .document > .divider { margin: 0; }
@@ -769,7 +777,7 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
 /* Printing the itinerary: A4, no app navigation or section list, a page per day, link URLs after link text */
 @page { size: A4; margin: 15mm; }
 @media print {
-  .shell-header, .section-list, .print-fab { display: none !important; }
+  .shell-header, .section-list, .itin-foot, .itin-back { display: none !important; }
   .itin-body { display: block; }
   .document { max-width: none; }
   .day-card, #still-to-schedule { break-before: page; }

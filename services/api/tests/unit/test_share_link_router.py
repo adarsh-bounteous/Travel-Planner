@@ -54,6 +54,7 @@ def test_visitor_without_an_account_reads_the_itinerary(sign_in_as):
     owner = sign_in_as("o@example.com")
     tid = _trip(owner, sign_in_as)
     share_url = owner.post(f"/trips/{tid}/share-link").json()["share_url"]
+    owner.put(f"/trips/{tid}/share-link/itinerary", json={"show": True})  # a new link starts Off
     visitor = TestClient(app)  # no session cookie
     r = visitor.get(share_url.replace("/trips/read-only/", "/shared/"))
     assert r.status_code == 200
@@ -91,6 +92,7 @@ def test_public_body_carries_restaurant_picks_without_their_link(sign_in_as):
     )
     sign_in_as.trips.save_trip(owner_id, trip.model_copy(update={"restaurants": [pick]}))
     token = _token(owner.post(f"/trips/{tid}/share-link").json()["share_url"])
+    owner.put(f"/trips/{tid}/share-link/itinerary", json={"show": True})
     body = TestClient(app).get(f"/shared/{token}").json()
     assert [r["name"] for r in body["restaurants"]] == ["Casa Lima"]
     assert "url" not in body["restaurants"][0]

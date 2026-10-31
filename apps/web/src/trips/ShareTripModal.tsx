@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { XIcon } from '../auth/icons'
-import { createShareLink, revokeShareLink } from './api'
+import { createShareLink, revokeShareLink, setShareItinerary } from './api'
 import type { Trip } from './api'
 import { Overlay } from './Overlay'
 
@@ -15,6 +15,7 @@ type ShareTripModalProps = {
 export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTripModalProps) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [show, setShow] = useState(trip.share_itinerary ?? false)
   const link = trip.share_url ? `${window.location.origin}${trip.share_url}` : null
 
   const change = async (action: () => Promise<Trip>, message: string, failure: string) => {
@@ -90,6 +91,62 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
                 Copy link
               </button>
             </div>
+            <fieldset className="share-itinerary stack stack-sm">
+              <legend>Show itinerary on share link</legend>
+              <label className="check">
+                <input
+                  className="radio"
+                  type="radio"
+                  name="show-itinerary"
+                  checked={show}
+                  onChange={() => setShow(true)}
+                />
+                <span>
+                  <span className="text-bold">On</span>
+                  <br />
+                  <span className="field-hint">
+                    Visitors see the full itinerary, including money, inclusions and travel essentials.
+                  </span>
+                </span>
+              </label>
+              <label className="check">
+                <input
+                  className="radio"
+                  type="radio"
+                  name="show-itinerary"
+                  checked={!show}
+                  onChange={() => setShow(false)}
+                />
+                <span>
+                  <span className="text-bold">Off</span>
+                  <br />
+                  <span className="field-hint">
+                    Visitors see the trip name only. This is the default.
+                  </span>
+                </span>
+              </label>
+              <p className="field-hint">
+                Switching off applies to new visits. Pages already open keep what they loaded until they reload.
+              </p>
+              <div>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    change(
+                      () => setShareItinerary(trip.id, show),
+                      show
+                        ? 'Saved. The share link now shows the full itinerary.'
+                        : 'Saved. The share link hides the itinerary.',
+                      "We couldn't save that. Try again.",
+                    )
+                  }
+                >
+                  Save
+                </button>
+              </div>
+            </fieldset>
             <p className="field-hint">
               Turning the link off stops it working straight away, including for anyone who has the
               trip open.
@@ -101,7 +158,11 @@ export function ShareTripModal({ trip, onClose, onChanged, onCopied }: ShareTrip
                 disabled={pending}
                 onClick={() =>
                   change(
-                    () => revokeShareLink(trip.id),
+                    async () => {
+                      const revoked = await revokeShareLink(trip.id)
+                      setShow(false) // a link made later starts Off again
+                      return revoked
+                    },
                     'Link turned off.',
                     "We couldn't turn off that link. Try again.",
                   )

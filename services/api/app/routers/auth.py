@@ -84,13 +84,14 @@ def get_identity() -> IdentityProvider:
 
 
 def get_local_identity() -> LocalIdentityProvider:
-    if not get_settings().local_mode:
-        raise HTTPException(404)
+    settings = get_settings()
+    if not settings.local_mode or settings.is_live("identity"):
+        raise HTTPException(404)  # the local identity is only in use while identity is not opted in
     return _local_identity()
 
 
 def get_accounts() -> AccountStore:
-    return _local_accounts() if get_settings().local_mode else _dynamo()
+    return _dynamo() if get_settings().is_live("identity") else _local_accounts()
 
 
 def get_now() -> datetime:

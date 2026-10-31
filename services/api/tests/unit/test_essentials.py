@@ -4,6 +4,7 @@ from decimal import Decimal
 from app.trips.essentials import build_essentials
 from app.trips.itinerary import build_itinerary
 from app.trips.profile_store import Profile
+from app.trips.rates import SEED_RATES, InMemoryRates
 from app.trips.store import ChosenSim, InsurancePick, Reminder, Trip
 from app.trips.visa import SEED_VISA_RULES, InMemoryVisaRules
 
@@ -122,5 +123,5 @@ def test_notes_list_only_facts_that_have_a_value():
 def test_old_trip_still_loads():
     trip = Trip.model_validate({"id": "t", "name": "Old"})
     assert trip.checklist_done == []
-    itinerary = build_itinerary(trip, None, _rules(), TODAY)
+    itinerary = build_itinerary(trip, None, _rules(), TODAY, InMemoryRates(SEED_RATES))
     assert len(itinerary.checklist) == 6 and not any(c.done for c in itinerary.checklist)

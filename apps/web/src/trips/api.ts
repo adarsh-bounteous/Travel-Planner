@@ -531,12 +531,41 @@ export type ImportantNotes = {
   sources: { label: string; source: string; as_of: string }[]
 }
 
-/** The printable trip document; the server leaves out money, editors and sharing. */
+export type BookingRow = {
+  id: string
+  kind: 'stay' | 'transport' | 'option' | 'sim' | 'insurance' | 'restaurant'
+  name: string
+  provider: string | null
+  start_date: string | null
+  end_date: string | null
+  price: number | null
+  currency: string | null
+  status: 'confirmed'
+  link_url: string | null
+  outside_trip: boolean
+}
+export type NotIncludedItem = { name: string; reason: 'unchosen' | 'unpriced'; add_path: string | null }
+export type Money = {
+  bookings: BookingRow[]
+  included: BookingRow[]
+  not_included: NotIncludedItem[]
+  standard_exclusions: string[]
+  cost: {
+    currency: string
+    total: number
+    by_currency: { currency: string; total: number }[]
+    conversions: { currency: string; rate: number; rate_date: string }[]
+    estimates_note: string
+  }
+}
+
+/** The printable trip document with a read-only money block; the server leaves out editors and sharing. */
 export type Itinerary = {
   cover: { name: string; start_date: string | null; end_date: string | null; destinations: string[] }
   glance: { booked: number; unbooked: number }
   days: ItineraryDay[]
   still_to_schedule: ItineraryItem[]
+  money?: Money // missing from an older API build
   essentials: EssentialFact[]
   checklist: ChecklistItem[]
   notes: ImportantNotes

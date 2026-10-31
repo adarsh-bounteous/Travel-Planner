@@ -21,6 +21,28 @@ const renderTable = () =>
   )
 
 describe('CompareTable', () => {
+  it('keeps "Option" as the first header unless titleHeader is given', () => {
+    renderTable()
+    expect(screen.getAllByRole('columnheader')[0]).toHaveTextContent('Option')
+  })
+
+  it('renders a custom first header and a class per row', () => {
+    render(
+      <CompareTable
+        caption="Plans"
+        rows={rows}
+        rowKey={(r) => r.id}
+        title={(r) => r.name}
+        columns={columns}
+        titleHeader="Item"
+        rowClassName={(r) => (r.id === 'a' ? 'is-flagged' : undefined)}
+      />,
+    )
+    expect(screen.getAllByRole('columnheader')[0]).toHaveTextContent('Item')
+    expect(screen.getByRole('row', { name: /Plan A/ })).toHaveClass('is-flagged')
+    expect(screen.getByRole('row', { name: /Plan B/ })).not.toHaveClass('is-flagged')
+  })
+
   it('renders a captioned table with a header per column plus the title column', () => {
     renderTable()
     expect(screen.getByRole('table', { name: 'Plans' })).toHaveClass('compare-table')

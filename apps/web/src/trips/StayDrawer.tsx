@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CheckIcon, XIcon } from '../auth/icons'
 import { addStay, updateStay } from './api'
 import type { Stay, StayInput, Trip } from './api'
 import { FieldError } from './FieldError'
@@ -118,9 +119,11 @@ export function StayDrawer({ trip, stay, onClose, onSaved }: StayDrawerProps) {
           )}
           <div className="overlay-actions end">
             <button className="btn btn-ghost" type="button" onClick={onClose}>
+              <XIcon />
               Cancel
             </button>
             <button className="btn btn-primary" type="submit" disabled={pending || invalid}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save stay'}
             </button>
           </div>

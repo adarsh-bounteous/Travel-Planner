@@ -4,7 +4,15 @@ import { Link, useNavigate } from 'react-router'
 import { AuthError, requestEmailChange, requestPasswordChange } from '../auth/api'
 import type { AuthErrorCode } from '../auth/api'
 import { useAuth } from '../auth/AuthProvider'
-import { AlertIcon, CheckIcon } from '../auth/icons'
+import {
+  AlertIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  EditIcon,
+  MapPinIcon,
+  PlaneIcon,
+  UserIcon,
+} from '../auth/icons'
 import { MESSAGES } from '../auth/messages'
 
 const MIN_PASSWORD_LENGTH = 12
@@ -121,7 +129,10 @@ function ChangeCard({
 
   return (
     <form className="card stack" noValidate onSubmit={submit}>
-      <h3>{heading}</h3>
+      <h3>
+        <EditIcon />
+        {heading}
+      </h3>
       {lead}
       <div className="field">
         <label className="field-label" htmlFor={currentId}>
@@ -158,6 +169,7 @@ function ChangeCard({
       </div>
       <div>
         <button className="btn btn-primary" type="submit" disabled={pending}>
+          <CheckIcon />
           {pending ? (
             <>
               <span className="spinner" aria-hidden="true" /> Saving
@@ -208,12 +220,15 @@ export function AccountPage() {
       <h1>Account</h1>
       <div className="card cluster">
         <Link className="btn btn-secondary" to="/profile">
+          <UserIcon />
           Traveller profile
         </Link>
         <Link className="btn btn-secondary" to="/profile/transport">
+          <PlaneIcon />
           Transport preferences
         </Link>
         <Link className="btn btn-secondary" to="/account/local-mode">
+          <MapPinIcon />
           Local mode
         </Link>
       </div>
@@ -261,6 +276,7 @@ export function AccountPage() {
       <hr className="divider" />
       <div className="signout-row">
         <button className="btn btn-secondary" type="button" onClick={handleSignOut}>
+          <ArrowRightIcon />
           Sign out
         </button>
       </div>

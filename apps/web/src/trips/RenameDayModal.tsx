@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, XIcon } from '../auth/icons'
 import { renameDay } from './api'
 import type { Day, Trip } from './api'
 import { Overlay } from './Overlay'
@@ -69,9 +69,11 @@ export function RenameDayModal({ tripId, day, position, onClose, onRenamed }: Re
         </div>
         <div className="overlay-actions end">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save'}
           </button>
         </div>

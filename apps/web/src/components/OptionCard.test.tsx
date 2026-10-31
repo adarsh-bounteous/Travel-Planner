@@ -22,6 +22,13 @@ describe('OptionCard', () => {
     expect(within(card).getByRole('button', { name: 'Pick' })).toBeInTheDocument()
   })
 
+  it('shows an icon before the title and before the meta row', () => {
+    render(<OptionCard title="Hotel Sol" meta="Lisbon, 3 nights" />)
+    const card = screen.getByRole('article', { name: 'Hotel Sol' })
+    expect(within(card).getByRole('heading', { level: 3 }).querySelector('svg.icon')).not.toBeNull()
+    expect(card.querySelector('.option-card-meta svg.icon')).not.toBeNull()
+  })
+
   it('shows hidden 16:9 art above the heading when given an illustration (AC8, AC9, AC12)', async () => {
     const { container } = render(<OptionCard title="Fake bistro" illustration={{ placeType: 'food' }} />)
     const card = screen.getByRole('article', { name: 'Fake bistro' })

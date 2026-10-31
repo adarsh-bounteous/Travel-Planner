@@ -1,3 +1,4 @@
+import { XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 import type { Place } from './api'
 
@@ -44,6 +45,7 @@ export function PlaceDetails({ place, onClose }: { place: Place; onClose: () => 
         </dl>
         <div>
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Close
           </button>
         </div>

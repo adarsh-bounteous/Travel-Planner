@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, CheckIcon, InfoIcon, UserIcon } from '../auth/icons'
+import { AlertIcon, ArrowLeftIcon, CheckIcon, InfoIcon, UserIcon } from '../auth/icons'
 import { CompareTable } from '../components/CompareTable'
 import { fetchInsuranceOptions, fetchTrip } from './api'
 import type { InsuranceOptions } from './api'
@@ -61,6 +61,7 @@ export function InsuranceComparePage() {
           <h2>Nothing to compare yet</h2>
           <p>You need at least 2 plans to compare. Change your trip dates or travellers to see more plans.</p>
           <Link className="btn btn-primary" to={shortlistHref}>
+            <ArrowLeftIcon />
             Back to insurance options
           </Link>
         </div>
@@ -78,6 +79,7 @@ export function InsuranceComparePage() {
             className="btn btn-primary"
             to={`${shortlistHref}#${status.names.includes('You') ? 'owner-age' : 'companion-ages'}`}
           >
+            <UserIcon />
             Add traveller details
           </Link>
         </div>
@@ -137,6 +139,7 @@ export function InsuranceComparePage() {
       {plans.length > 0 && (
         <div>
           <Link className="btn btn-secondary" to={shortlistHref}>
+            <ArrowLeftIcon />
             Back to insurance options
           </Link>
         </div>

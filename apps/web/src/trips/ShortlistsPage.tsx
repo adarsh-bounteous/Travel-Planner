@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { useLocation, useParams } from 'react-router'
+import { HeartIcon, RefreshIcon } from '../auth/icons'
 import { fetchTrip } from './api'
 import type { Trip } from './api'
 import { Toast } from './Toast'
@@ -68,6 +69,7 @@ export function ShortlistsPage() {
         <p>Check your connection and try again.</p>
         <div>
           <button className="btn btn-secondary" type="button" onClick={retry}>
+            <RefreshIcon />
             Retry
           </button>
         </div>
@@ -117,7 +119,10 @@ export function ShortlistsPage() {
       </div>
       <div className="shortlist-box">
         <div role="tabpanel" id="shortlist-panel" aria-labelledby={`shortlist-tab-${tab}`}>
-          <h2>{active.heading}</h2>
+          <h2>
+            <HeartIcon />
+            {active.heading}
+          </h2>
           <p className="text-muted">{active.empty} for this trip will appear here.</p>
         </div>
       </div>

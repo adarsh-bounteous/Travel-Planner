@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, ArrowLeftIcon, BellIcon } from '../auth/icons'
+import {
+  AlertIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BellIcon,
+  ClockIcon,
+  EyeIcon,
+  SuitcaseIcon,
+  UserIcon,
+} from '../auth/icons'
 
 type Message = {
   to: string
@@ -57,17 +66,29 @@ function EmailView({ message, onBack }: { message: Message; onBack: () => void }
           Back to inbox
         </button>
       </div>
-      <h2>{message.subject}</h2>
+      <h2>
+        <BellIcon />
+        {message.subject}
+      </h2>
       <div className="alert alert-info" role="status">
         Pretend email. Nothing was sent to {message.to}.
       </div>
       <div className="mail-sheet">
         <dl className="mail-meta">
-          <dt>From</dt>
+          <dt>
+            <UserIcon />
+            From
+          </dt>
           <dd>{FROM}</dd>
-          <dt>To</dt>
+          <dt>
+            <BellIcon />
+            To
+          </dt>
           <dd>{message.to}</dd>
-          <dt>Sent</dt>
+          <dt>
+            <ClockIcon />
+            Sent
+          </dt>
           <dd>{sent}</dd>
         </dl>
         {message.html === undefined ? (
@@ -87,6 +108,7 @@ function EmailView({ message, onBack }: { message: Message; onBack: () => void }
       {message.html === undefined && (
         <div className="cluster">
           <a className="btn btn-primary" href={message.link}>
+            <ArrowRightIcon />
             {kind.action}
           </a>
         </div>
@@ -120,6 +142,7 @@ export function LocalInboxPage() {
           <h2>This page is not available</h2>
           <p>The local inbox only exists when local mode is on. Head back to your trips.</p>
           <Link className="btn btn-primary" to="/">
+            <SuitcaseIcon />
             Go to Trips
           </Link>
         </div>
@@ -148,7 +171,10 @@ export function LocalInboxPage() {
           {load.messages.map((message) => (
             <div key={message.link} className="card mail-row">
               <div className="row-between">
-                <h3>{message.subject}</h3>
+                <h3>
+                  <BellIcon />
+                  {message.subject}
+                </h3>
                 <span className={`badge ${KINDS[message.kind].badge}`}>{KINDS[message.kind].badgeText}</span>
               </div>
               <p className="text-muted text-sm">To {message.to}</p>
@@ -158,6 +184,7 @@ export function LocalInboxPage() {
                   type="button"
                   onClick={() => setSelected(message.link)}
                 >
+                  <EyeIcon />
                   Open email
                 </button>
               </div>

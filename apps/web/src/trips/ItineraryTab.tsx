@@ -1,7 +1,19 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
+import {
+  ArrowRightIcon,
+  BedIcon,
+  BellIcon,
+  CalendarIcon,
+  ClockIcon,
+  EditIcon,
+  InfoIcon,
+  PlaneIcon,
+  PlusIcon,
+  TrashIcon,
+  XIcon,
+} from '../auth/icons'
 import type { Activity, ChosenOption, ChosenStay, Day, Reminder, RestaurantPick, Trip } from './api'
 import { LEGS, legName, pickSummary } from './flights'
 import { estimateLabel, mealLabel, picksForDay, unscheduled } from './restaurantPicks'
@@ -42,6 +54,7 @@ function Note({ reminder, editable, onEdit, activity }: NoteProps) {
           aria-label={`Edit reminder: ${reminder.text}`}
           onClick={() => onEdit(reminder)}
         >
+          <EditIcon />
           Edit
         </button>
       )}
@@ -88,10 +101,14 @@ function ChosenStays({ trip, editable }: { trip: Trip; editable: boolean }) {
   if (!first) return null
   return (
     <section className="stack" aria-labelledby="itinerary-stays">
-      <h3 id="itinerary-stays">Stays</h3>
+      <h3 id="itinerary-stays">
+        <BedIcon />
+        Stays
+      </h3>
       {stays.length === 0 && (
         <div className="empty-state">
           <EmptyStateArt />
+          <BedIcon />
           <h3>No stay in your itinerary</h3>
           <p className="text-muted">
             {`Choose a stay for ${formatRange(first.start_date, first.end_date)} and it will show up here.`}
@@ -101,6 +118,7 @@ function ChosenStays({ trip, editable }: { trip: Trip; editable: boolean }) {
               className="btn btn-primary"
               to={`/trips/${encodeURIComponent(trip.id)}/stays/${encodeURIComponent(first.id)}/shortlist`}
             >
+              <PlusIcon />
               Choose a stay
             </Link>
           )}
@@ -127,6 +145,7 @@ function ChosenTransport({ trip }: { trip: Trip }) {
   return (
     <div className="card stack" aria-labelledby="itinerary-transport">
       <h2 className="text-lg" id="itinerary-transport">
+        <PlaneIcon />
         Chosen options
       </h2>
       {picks.length === 0 ? (
@@ -172,11 +191,13 @@ function PickRow({ pick, travellers, editable, onMove }: PickRowProps) {
           aria-label={`Schedule ${pick.name}`}
           onClick={() => onMove(pick)}
         >
+          <CalendarIcon />
           Schedule
         </button>
       )}
       {editable && onMove && pick.date !== null && (
         <button className="btn btn-ghost" type="button" aria-label={`Move ${pick.name}`} onClick={() => onMove(pick)}>
+          <ArrowRightIcon />
           Move
         </button>
       )}
@@ -221,6 +242,7 @@ export function ItineraryTab({
     <section className="unscheduled stack stack-sm" aria-labelledby="itinerary-unscheduled">
         <div className="title-row">
           <h3 className="text-lg" id="itinerary-unscheduled">
+            <ClockIcon />
             Unscheduled
           </h3>
           {editable && (
@@ -251,6 +273,7 @@ export function ItineraryTab({
       <div className="stack stack-lg">
         <div className="empty-state">
           <EmptyStateArt />
+          <CalendarIcon />
           <h3>No days yet</h3>
           <p>
             {trip.is_owner
@@ -285,6 +308,7 @@ export function ItineraryTab({
           >
             <div className="title-row">
               <h3 className="text-lg" id={headingId}>
+                <CalendarIcon />
                 {formatDay(day.date)}{' '}
                 <span className="text-sm text-muted">{weekday.format(asDate(day.date))}</span>
               </h3>
@@ -354,6 +378,7 @@ export function ItineraryTab({
               meals.length === 0 && (
                 <div className="empty-state">
                   <EmptyStateArt />
+                  <InfoIcon />
                   <p>Nothing chosen for this day yet</p>
                   <p className="text-sm">
                     Options you choose for {formatDay(day.date)} will show up here.
@@ -388,6 +413,7 @@ export function ItineraryTab({
                             setMovingId(movingId === activity.id ? null : activity.id)
                           }}
                         >
+                          <ArrowRightIcon />
                           Move
                         </button>
                         <button
@@ -396,6 +422,7 @@ export function ItineraryTab({
                           aria-label={`Remove ${activity.name}`}
                           onClick={() => onRemoveActivity(activity)}
                         >
+                          <TrashIcon />
                           Remove
                         </button>
                       </div>
@@ -419,10 +446,12 @@ export function ItineraryTab({
                                 }
                               }}
                             >
+                              <CalendarIcon />
                               {`${formatDay(other.date)}, ${other.name}`}
                             </button>
                           ))}
                         <button className="btn btn-ghost" type="button" onClick={() => setMovingId(null)}>
+                          <XIcon />
                           Cancel
                         </button>
                         {moveFailed && (

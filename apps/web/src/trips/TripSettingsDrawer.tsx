@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent, RefObject } from 'react'
-import { AlertIcon, TrashIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, TrashIcon, XIcon } from '../auth/icons'
 import { updateTrip } from './api'
 import type { Trip } from './api'
 import { DestinationPicker } from './DestinationPicker'
@@ -197,9 +197,11 @@ export function TripSettingsDrawer({
         )}
         <div className="overlay-actions">
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save'}
           </button>
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Close
           </button>
         </div>

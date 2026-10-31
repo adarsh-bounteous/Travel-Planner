@@ -7,7 +7,7 @@ import { AuthForm } from './AuthForm'
 import { useAuth } from './AuthProvider'
 import { GoogleNoAccountModal } from './GoogleNoAccountModal'
 import { BrandLogo } from '../components/BrandLogo'
-import { InfoIcon } from './icons'
+import { EditIcon, InfoIcon } from './icons'
 import { pageLabel, peekReturnTo } from './returnTo'
 import type { Problem } from './messages'
 
@@ -113,6 +113,7 @@ export function SignInPage() {
                     fillPassword(demo.password)
                   }}
                 >
+                  <EditIcon />
                   Fill in demo details
                 </button>
               </div>

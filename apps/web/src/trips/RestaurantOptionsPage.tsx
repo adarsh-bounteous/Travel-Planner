@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, EditIcon, PlusIcon, SearchIcon, UserIcon } from '../auth/icons'
+import { AlertIcon, EditIcon, HeartIcon, ListIcon, PlusIcon, RefreshIcon, SearchIcon, UserIcon } from '../auth/icons'
 import { fetchRestaurantOptions, fetchTrip } from './api'
 import type { RestaurantOption, RestaurantOptions, Trip } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -98,9 +98,11 @@ export function RestaurantOptionsPage() {
       {!empty && (
         <div className="row-between">
           <Link className="btn btn-secondary" to={`/trips/${encodeURIComponent(tripId)}/restaurant-options/compare`}>
+            <ListIcon />
             Compare matches
           </Link>
           <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(tripId)}/restaurant-options/shortlist`}>
+            <HeartIcon />
             View shortlist
           </Link>
         </div>
@@ -152,9 +154,11 @@ export function RestaurantOptionsPage() {
           {trip.is_owner && (
             <div className="cluster">
               <button className="btn btn-ghost" type="button" onClick={edit}>
+                <RefreshIcon />
                 Relax filters
               </button>
               <button className="btn btn-primary" type="button" onClick={edit}>
+                <EditIcon />
                 Edit trip needs
               </button>
             </div>

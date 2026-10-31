@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { EditIcon, PlaneIcon, SearchIcon } from '../auth/icons'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from '../places/api'
 import { PlaceDetails } from '../places/PlaceDetails'
@@ -98,6 +99,7 @@ export function ExplorePage() {
     body = (
       <div className="empty-state">
         <EmptyStateArt />
+        <SearchIcon />
         <h2>No places match</h2>
         <p>Change the search or the filters to see more places.</p>
       </div>
@@ -129,6 +131,7 @@ export function ExplorePage() {
       <p className="cluster">
         <span>Places in {destination}</span>
         <Link className="btn btn-ghost" to="/">
+          <EditIcon />
           Change destination
         </Link>
       </p>
@@ -147,6 +150,7 @@ export function ExplorePage() {
           />
         </div>
         <button className="btn btn-primary" type="submit">
+          <SearchIcon />
           Search
         </button>
       </form>
@@ -160,6 +164,7 @@ export function ExplorePage() {
       {body}
       <div>
         <Link className="btn btn-secondary" to="/explore/travel">
+          <PlaneIcon />
           Search stays, flights and transport
         </Link>
       </div>

@@ -1,4 +1,4 @@
-import { AlertIcon, ArrowRightIcon, CheckIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, ArrowRightIcon, CheckIcon, InfoIcon, XIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
 import { BookingLink, isLocalBooking } from '../travel/BookingLink'
 import type { SimOption } from './api'
@@ -82,6 +82,7 @@ export function SimOptionCard({ option, country, tripDates, picked, datesNotCove
               disabled={busy}
               onClick={onToggle}
             >
+              {picked ? <XIcon /> : <CheckIcon />}
               {picked ? 'Remove pick' : 'Pick'}
             </button>
           )}

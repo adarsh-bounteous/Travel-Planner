@@ -1,3 +1,4 @@
+import { CheckIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 
 /** Shown after a change to destination, dates or travellers removed the insurance pick. */
@@ -17,6 +18,7 @@ export function InsurancePickClearedModal({ onOk }: { onOk: () => void }) {
         </p>
         <div className="overlay-actions">
           <button className="btn btn-primary" type="button" onClick={onOk}>
+            <CheckIcon />
             OK
           </button>
         </div>

@@ -1,3 +1,4 @@
+import { CheckIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 
 type AccessRemovedModalProps = {
@@ -25,6 +26,7 @@ export function AccessRemovedModal({
         <p id="access-removed-text">{text}</p>
         <div className="overlay-actions">
           <button className="btn btn-primary" type="button" onClick={onOk}>
+            <CheckIcon />
             {action}
           </button>
         </div>

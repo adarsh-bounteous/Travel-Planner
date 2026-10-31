@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { CalendarIcon } from '../auth/icons'
+import { CalendarIcon, ClockIcon, HeartIcon, PlusIcon, UtensilsIcon } from '../auth/icons'
 import type { RestaurantPick, Trip } from './api'
 import { dayMealLabel, estimateLabel } from './restaurantPicks'
 
@@ -12,14 +12,19 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
   const shortlist = `/trips/${encodeURIComponent(trip.id)}/restaurant-options/shortlist`
   return (
     <section className="card stack" aria-labelledby="overview-restaurants">
-      <h2 id="overview-restaurants">Restaurants</h2>
+      <h2 id="overview-restaurants">
+        <UtensilsIcon />
+        Restaurants
+      </h2>
       {picks.length === 0 ? (
         <div className="empty-state">
           <EmptyStateArt />
+          <UtensilsIcon />
           <h3>No restaurants picked yet</h3>
           <p className="text-muted">Found somewhere you'd love to eat? Add it and we'll slot it into your days.</p>
           {canEdit && (
             <Link className="btn btn-primary" to={shortlist}>
+              <PlusIcon />
               Add a restaurant
             </Link>
           )}
@@ -32,7 +37,10 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
                 <span className="text-bold">{pick.name}</span>
                 <span className="restaurant-pick-meta">
                   {pick.date === null ? (
-                    <span className="badge badge-neutral">{dayMealLabel(pick, days)}</span>
+                    <span className="badge badge-neutral">
+                      <ClockIcon />
+                      {dayMealLabel(pick, days)}
+                    </span>
                   ) : (
                     <span className="badge badge-success">
                       <CalendarIcon />
@@ -46,6 +54,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
           </ul>
           <div>
             <Link className="btn btn-secondary" to={shortlist}>
+              <HeartIcon />
               View shortlist
             </Link>
           </div>

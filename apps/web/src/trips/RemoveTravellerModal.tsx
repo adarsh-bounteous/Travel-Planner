@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TrashIcon, XIcon } from '../auth/icons'
 import { removeTraveller } from './api'
 import type { Traveller, Trip } from './api'
 import { Overlay } from './Overlay'
@@ -43,9 +44,11 @@ export function RemoveTravellerModal({
         )}
         <div className="overlay-actions end">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="button" disabled={pending} onClick={remove}>
+            <TrashIcon />
             {pending ? 'Removing…' : 'Remove'}
           </button>
         </div>

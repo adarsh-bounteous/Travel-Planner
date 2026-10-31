@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { PlusIcon, TrashIcon, UsersIcon } from '../auth/icons'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { inviteEditor, revokeEditor } from './api'
 import type { Trip } from './api'
@@ -58,7 +59,10 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
   return (
     <div className="stack stack-lg">
       <div className="stack stack-sm">
-        <h3 className="text-lg">Editors</h3>
+        <h3 className="text-lg">
+          <UsersIcon />
+          Editors
+        </h3>
         <p className="text-muted">
           Editors can change the plan. They can't invite people or manage access.
         </p>
@@ -89,6 +93,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
           )}
         </div>
         <button className="btn btn-primary" type="submit" disabled={pending}>
+          <PlusIcon />
           {pending ? 'Inviting…' : 'Invite editor'}
         </button>
       </form>
@@ -96,6 +101,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
         {editors.length === 0 ? (
           <div className="empty-state">
             <EmptyStateArt />
+            <UsersIcon />
             <p>No editors yet. Invite a companion by email to plan together.</p>
           </div>
         ) : (
@@ -119,6 +125,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
                 aria-label={`Revoke access for ${editor.email}`}
                 onClick={() => revoke(editor.email)}
               >
+                <TrashIcon />
                 Revoke access
               </button>
             </div>

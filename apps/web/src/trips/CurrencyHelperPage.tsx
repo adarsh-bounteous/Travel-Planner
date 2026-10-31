@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { RefreshIcon, WalletIcon } from '../auth/icons'
 import { Link, useParams } from 'react-router'
 import { fetchTrip } from './api'
 import type { Trip } from './api'
@@ -64,7 +65,10 @@ function Converter({
 
   return (
     <section className="card stack">
-      <h3>Converter</h3>
+      <h3>
+        <WalletIcon />
+        Converter
+      </h3>
       <div className="converter-fields">
         {(
           [
@@ -149,6 +153,7 @@ export function CurrencyHelperPage() {
       <div className="alert alert-danger" role="alert">
         <p>We couldn't load the currency helper. Try again.</p>
         <button className="btn btn-secondary" type="button" onClick={reload}>
+          <RefreshIcon />
           Retry
         </button>
       </div>
@@ -216,6 +221,7 @@ export function CurrencyHelperPage() {
                 disabled={refreshing}
                 onClick={reload}
               >
+                <RefreshIcon />
                 {live ? 'Refresh rate' : 'Try again'}
               </button>
             </div>

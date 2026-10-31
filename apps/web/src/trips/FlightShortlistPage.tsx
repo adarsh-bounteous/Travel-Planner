@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, CheckIcon, ChevronDownIcon, SearchIcon } from '../auth/icons'
+import {
+  AlertIcon,
+  ArrowLeftIcon,
+  CalendarIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  PlaneIcon,
+  RefreshIcon,
+  SearchIcon,
+} from '../auth/icons'
 import { fetchFlightShortlist, fetchTrip, pickTransport } from './api'
 import type { FlightShortlist, ShortlistFlight, TransportLeg, Trip } from './api'
 import { FlightShortlistCard } from './FlightShortlistCard'
@@ -139,7 +148,12 @@ export function FlightShortlistPage() {
           )}
         </div>
       )}
-      {leg && <h2>{legName(leg, trip?.destination ?? destination)}</h2>}
+      {leg && (
+        <h2>
+          <PlaneIcon />
+          {legName(leg, trip?.destination ?? destination)}
+        </h2>
+      )}
       {pickFailed && (
         <div className="alert alert-danger" role="alert">
           <AlertIcon />
@@ -166,6 +180,7 @@ export function FlightShortlistPage() {
             We couldn't load your flights. Check your connection and try again.
           </span>
           <button className="btn btn-secondary" type="button" onClick={load}>
+            <RefreshIcon />
             Retry
           </button>
         </div>
@@ -184,7 +199,7 @@ export function FlightShortlistPage() {
           Showing flights from the other sources. Try again for more options.
           <div className="alert-actions">
             <button className="btn btn-secondary btn-sm" type="button" disabled={retrying} onClick={retry}>
-              {retrying && <span className="spinner" aria-hidden="true" />}
+              {retrying ? <span className="spinner" aria-hidden="true" /> : <RefreshIcon />}
               {`Retry ${lowerFirst(missing[0].name)}`}
             </button>
           </div>
@@ -216,19 +231,25 @@ export function FlightShortlistPage() {
           <h2>No travel options were found for this route and date.</h2>
           <p>{`Try another date, or choose another way to travel between ${origin} and ${destination}.`}</p>
           <button className="btn btn-primary" type="button" onClick={() => navigate(tripHref)}>
+            <CalendarIcon />
             Change dates
           </button>
           <button className="btn btn-secondary" type="button" onClick={() => navigate(tripHref)}>
+            <PlaneIcon />
             Choose another travel mode
           </button>
         </div>
       )}
       {leg && (
         <button className="btn btn-ghost" type="button" style={{ alignSelf: 'flex-end' }} onClick={() => navigate(tripHref)}>
+          <CheckIcon />
           Done
         </button>
       )}
-      <Link to={tripHref}>Back to trip</Link>
+      <Link to={tripHref}>
+        <ArrowLeftIcon />
+        Back to trip
+      </Link>
     </div>
   )
 }

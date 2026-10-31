@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PlusIcon, XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 import type { Trip } from '../trips/api'
 
@@ -40,9 +41,11 @@ export function TripChoiceDrawer({ trips, pending, onChoose, onClose }: TripChoi
             disabled={pending}
             onClick={() => onChoose(selected)}
           >
+            <PlusIcon />
             {`Add to ${selected.name}`}
           </button>
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
         </div>

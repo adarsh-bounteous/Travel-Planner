@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, InfoIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, InfoIcon, ListIcon, SearchIcon } from '../auth/icons'
 import {
   addTraveller,
   chooseInsurance,
@@ -161,10 +161,12 @@ export function InsuranceOptionsPage() {
           </span>
           {compareStatus.kind === 'ready' ? (
             <Link className="btn btn-secondary" to={compareHref}>
+              <ListIcon />
               Compare
             </Link>
           ) : (
             <button className="btn btn-secondary" type="button" disabled aria-describedby="compare-reason">
+              <ListIcon />
               Compare
             </button>
           )}

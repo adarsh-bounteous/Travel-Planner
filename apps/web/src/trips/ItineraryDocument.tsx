@@ -11,10 +11,14 @@ import {
   BellIcon,
   CalendarIcon,
   CheckIcon,
+  ClockIcon,
+  CompassIcon,
+  EyeIcon,
   HomeIcon,
   InfoIcon,
   MinusIcon,
   StarIcon,
+  WalletIcon,
 } from '../auth/icons'
 import type { BookingRow, EssentialFact, Itinerary, ItineraryItem, Money } from './api'
 import { formatMoney, formatRate } from './money'
@@ -76,6 +80,7 @@ function FactCard({ fact }: { fact: EssentialFact }) {
 function NotYetPlanned() {
   return (
     <div className="empty-state">
+      <ClockIcon />
       <p>Not yet planned</p>
     </div>
   )
@@ -155,12 +160,17 @@ function MoneySections({
   return (
     <>
       <section className="section" id="bookings" aria-labelledby="bookings-h">
-        <h2 id="bookings-h">Bookings and confirmations</h2>
+        <h2 id="bookings-h">
+          <CalendarIcon />
+          Bookings and confirmations
+        </h2>
         {bookings.length === 0 ? (
           <div className="empty-state">
+            <BagIcon />
             <p>Nothing booked yet</p>
             {!readOnly && (
               <Link className="btn btn-primary" to="/explore">
+                <CompassIcon />
                 Explore options
               </Link>
             )}
@@ -187,7 +197,10 @@ function MoneySections({
 
       <hr className="divider" />
       <section className="section" id="included" aria-labelledby="included-h">
-        <h2 id="included-h">Included</h2>
+        <h2 id="included-h">
+          <CheckIcon />
+          Included
+        </h2>
         <ul className="line-list">
           {included.map((r) => (
             <li key={`${r.kind}-${r.id}`}>
@@ -200,7 +213,10 @@ function MoneySections({
 
       <hr className="divider" />
       <section className="section" id="not-included" aria-labelledby="not-included-h">
-        <h2 id="not-included-h">Not included</h2>
+        <h2 id="not-included-h">
+          <MinusIcon />
+          Not included
+        </h2>
         <ul className="line-list">
           {notIncluded.map((n) => (
             <li key={`${n.reason}-${n.name}`}>
@@ -215,7 +231,10 @@ function MoneySections({
           ))}
         </ul>
         <div>
-          <h3 className="text-sm text-muted">Usually not covered by a trip plan</h3>
+          <h3 className="text-sm text-muted">
+            <InfoIcon />
+            Usually not covered by a trip plan
+          </h3>
           <ul className="excl">
             {exclusions.map((line) => (
               <li key={line}>{line}</li>
@@ -226,13 +245,19 @@ function MoneySections({
 
       <hr className="divider" />
       <section className="section" id="cost-summary" aria-labelledby="cost-h">
-        <h2 id="cost-h">Cost summary</h2>
+        <h2 id="cost-h">
+          <WalletIcon />
+          Cost summary
+        </h2>
         <div className="card total">
           <span className="text-muted">Total in trip currency</span>
           <span className="total-value">{formatMoney(cost.total, cost.currency)}</span>
         </div>
         <div>
-          <h3 className="text-sm text-muted">Total per currency</h3>
+          <h3 className="text-sm text-muted">
+            <WalletIcon />
+            Total per currency
+          </h3>
           <ul className="line-list">
             {cost.by_currency.map((t) => (
               <li key={t.currency}>
@@ -333,7 +358,10 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
       </section>
 
       <section className="card glance" id="at-a-glance" aria-labelledby="glance-h">
-        <h2 id="glance-h">At a glance</h2>
+        <h2 id="glance-h">
+          <EyeIcon />
+          At a glance
+        </h2>
         {nothingBooked ? (
           <NotYetPlanned />
         ) : (
@@ -351,12 +379,18 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
       </section>
 
       <div className="stack" id="day-by-day">
-        <h2>Day by day</h2>
+        <h2>
+          <CalendarIcon />
+          Day by day
+        </h2>
         {days.length === 0 && <NotYetPlanned />}
         {days.map((day) => (
           <article className="card day-card" key={day.date} aria-labelledby={`day-${day.number}-h`}>
             <div className="day-head">
-              <h3 id={`day-${day.number}-h`}>Day {day.number}</h3>
+              <h3 id={`day-${day.number}-h`}>
+                <CalendarIcon />
+                Day {day.number}
+              </h3>
               <span className="text-muted text-sm">{formatDay(day.date)}</span>
             </div>
             {day.items.length === 0 ? <NotYetPlanned /> : <ItemRows items={day.items} />}
@@ -366,6 +400,7 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
 
       <section className="card" id="still-to-schedule" aria-labelledby="still-h">
         <h2 id="still-h" className="day-head">
+          <ClockIcon />
           Still to schedule
         </h2>
         {still.length === 0 ? <NotYetPlanned /> : <ItemRows items={still} />}
@@ -374,7 +409,10 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
       {itinerary.money && <MoneySections money={itinerary.money} tripDates={cover} readOnly={readOnly} />}
 
       <section id="essentials" aria-labelledby="essentials-h">
-        <h2 id="essentials-h">Travel essentials</h2>
+        <h2 id="essentials-h">
+          <BagIcon />
+          Travel essentials
+        </h2>
         <div className="grid">
           {essentials.map((fact) => (
             <FactCard key={fact.key} fact={fact} />
@@ -384,7 +422,10 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
 
       <section id="before-you-go" aria-labelledby="before-h">
         <div className="section-head">
-          <h2 id="before-h">Before you go</h2>
+          <h2 id="before-h">
+            <CheckIcon />
+            Before you go
+          </h2>
           <span className="text-muted text-sm" role="status" aria-label={`${doneCount} of 6 done`}>
             {doneCount} of 6 done
           </span>
@@ -413,7 +454,10 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
       </section>
 
       <section id="important-notes" aria-labelledby="notes-h">
-        <h2 id="notes-h">Important notes</h2>
+        <h2 id="notes-h">
+          <AlertIcon />
+          Important notes
+        </h2>
         <div className="stack">
           <div className="alert alert-warning">
             <AlertIcon />
@@ -429,7 +473,10 @@ export function ItineraryDocument({ itinerary, readOnly = false }: { itinerary: 
             </p>
           </div>
           <div className="card">
-            <h3>Data sources and dates used</h3>
+            <h3>
+              <InfoIcon />
+              Data sources and dates used
+            </h3>
             <ul className="sources text-sm">
               {sources.map((s) => (
                 <li key={s.label}>

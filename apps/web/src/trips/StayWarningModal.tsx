@@ -1,4 +1,4 @@
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CalendarIcon, CheckIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 import { formatRange } from './stays'
 import type { StayWarning } from './stays'
@@ -31,9 +31,11 @@ export function StayWarningModal({ stay, warning, pending, onChange, onSaveAnywa
         </p>
         <div className="overlay-actions end">
           <button className="btn btn-secondary" type="button" onClick={onChange}>
+            <CalendarIcon />
             Change dates
           </button>
           <button className="btn btn-primary" type="button" disabled={pending} onClick={onSaveAnyway}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save anyway'}
           </button>
         </div>

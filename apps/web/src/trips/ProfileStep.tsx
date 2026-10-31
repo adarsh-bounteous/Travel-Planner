@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { AlertIcon, ArrowRightIcon, InfoIcon, XIcon } from '../auth/icons'
 import { FieldError } from './FieldError'
 import type { Profile } from './api'
 import {
@@ -118,14 +119,20 @@ export function ProfileStep({ saved, answers, onAnswers, onContinue, onLeave }: 
       <form className="stack stack-lg" noValidate onSubmit={submit}>
         {requiredAsked.length > 0 && (
           <section className="group">
-            <h2>Required</h2>
+            <h2>
+              <AlertIcon />
+              Required
+            </h2>
             {requiredAsked.map(select)}
           </section>
         )}
         {hasOptional && (
           <section className="group">
             <div>
-              <h2>Optional</h2>
+              <h2>
+                <InfoIcon />
+                Optional
+              </h2>
               <p className="text-muted text-sm">
                 Skip any you like. We'll ask again on your next trip.
               </p>
@@ -156,9 +163,11 @@ export function ProfileStep({ saved, answers, onAnswers, onContinue, onLeave }: 
         )}
         <div className="form-actions">
           <button className="btn btn-ghost" type="button" onClick={onLeave}>
+            <XIcon />
             Leave set-up
           </button>
           <button className="btn btn-primary" type="submit">
+            <ArrowRightIcon />
             Continue
           </button>
         </div>

@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import {
+  AlertIcon,
+  ArrowRightIcon,
+  RefreshIcon,
+  ShieldIcon,
+  SuitcaseIcon,
+  UserIcon,
+  UsersIcon,
+} from '../auth/icons'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { useAuth } from '../auth/AuthProvider'
 import { rememberReturnTo, takeReturnTo } from '../auth/returnTo'
@@ -55,12 +64,21 @@ export function InvitePage() {
   if (load.state === 'invalid' || load.state === 'used')
     return (
       <div className="stack stack-lg narrow">
-        <h2>Trip invite</h2>
+        <h2>
+          <UsersIcon />
+          Trip invite
+        </h2>
         <div className="empty-state">
           <EmptyStateArt />
+          <AlertIcon />
           <h3>This link has already been used or has expired.</h3>
           <p>Nothing was changed. Ask the trip owner to send a new invite.</p>
-          {status === 'signedIn' && <Link to="/">Back to your trips</Link>}
+          {status === 'signedIn' && (
+            <Link to="/">
+              <SuitcaseIcon />
+              Back to your trips
+            </Link>
+          )}
         </div>
       </div>
     )
@@ -70,7 +88,10 @@ export function InvitePage() {
 
   return (
     <div className="stack stack-lg narrow">
-      <h2>Trip invite</h2>
+      <h2>
+        <UsersIcon />
+        Trip invite
+      </h2>
       {status === 'signedOut' && (
         <div className="card stack stack-sm">
           <p>
@@ -79,6 +100,7 @@ export function InvitePage() {
           <p className="note-for">You've been invited to edit {invite.trip_name}.</p>
           <div className="overlay-actions">
             <button className="btn btn-primary" type="button" onClick={signIn}>
+              <UserIcon />
               Sign in
             </button>
           </div>
@@ -99,6 +121,7 @@ export function InvitePage() {
           )}
           <div className="overlay-actions">
             <button className="btn btn-primary" type="button" disabled={pending} onClick={open}>
+              <ArrowRightIcon />
               Open trip
             </button>
           </div>
@@ -108,6 +131,7 @@ export function InvitePage() {
         <>
           <div className="empty-state" role="alert">
             <EmptyStateArt />
+            <ShieldIcon />
             <h3>Access refused</h3>
             <p>
               You're signed in as {email}, but this invite is for {invite.email}.
@@ -116,6 +140,7 @@ export function InvitePage() {
           </div>
           <div className="overlay-actions">
             <button className="btn btn-secondary" type="button" onClick={switchAccount}>
+              <RefreshIcon />
               Switch account
             </button>
           </div>

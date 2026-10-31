@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { ArrowRightIcon, CompassIcon, PlusIcon, RefreshIcon, SuitcaseIcon } from '../auth/icons'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { ImageFrame } from '../components/ImageFrame'
 import { illustrationRefOfTrip } from '../illustrations/registry'
@@ -39,7 +40,10 @@ function TripRow({ trip, countdown }: { trip: Trip; countdown: boolean }) {
       <ImageFrame ratio="16/9" illustration={illustrationRefOfTrip(trip)} />
       <div className="trip-info">
         <div className="trip-title">
-          <h2>{trip.name}</h2>
+          <h2>
+            <SuitcaseIcon />
+            {trip.name}
+          </h2>
           {trip.shared && <span className="badge">Shared</span>}
           {trip.destination_unmatched && <UnmatchedBadge />}
         </div>
@@ -53,6 +57,7 @@ function TripRow({ trip, countdown }: { trip: Trip; countdown: boolean }) {
         </span>
       </div>
       <Link className="btn btn-secondary" to={`/trips/${trip.id}`} aria-label={`Open ${trip.name}`}>
+        <ArrowRightIcon />
         Open
       </Link>
     </li>
@@ -102,13 +107,18 @@ export function MyTripsPage() {
   return (
     <div className="stack stack-lg">
       <div className="page-head">
-        <h2>My trips</h2>
+        <h2>
+          <SuitcaseIcon />
+          My trips
+        </h2>
         <div className="cluster">
           <Link className="btn btn-secondary" to="/trips/plan">
+            <CompassIcon />
             Plan from a starter destination
           </Link>
           {trips && trips.length > 0 && (
             <Link className="btn btn-primary" to={GUIDED_SETUP_PATH}>
+              <PlusIcon />
               New trip
             </Link>
           )}
@@ -127,6 +137,7 @@ export function MyTripsPage() {
           <p>Check your connection and try again.</p>
           <div>
             <button className="btn btn-secondary" type="button" onClick={retry}>
+              <RefreshIcon />
               Retry
             </button>
           </div>
@@ -135,9 +146,11 @@ export function MyTripsPage() {
       {trips && trips.length === 0 && (
         <div className="empty-state">
           <EmptyStateArt />
+          <SuitcaseIcon />
           <h2>No trips yet</h2>
           <p>Where to next? Plan your first trip and it will show up here.</p>
           <Link className="btn btn-primary btn-lg" to={GUIDED_SETUP_PATH}>
+            <PlusIcon />
             Plan your first trip
           </Link>
         </div>

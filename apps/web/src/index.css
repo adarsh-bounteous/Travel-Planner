@@ -133,7 +133,7 @@ a.btn { text-decoration: none; }
 .toast-slot .toast { position: static; display: flex; max-width: none; width: 100%; align-items: center; gap: var(--space-2); background: var(--color-fg); }
 .shell-nav { display: flex; flex: 1; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .shell-nav ul { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
-.shell-link { display: flex; align-items: center; min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-fg); font-weight: var(--font-weight-medium); text-decoration: none; border-radius: var(--radius-md); }
+.shell-link { display: flex; align-items: center; gap: var(--space-1); min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-fg); font-weight: var(--font-weight-medium); text-decoration: none; border-radius: var(--radius-md); }
 .shell-link:hover { background: var(--color-surface); color: var(--color-fg); }
 .shell-link[aria-current="page"], .shell-link.active { color: var(--color-primary); background: var(--color-primary-subtle); }
 
@@ -166,6 +166,11 @@ a.btn { text-decoration: none; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-3); text-align: center; color: var(--color-fg-muted); border: var(--border-width) dashed var(--color-border-strong); border-radius: var(--radius-lg); }
 .empty-state h2, .empty-state h3 { color: var(--color-fg); }
 .empty-state .imgc { width: 100%; max-width: 22rem; }
+.empty-state > .icon { width: var(--size-control-md); height: var(--size-control-md); color: var(--color-fg-muted); }
+h1 > .icon, h2 > .icon, h3 > .icon { margin-right: var(--space-2); color: var(--color-primary); }
+.empty-state h2 > .icon, .empty-state h3 > .icon { color: var(--color-fg-muted); }
+.option-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+[class*="-meta"] > .icon, .mail-meta dt > .icon { margin-right: var(--space-1); color: var(--color-fg-muted); }
 .compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .skeleton { display: block; position: relative; overflow: hidden; height: var(--size-skeleton-line); background: var(--color-skeleton); border-radius: var(--radius-sm); }
 .motion-move { transition: transform var(--motion-duration-base) var(--motion-ease-out), opacity var(--motion-duration-base) var(--motion-ease-out); }

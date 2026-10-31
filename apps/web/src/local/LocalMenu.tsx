@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { fetchLocalMode, requestResetLocalData } from '../auth/api'
 import { useAuth } from '../auth/AuthProvider'
-import { AlertIcon, XIcon } from '../auth/icons'
+import { AlertIcon, RefreshIcon, TrashIcon, XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 
 /** The Menu drawer. Its developer tools, and the reset confirmation, exist only while local sign-in is on. */
@@ -82,6 +82,7 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
                 Developer tools. Visible only while local sign-in is on.
               </p>
               <button className="btn btn-secondary" type="button" onClick={() => setConfirming(true)}>
+                <RefreshIcon />
                 Reset local data
               </button>
             </>
@@ -109,9 +110,11 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
             )}
             <div className="overlay-actions end">
               <button className="btn btn-ghost" type="button" onClick={() => setConfirming(false)}>
+                <XIcon />
                 Cancel
               </button>
               <button className="btn btn-danger" type="button" disabled={pending} onClick={reset}>
+                <TrashIcon />
                 {pending ? 'Resetting…' : 'Reset'}
               </button>
             </div>

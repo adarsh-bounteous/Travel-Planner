@@ -1,4 +1,4 @@
-import type { Meal, RestaurantPick } from './api'
+import type { Day, Meal, RestaurantPick } from './api'
 import { formatMoney } from './TripTotalCard'
 
 export const MEALS: { id: Meal; label: string }[] = [
@@ -28,3 +28,12 @@ export const picksForDay = (picks: RestaurantPick[], date: string) =>
   picks.filter((p) => p.date === date).sort((a, b) => mealOrder(a) - mealOrder(b))
 
 export const unscheduled = (picks: RestaurantPick[]) => picks.filter((p) => p.date === null)
+
+/** Where a pick sits, in the trip's own day names: "Day 2, Dinner", or "Unscheduled". */
+export function dayMealLabel(pick: Pick<RestaurantPick, 'date' | 'meal'>, days: Day[]): string {
+  if (pick.date === null || pick.meal === null) return 'Unscheduled'
+  return `${days.find((d) => d.date === pick.date)?.name ?? pick.date}, ${mealLabel(pick.meal)}`
+}
+
+/** The day a new pick starts on: the first day, or '' (Unscheduled) when the trip has no days. */
+export const defaultDay = (days: Day[]) => days[0]?.date ?? ''

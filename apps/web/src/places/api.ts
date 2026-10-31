@@ -35,6 +35,18 @@ export const searchPlaces = (destination: string, q?: string, filters: PlaceFilt
     }${filters.price === undefined ? '' : `&price=${filters.price}`}`,
   )
 
+/** Whether the map shows real tiles; false when the API says no, or when the call fails. */
+export async function fetchMapTiles(): Promise<boolean> {
+  try {
+    const response = await fetch('/startup-status', { credentials: 'same-origin' })
+    if (!response.ok) return false
+    const body = await response.json()
+    return body.map_tiles === true
+  } catch {
+    return false
+  }
+}
+
 export const fetchSavedPlaces = () => call<Place[]>('/saved-places')
 
 export const savePlace = (place: Place) =>

@@ -62,6 +62,12 @@ describe('Destination results filters and map', () => {
     expect(screen.queryByRole('img', { name: 'Belém Tower' })).not.toBeInTheDocument()
   })
 
+  it('the map shows OSM tiles when tiles are on (AC1)', async () => {
+    stubApi({ ...lisbon, 'GET /startup-status': { status: 200, body: { map_tiles: true } } })
+    renderAt('/destinations?q=Lisbon&view=map')
+    expect((await screen.findAllByTestId('map-tile')).length).toBeGreaterThan(0)
+  })
+
   it('the list shows the same filtered places after the map (AC4)', async () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon&type=museum&view=map')

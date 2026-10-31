@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.local_mode import local_mode_override, resolve_local_mode
+from app.local_mode import local_mode_override, resolve_live_providers, resolve_local_mode
 
 
 DEFAULT_LOCAL_DATA_DIR = Path(__file__).resolve().parent.parent / ".local-data"
@@ -32,6 +32,15 @@ class Settings:
     nominatim_base_url: str = "https://nominatim.openstreetmap.org"
     nominatim_user_agent: str = "trip-planner-api"
     local_data_dir: Path = DEFAULT_LOCAL_DATA_DIR
+    live_providers: frozenset[str] = frozenset()
+    osm_tile_url_template: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    osm_user_agent: str = ""
+    osm_referer: str = ""  # falls back to web_origin
+
+    @property
+    def map_tiles_enabled(self) -> bool:
+        """Real map tiles only where the places source is live: always outside local mode, opt-in inside it."""
+        return (not self.local_mode) or "places" in self.live_providers
 
 
 def session_secret() -> bytes:
@@ -64,4 +73,8 @@ def get_settings() -> Settings:
         nominatim_base_url=env.get("NOMINATIM_BASE_URL") or "https://nominatim.openstreetmap.org",
         nominatim_user_agent=env.get("NOMINATIM_USER_AGENT") or "trip-planner-api",
         local_data_dir=Path(env.get("LOCAL_DATA_DIR") or DEFAULT_LOCAL_DATA_DIR),
+        live_providers=resolve_live_providers(env),
+        osm_tile_url_template=env.get("OSM_TILE_URL_TEMPLATE") or Settings.osm_tile_url_template,
+        osm_user_agent=env.get("OSM_USER_AGENT", ""),
+        osm_referer=env.get("OSM_REFERER", ""),
     )

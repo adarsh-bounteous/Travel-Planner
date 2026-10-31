@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { WelcomeHeader } from '../components/WelcomeHeader'
 import { LocalMenu } from '../local/LocalMenu'
 import { DestinationSearch } from '../places/DestinationSearch'
 import { MyTripsPage } from '../trips/MyTripsPage'
@@ -24,7 +25,7 @@ export function HomePage() {
       </div>
       {menuOpen && <LocalMenu onClose={() => setMenuOpen(false)} />}
       <section className="stack">
-        <h1>Where to next?</h1>
+        <WelcomeHeader subtitle="Where to next?" />
         <DestinationSearch />
       </section>
       <MyTripsPage />

@@ -160,7 +160,8 @@ describe('MyTripsPage', () => {
   it('keeps the server order (AC9)', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [oslo, lisbon] } })
     renderAt('/')
-    const names = (await screen.findAllByRole('heading', { level: 2 })).map((h) => h.textContent)
+    await screen.findByRole('heading', { name: 'Oslo' })
+    const names = [...document.querySelectorAll('li.card h2')].map((h) => h.textContent)
     expect(names).toEqual(['Oslo', 'Lisbon'])
   })
 
@@ -236,5 +237,77 @@ describe('MyTripsPage', () => {
       expect(screen.getByRole('heading', { name: 'Oslo' })).toBeInTheDocument()
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
+  })
+})
+
+describe('MyTripsPage welcome, countdown and empty state', () => {
+  const day = (offset: number) => {
+    const d = new Date(2027, 0, 5 + offset)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  }
+  const trip = (id: string, name: string, start_date?: string | null) => ({
+    id,
+    name,
+    destination: name,
+    start_date,
+  })
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2027, 0, 5, 9, 0))
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('shows a welcome header matching the clock (AC1, AC8)', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [] } })
+    renderAt('/')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Good morning' })).toBeInTheDocument()
+  })
+
+  it('counts days on the soonest future trip only (AC2, AC3)', async () => {
+    stubApi({
+      'GET /trips': {
+        status: 200,
+        body: [trip('k', 'Kyoto', day(32)), trip('l', 'Lisbon', day(14))],
+      },
+    })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'Lisbon' })
+    expect(document.querySelectorAll('.countdown')).toHaveLength(1)
+    const lisbonCard = screen.getByRole('heading', { name: 'Lisbon' }).closest('li') as HTMLElement
+    const kyotoCard = screen.getByRole('heading', { name: 'Kyoto' }).closest('li') as HTMLElement
+    expect(within(lisbonCard).getByText('Starts in 14 days')).toBeInTheDocument()
+    expect(within(kyotoCard).queryByText(/Starts in/)).toBeNull()
+  })
+
+  it('shows no count for underway, undated or starts-today trips (AC4, AC5, AC9)', async () => {
+    stubApi({
+      'GET /trips': {
+        status: 200,
+        body: [
+          trip('a', 'Underway', day(-2)),
+          trip('b', 'Undated', null),
+          trip('c', 'Missing'),
+          trip('d', 'Today', day(0)),
+        ],
+      },
+    })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'Today' })
+    expect(screen.queryByText(/Starts in/)).not.toBeInTheDocument()
+    expect(document.querySelector('.countdown')).toBeNull()
+  })
+
+  it('shows an illustration and exactly one primary action when empty (AC6, AC7)', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [] } })
+    renderAt('/')
+    const empty = (await screen.findByText('No trips yet')).closest('.empty-state') as HTMLElement
+    expect(empty.querySelector('.imgc')).not.toBeNull()
+    expect(empty.querySelectorAll('.btn-primary')).toHaveLength(1)
+    expect(within(empty).getByRole('link', { name: 'Plan your first trip' })).toHaveAttribute(
+      'href',
+      '/trips/new',
+    )
   })
 })

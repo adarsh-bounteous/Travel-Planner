@@ -2,6 +2,11 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { OptionCard } from './OptionCard'
 
+it('shows an icon from the set in the meta row', () => {
+  const { container } = render(<OptionCard title="Hotel" meta="2 nights" />)
+  expect(container.querySelector('.option-card-meta svg.icon')).not.toBeNull()
+})
+
 describe('OptionCard', () => {
   it('shows the title, badges, body and actions in the shared layout', () => {
     render(

@@ -1,9 +1,11 @@
+import type { ICONS } from './auth/icons'
+
 export type MainSection = 'trips' | 'explore'
 
 // Bookings and Budget are added here when their screens exist.
-export const MAIN_SECTIONS: { id: MainSection; label: string; to: string }[] = [
-  { id: 'trips', label: 'Trips', to: '/' },
-  { id: 'explore', label: 'Explore', to: '/explore' },
+export const MAIN_SECTIONS: { id: MainSection; label: string; to: string; icon: keyof typeof ICONS }[] = [
+  { id: 'trips', label: 'Trips', to: '/', icon: 'trips' },
+  { id: 'explore', label: 'Explore', to: '/explore', icon: 'explore' },
 ]
 
 // The main section a screen sits under, or null for screens under none (Saved, Account, Profile).

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, XIcon } from '../auth/icons'
 import { fetchProfile, saveProfile } from '../trips/api'
 import type {
   DepartureWindow,
@@ -320,7 +320,7 @@ export function TransportPreferencesPage() {
                 aria-label={`Remove ${name}`}
                 onClick={() => change({ providers: draft.providers.filter((p) => p !== name) })}
               >
-                ×
+                <XIcon />
               </button>
             </span>
           ))}

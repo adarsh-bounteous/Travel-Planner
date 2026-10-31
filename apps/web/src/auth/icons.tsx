@@ -178,6 +178,21 @@ export const ClockIcon = () => (
   </Icon>
 )
 
+export const CompassIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="10" />
+    <path d="m16 8-2 6-6 2 2-6Z" />
+  </Icon>
+)
+
+export const UsersIcon = () => (
+  <Icon>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1" />
+    <path d="M16 4.5a3.5 3.5 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6" />
+  </Icon>
+)
+
 export const CloseIcon = XIcon
 
 /** The single icon set, keyed by the names the design uses. */
@@ -193,4 +208,8 @@ export const ICONS = {
   'arrow-right': ArrowRightIcon,
   close: CloseIcon,
   suitcase: SuitcaseIcon,
+  explore: CompassIcon,
+  users: UsersIcon,
+  heart: HeartIcon,
+  user: UserIcon,
 } as const

@@ -55,6 +55,7 @@ const formatRange = (start: string, end: string) => {
 function NotYetPlanned() {
   return (
     <div className="empty-state">
+      <CalendarIcon />
       <p>Not yet planned</p>
     </div>
   )

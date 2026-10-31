@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
+import { AlertIcon } from '../auth/icons'
 import { rememberReturnTo, takeReturnTo } from '../auth/returnTo'
 import { acceptInvite, fetchInvite, InviteUsedError } from './api'
 import type { Invite } from './api'
@@ -56,6 +57,7 @@ export function InvitePage() {
       <div className="stack stack-lg narrow">
         <h2>Trip invite</h2>
         <div className="empty-state">
+          <AlertIcon />
           <h3>This link has already been used or has expired.</h3>
           <p>Nothing was changed. Ask the trip owner to send a new invite.</p>
           {status === 'signedIn' && <Link to="/">Back to your trips</Link>}
@@ -105,6 +107,7 @@ export function InvitePage() {
       {status === 'signedIn' && !mine && (
         <>
           <div className="empty-state" role="alert">
+            <AlertIcon />
             <h3>Access refused</h3>
             <p>
               You're signed in as {email}, but this invite is for {invite.email}.

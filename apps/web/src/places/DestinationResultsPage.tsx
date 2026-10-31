@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { fetchLocalMode } from '../auth/api'
-import { AlertIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import { fetchTrip } from '../trips/api'
 import type { Trip } from '../trips/api'
 import { destinationLabel } from '../trips/destination'
@@ -179,6 +179,7 @@ export function DestinationResultsPage() {
         {back}
         {modeNotice}
         <div className="empty-state">
+          <SearchIcon />
           <h2>No places match your search</h2>
           <p>Try a different city or place.</p>
           <Link className="btn btn-secondary" to="/">
@@ -216,6 +217,7 @@ export function DestinationResultsPage() {
         </div>
       ) : places.length === 0 ? (
         <div className="empty-state">
+          <SearchIcon />
           <h2>No places match these filters</h2>
           <p>Change or clear the filters to see more places.</p>
           <button

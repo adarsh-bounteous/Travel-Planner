@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { InfoIcon } from '../auth/icons'
 
 type OptionCardProps = {
   /** Rendered as the card heading. */
@@ -6,6 +7,8 @@ type OptionCardProps = {
   badges?: ReactNode
   /** Muted facts under the heading. */
   meta?: ReactNode
+  /** Leading icon from the icon set for the facts row. */
+  metaIcon?: ReactNode
   /** Right-hand price block; stacks under the facts on phones. */
   price?: ReactNode
   /** Footer row of buttons or links. */
@@ -23,6 +26,7 @@ export function OptionCard({
   title,
   badges,
   meta,
+  metaIcon = <InfoIcon />,
   price,
   actions,
   picked = false,
@@ -37,7 +41,12 @@ export function OptionCard({
         <h3 className="option-card-title">{title}</h3>
         {badges && <div className="badges option-card-badges">{badges}</div>}
       </div>
-      {meta && <div className="option-card-meta">{meta}</div>}
+      {meta && (
+        <div className="option-card-meta">
+          {metaIcon}
+          <span>{meta}</span>
+        </div>
+      )}
       {(children || price) && (
         <div className="option-card-body">
           {children && <div className="option-card-facts">{children}</div>}

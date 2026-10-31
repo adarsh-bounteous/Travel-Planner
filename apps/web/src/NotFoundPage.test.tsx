@@ -36,6 +36,13 @@ describe('NotFoundPage', () => {
     expect(screen.queryByRole('heading', { name: 'My trips' })).not.toBeInTheDocument()
   })
 
+  it('shows the set search icon in the empty state', async () => {
+    mockMe(200, { email: 'maya@example.com', method: 'email' })
+    renderAt('/no/such/page')
+    await screen.findByRole('heading', { level: 1, name: 'Page not found' })
+    expect(document.querySelector('.empty-state svg.icon path[d="m21 21-4.3-4.3"]')).not.toBeNull()
+  })
+
   it('keeps known routes ahead of the catch-all (AC1)', async () => {
     mockMe(200, { email: 'maya@example.com', method: 'email' })
     renderAt('/saved')

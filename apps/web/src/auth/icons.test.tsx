@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ICONS } from './icons'
 
 describe('icon set', () => {
-  it.each(['home', 'search', 'trips', 'profile', 'calendar', 'map-pin', 'clock', 'plus', 'arrow-right', 'close', 'suitcase'] as const)(
+  it.each(['home', 'search', 'trips', 'profile', 'calendar', 'map-pin', 'clock', 'plus', 'arrow-right', 'close', 'suitcase', 'explore', 'users', 'heart', 'user'] as const)(
     'renders %s as an inline svg',
     (name) => {
       const Icon = ICONS[name]

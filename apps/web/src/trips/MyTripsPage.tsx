@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { SuitcaseIcon } from '../auth/icons'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
 import { Toast } from './Toast'
@@ -126,6 +127,7 @@ export function MyTripsPage() {
       )}
       {trips && trips.length === 0 && (
         <div className="empty-state">
+          <SuitcaseIcon />
           <h2>No trips yet</h2>
           <p>Where to next? Plan your first trip and it will show up here.</p>
           <Link className="btn btn-primary btn-lg" to={GUIDED_SETUP_PATH}>

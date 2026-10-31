@@ -14,6 +14,7 @@ export function RestaurantsCard({ trip, canEdit }: { trip: Trip; canEdit: boolea
       <h2 id="overview-restaurants">Restaurants</h2>
       {picks.length === 0 ? (
         <div className="empty-state">
+          <CalendarIcon />
           <h3>No restaurants picked yet</h3>
           <p className="text-muted">Found somewhere you'd love to eat? Add it and we'll slot it into your days.</p>
           {canEdit && (

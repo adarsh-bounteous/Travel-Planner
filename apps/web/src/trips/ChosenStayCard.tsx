@@ -1,4 +1,4 @@
-import { CheckIcon } from '../auth/icons'
+import { CheckIcon, HomeIcon } from '../auth/icons'
 import { BookingLink, isLocalBooking } from '../travel/BookingLink'
 import type { ChosenStay } from './api'
 import { formatMoney } from './stayOptions'
@@ -48,6 +48,7 @@ export function ChosenStayCard({ chosen, canEdit, onChange, onClear }: Props) {
         </>
       ) : (
         <div className="empty-state">
+          <HomeIcon />
           <h3>No stay chosen yet</h3>
           <p className="text-muted">
             Pick one from the shortlist below to see its booking link and add it to your itinerary.

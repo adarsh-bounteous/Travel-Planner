@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { AlertIcon, XIcon } from '../auth/icons'
+import { AlertIcon, SearchIcon, XIcon } from '../auth/icons'
 import { searchPlaces } from '../places/api'
 import { addActivity, fetchRecommendations } from './api'
 import type { ActivityInput, Day, Trip } from './api'
@@ -156,6 +156,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
             </div>
           ) : recs.length === 0 ? (
             <div className="empty-state" role="status">
+              <SearchIcon />
               <p>No recommendations are available for this day.</p>
               <p className="note-for">Search places or add a custom activity instead.</p>
             </div>

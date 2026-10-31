@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { fetchLocalMode } from '../auth/api'
-import { AlertIcon, HeartIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, HeartIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
 import type { Place } from '../places/api'
@@ -94,6 +94,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
           )}
           {recs.length === 0 ? (
             <div className="empty-state">
+              <SearchIcon />
               <h2>No recommendations for this destination yet</h2>
               <p>Try another destination, or plan your days in the meantime.</p>
               <button type="button" className="btn btn-primary" onClick={onBack}>
@@ -102,6 +103,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             </div>
           ) : shown.length === 0 ? (
             <div className="empty-state">
+              <HeartIcon />
               <h2>Pick an interest to see ideas</h2>
               <p>Choose one of your trip's interests above.</p>
             </div>

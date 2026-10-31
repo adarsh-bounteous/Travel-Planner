@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
+import { UsersIcon } from '../auth/icons'
 import { addTraveller } from './api'
 import type { Traveller, Trip } from './api'
 import { AccessSection } from './AccessSection'
@@ -126,7 +127,10 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
       ) : (
         <ul className="person-list" aria-label="Travellers on this trip">
           {travellers.length === 0 ? (
-            <li className="empty-state">No travellers yet.</li>
+            <li className="empty-state">
+              <UsersIcon />
+              No travellers yet.
+            </li>
           ) : (
             travellers.map((traveller) => (
               <li className="person" key={traveller.id}>

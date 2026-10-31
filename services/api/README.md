@@ -133,3 +133,31 @@ both tables named by `TRIPS_TABLE_NAME` and `ACCOUNTS_TABLE_NAME` can be describ
 existing AWS credentials and region; otherwise they are reported as skipped ("cloud tables
 absent"). Cloud cases write under unique `contract-…` ids and delete them afterwards. Run them with
 `sh run-py.sh -m pytest -c pytest.ini tests/unit/store_contract -rs`.
+
+## How to add a new adapter
+
+1. Declare the port (the interface the app depends on) in `app/<area>/providers.py`.
+2. Write the adapter so it only calls `IntegrationClient` and maps data; timeouts, retries, rate
+   limits, the circuit breaker and caching live in the shared client, never in the adapter.
+3. Declare a `ProviderSettings` for it (name, base URL and limits) and register it with the client.
+4. Hold it to the port's contract: add the adapter to the port's adapter mapping and run it with
+   `tests/unit/contract_kit.py` (`contract_params` for parametrised tests, `run_contract` to run
+   every rule against every adapter). A failure names the adapter and the rule. The store port is
+   wired in `tests/unit/store_contract/stores.py` (`STORE_RULES`, `store_adapters`).
+5. Record a fixture of a real response once (below) and test the adapter against it.
+
+### Replaying responses in tests
+
+Tests replay responses by HTTP client interception: an httpx transport is passed to
+`IntegrationClient(transport=...)`, so the adapter is unchanged and no network is used.
+
+- To record, wrap the real transport once:
+  `IntegrationClient([settings], transport=RecordingTransport(FIXTURES_DIR, httpx.HTTPTransport()))`.
+- To replay, pass `ReplayTransport(FIXTURES_DIR)`; a call with no fixture raises `FixtureMissing`.
+- Fixtures live in `tests/unit/fixtures/recorded/`, one JSON file per call (method, URL without
+  credential query parameters, parameters and body).
+- Scrubbing is automatic: API keys and personal data (names, emails, phone numbers, postal
+  addresses, dates of birth) are removed before a fixture is written. Pass any extra secret values
+  with `secrets=[...]`. Review a new fixture before committing it.
+- An existing fixture is never overwritten and never re-fetched: recording the same call again
+  sends no live request.

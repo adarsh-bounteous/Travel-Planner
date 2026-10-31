@@ -16,6 +16,7 @@ from app.routers import (
     health,
     insurance,
     invites,
+    itinerary,
     local_google,
     local_inbox,
     local_mode,
@@ -82,6 +83,7 @@ app.include_router(starter_destinations.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
 app.include_router(trip_helpers.router)
+app.include_router(itinerary.router)
 
 
 @app.exception_handler(ApiError)

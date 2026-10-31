@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { MouseEvent, ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
+import { BrandLogo } from '../components/BrandLogo'
+import { usePageName } from '../pageTitle'
 import {
   AlertIcon,
   ArrowLeftIcon,
@@ -103,6 +105,9 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
   const nothingBooked = glance.booked === 0 && glance.unbooked === 0
   return (
     <div className="document">
+      <div className="doc-brand">
+        <BrandLogo />
+      </div>
       <section className="cover" id="cover" aria-labelledby="cover-h">
         <div className="cover-art" aria-hidden="true">
           <ImageIcon />
@@ -172,6 +177,7 @@ export function ItineraryPage() {
   const [itinerary, setItinerary] = useState<Itinerary | null>(null)
   const [error, setError] = useState<'not-found' | 'failed' | null>(null)
   const [current, setCurrent] = useState(SECTIONS[0].id)
+  usePageName(itinerary?.cover.name)
 
   useEffect(() => {
     fetchItinerary(tripId)

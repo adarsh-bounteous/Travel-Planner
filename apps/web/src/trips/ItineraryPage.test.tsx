@@ -79,6 +79,13 @@ describe('ItineraryPage', () => {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
   })
 
+  it('shows the logo at the top of the document (AC1)', async () => {
+    show(planned)
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    const doc = document.querySelector('.document') as HTMLElement
+    expect(within(doc).getByRole('img', { name: 'Travel Planner' })).toBeInTheDocument()
+  })
+
   it('lists each day once and shows Not yet planned for an empty day (AC4, AC5)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1 })

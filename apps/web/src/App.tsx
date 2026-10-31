@@ -18,6 +18,7 @@ import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { StarterPlaceContentPage } from './places/StarterPlaceContentPage'
 import { StarterPlannerPage } from './places/StarterPlannerPage'
 import { NotFoundPage } from './NotFoundPage'
+import { TitleManager } from './pageTitle'
 import { ProfilePage } from './profile/ProfilePage'
 import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
@@ -55,6 +56,7 @@ import { TripPage } from './trips/TripPage'
 export default function App() {
   return (
     <>
+      <TitleManager />
       <AppHeader />
       <main className="shell-main">
         <Routes>

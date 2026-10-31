@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router'
+import { RouteTransition } from './RouteTransition'
 import { AccountPage } from './account/AccountPage'
 import { LocalModePage } from './account/LocalModePage'
 import { LocalBookingPage } from './travel/LocalBookingPage'
@@ -18,6 +19,7 @@ import { DestinationResultsPage } from './places/DestinationResultsPage'
 import { StarterPlaceContentPage } from './places/StarterPlaceContentPage'
 import { StarterPlannerPage } from './places/StarterPlannerPage'
 import { NotFoundPage } from './NotFoundPage'
+import { TitleManager } from './pageTitle'
 import { ProfilePage } from './profile/ProfilePage'
 import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
@@ -55,9 +57,12 @@ import { TripPage } from './trips/TripPage'
 export default function App() {
   return (
     <>
+      <TitleManager />
       <AppHeader />
       <main className="shell-main">
-        <Routes>
+        <RouteTransition>
+          {(location) => (
+        <Routes location={location}>
           <Route
             path="/"
             element={
@@ -328,6 +333,8 @@ export default function App() {
           <Route path="/confirm-email/:token" element={<ConfirmLinkPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+          )}
+        </RouteTransition>
       </main>
     </>
   )

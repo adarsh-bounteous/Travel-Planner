@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "brand:assets": "node --experimental-strip-types scripts/build-brand-assets.ts",
     "bundle:measure": "node scripts/measure-bundle.mjs",
     "typecheck": "tsc -b",
     "test": "vitest run",

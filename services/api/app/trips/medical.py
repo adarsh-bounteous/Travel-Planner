@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Literal
 from urllib.parse import quote_plus
 
@@ -10,6 +11,8 @@ VaccStatus = Literal["required", "recommended", "already_had", "unsuitable_in_pr
 Result = Literal["guidance", "no_data", "none_required"]
 
 CONFIRM_NOTE = "Confirm with official sources before you travel."
+MEDICAL_AS_OF = date(2026, 10, 1)  # when the seeded guidance below was written
+MEDICAL_SOURCE = "Travel Planner health guidance"
 PREGNANCY_ADVISORY = "Pregnancy advisory"
 
 _OFFICIAL_SITES = {

@@ -41,3 +41,18 @@ describe('prefersReducedMotion', () => {
     expect(prefersReducedMotion()).toBe(false)
   })
 })
+
+describe('route transition styles', () => {
+  const css = readFileSync(resolve(__dirname, 'index.css'), 'utf8')
+
+  it('lasts 250 ms for both View Transitions and the fallback (AC5)', () => {
+    expect(css).toMatch(/--route-duration:\s*250ms/)
+    expect(css).toMatch(/\.route-anim\s*\{[^}]*animation:\s*route-in var\(--route-duration\)/)
+    expect(css).toMatch(/view-transition-new\(route\)[^}]*var\(--route-duration\)/)
+  })
+
+  it('removes the slide but keeps the fade under reduced motion (AC6)', () => {
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)\s*\{\s*:root\s*\{\s*--route-shift:\s*0px/)
+    expect(css).not.toMatch(/\*,\s*\*::before,\s*\*::after\s*\{\s*animation:\s*none !important/)
+  })
+})

@@ -6,6 +6,7 @@ import type { DemoAccount } from './api'
 import { AuthForm } from './AuthForm'
 import { useAuth } from './AuthProvider'
 import { GoogleNoAccountModal } from './GoogleNoAccountModal'
+import { BrandLogo } from '../components/BrandLogo'
 import { InfoIcon } from './icons'
 import { pageLabel, peekReturnTo } from './returnTo'
 import type { Problem } from './messages'
@@ -70,7 +71,9 @@ export function SignInPage() {
     <>
       {localReset && <Toast message="Local data reset. Sign in with the demo user." />}
       <div className="auth-split">
-      <aside className="auth-brand" aria-hidden="true" />
+      <aside className="auth-brand">
+        <BrandLogo size="lg" inverse />
+      </aside>
       <AuthForm
         mode="in"
         title="Sign in"

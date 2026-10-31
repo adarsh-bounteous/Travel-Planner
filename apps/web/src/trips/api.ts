@@ -504,12 +504,39 @@ export type ItineraryItem = {
 
 export type ItineraryDay = { number: number; date: string; items: ItineraryItem[] }
 
-/** The printable trip document; the server leaves out money, essentials, editors and sharing. */
+export type EssentialFact = {
+  key: 'visa' | 'insurance' | 'sim' | 'currency' | 'weather' | 'medical'
+  label: string
+  value: string | null
+  detail: string | null
+  link_text: string | null
+  link_url: string | null
+  source: string | null
+  as_of: string | null
+}
+
+export type ChecklistItem = {
+  key: 'passport' | 'visa' | 'insurance' | 'sim' | 'reminders' | 'bookings'
+  label: string
+  hint: string | null
+  done: boolean
+}
+
+export type ImportantNotes = {
+  price_notice: string
+  confirm_notice: string
+  sources: { label: string; source: string; as_of: string }[]
+}
+
+/** The printable trip document; the server leaves out money, editors and sharing. */
 export type Itinerary = {
   cover: { name: string; start_date: string | null; end_date: string | null; destinations: string[] }
   glance: { booked: number; unbooked: number }
   days: ItineraryDay[]
   still_to_schedule: ItineraryItem[]
+  essentials: EssentialFact[]
+  checklist: ChecklistItem[]
+  notes: ImportantNotes
 }
 
 export const fetchItinerary = (tripId: string) =>

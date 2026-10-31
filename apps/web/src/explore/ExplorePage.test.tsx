@@ -69,6 +69,12 @@ describe('ExplorePage', () => {
     expect(screen.queryByRole('img', { name: 'Map of places' })).toBeNull()
   })
 
+  it('the map shows OSM tiles when tiles are on (AC1)', async () => {
+    stubApi({ ...base, 'GET /startup-status': { status: 200, body: { map_tiles: true } } })
+    renderAt('/explore?view=map')
+    expect((await screen.findAllByTestId('map-tile')).length).toBeGreaterThan(0)
+  })
+
   it('shows save and add-to-trip controls on each card (AC7, AC8)', async () => {
     stubApi(base)
     renderAt('/explore')

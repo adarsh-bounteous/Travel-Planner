@@ -82,7 +82,8 @@ describe('Saved page', () => {
   it('lists each place on the same gradient card as Explore (AC9)', async () => {
     stubApi(two)
     renderAt('/saved')
-    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
+    await screen.findByRole('button', { name: 'Unsave Alfama' })
+    expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2)
     expect(screen.getByRole('button', { name: 'Unsave Alfama' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /to trip$/ })).not.toBeInTheDocument()
     expect(document.querySelectorAll('img')).toHaveLength(0)

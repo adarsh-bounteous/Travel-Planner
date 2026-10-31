@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon, CheckIcon, InfoIcon, SearchIcon } from '../auth/icons'
@@ -52,6 +53,7 @@ function TravellerCard({ row }: { row: TravellerGuidance }) {
       </div>
       {row.result === 'no_data' && (
         <div className="empty-state" role="status">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No data for this route</h2>
           <p>No data for this route. Check the official government site for your citizenship and destination.</p>

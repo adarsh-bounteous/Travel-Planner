@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router'
 import { AuthProvider } from '../auth/AuthProvider'
 import { stubApi } from '../test-api'
@@ -131,10 +131,16 @@ describe('TripRecommendationsTab', () => {
     )
   })
 
-  it.each([true, false])('shows gradient covers and no photo (local mode %s)', async (local_mode) => {
+  it.each([true, false])('shows 16:9 art hidden from screen readers (local mode %s)', async (local_mode) => {
     open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode } } })
-    expect((await screen.findAllByTestId('place-cover')).length).toBeGreaterThan(0)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    await waitFor(() => expect(document.querySelector('li.card .imgc img')).not.toBeNull())
+    expect(document.querySelector('li.card .imgc')).toHaveStyle({ '--ratio': '16/9' })
+    expect(document.querySelector('li.card .imgc img')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('shows generic art for a recommendation without a place (AC13)', async () => {
+    open([{ ...RECS[0], place: null }])
+    await waitFor(() => expect(document.querySelector('li.card .imgc img')).not.toBeNull())
   })
 
   it('credits OpenStreetMap, shows details and no notice for real places (AC3, AC5, AC12)', async () => {
@@ -150,7 +156,6 @@ describe('TripRecommendationsTab', () => {
     expect(await screen.findByText('node/42')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeInTheDocument()
     expect(screen.queryByText(/Live data unavailable/)).not.toBeInTheDocument()
-    expect(document.querySelectorAll('img')).toHaveLength(0)
   })
 
   it('shows the saved-data notice and no attribution for seed places (AC11, AC13)', async () => {

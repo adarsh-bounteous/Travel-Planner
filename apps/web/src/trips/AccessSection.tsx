@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { FormEvent } from 'react'
 import { inviteEditor, revokeEditor } from './api'
 import type { Trip } from './api'
@@ -94,6 +95,7 @@ export function AccessSection({ trip, onChanged }: AccessSectionProps) {
       <div className="stack stack-sm">
         {editors.length === 0 ? (
           <div className="empty-state">
+            <EmptyStateArt />
             <p>No editors yet. Invite a companion by email to plan together.</p>
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { Link, useSearchParams } from 'react-router'
 import { HeartIcon } from '../auth/icons'
 import type { Place } from '../places/api'
@@ -39,6 +40,7 @@ export function SavedPage() {
   } else if (saved.length === 0) {
     body = (
       <div className="empty-state">
+        <EmptyStateArt />
         <HeartIcon />
         <h2>No places are saved yet</h2>
         <p>Save places from Destination results to see them here.</p>

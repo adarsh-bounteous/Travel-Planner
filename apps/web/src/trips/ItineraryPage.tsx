@@ -11,10 +11,11 @@ import {
   CheckIcon,
   EyeIcon,
   HomeIcon,
-  ImageIcon,
   SearchIcon,
   StarIcon,
 } from '../auth/icons'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { HeroImage } from '../components/HeroImage'
 import { fetchItinerary, NotFoundError } from './api'
 import type { Itinerary, ItineraryItem } from './api'
 
@@ -55,6 +56,7 @@ const formatRange = (start: string, end: string) => {
 function NotYetPlanned() {
   return (
     <div className="empty-state">
+      <EmptyStateArt />
       <p>Not yet planned</p>
     </div>
   )
@@ -103,18 +105,22 @@ function Document({ itinerary }: { itinerary: Itinerary }) {
   const nothingBooked = glance.booked === 0 && glance.unbooked === 0
   return (
     <div className="document">
-      <section className="cover" id="cover" aria-labelledby="cover-h">
-        <div className="cover-art" aria-hidden="true">
-          <ImageIcon />
-        </div>
-        <div className="cover-body">
-          <h1 id="cover-h">{cover.name}</h1>
+      <section className="itin-cover" id="cover" aria-labelledby="cover-h">
+        <HeroImage
+          illustration={{ destination: cover.destinations[0]?.split(',')[0] }}
+          alt={cover.destinations[0] ? `Illustration of ${cover.destinations[0]}` : 'Travel illustration'}
+        >
+          <h1 className="hero-title" id="cover-h">
+            {cover.name}
+          </h1>
           {cover.start_date && cover.end_date && (
-            <p className="cover-meta text-lg">
+            <p className="hero-dates">
               <CalendarIcon />
               <span>{formatRange(cover.start_date, cover.end_date)}</span>
             </p>
           )}
+        </HeroImage>
+        <div className="cover-body">
           {cover.destinations.length > 0 && (
             <p className="cover-meta">
               <HomeIcon />
@@ -189,6 +195,7 @@ export function ItineraryPage() {
   if (error === 'not-found')
     return (
       <div className="empty-state" role="alert">
+        <EmptyStateArt />
         <SearchIcon />
         <h1 className="text-lg">Itinerary not found</h1>
         <p>

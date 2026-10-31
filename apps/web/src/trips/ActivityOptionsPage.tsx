@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { AlertIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
+import type { PlaceType } from '../places/api'
 import { fetchActivityOptions, fetchTrip } from './api'
 import type { ActivityOption, ActivityOptions } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -9,10 +10,18 @@ import { formatFetched, formatMoney } from './stayOptions'
 
 type Load = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; options: ActivityOptions }
 
+const PLACE_TYPE_OF_KIND: Record<ActivityOption['kind'], PlaceType> = {
+  ticket: 'museum',
+  tour: 'landmark',
+  day_trip: 'park',
+  experience: 'landmark',
+}
+
 function ActivityCard({ option }: { option: ActivityOption }) {
   const { currency } = option
   return (
     <OptionCard
+      illustration={{ placeType: PLACE_TYPE_OF_KIND[option.kind] ?? 'landmark' }}
       title={option.title}
       badges={option.offer && <span className="badge">{option.offer}</span>}
       meta={option.provider}

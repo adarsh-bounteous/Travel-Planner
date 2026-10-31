@@ -133,11 +133,11 @@ describe('Destination results', () => {
     expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
-  it('each card shows a gradient cover, not a photo, and the name (AC4)', async () => {
+  it('each card shows an illustration frame and the name (AC4)', async () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon')
-    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    await screen.findByText('Alfama')
+    expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2)
     expect(screen.getByText('Alfama')).toBeInTheDocument()
   })
 

@@ -542,7 +542,18 @@ describe('TripDetailPage restyle', () => {
     expect(hero).toHaveTextContent('Lisbon, Portugal')
     expect(within(hero).queryAllByRole('button')).toHaveLength(0)
     expect(within(hero).queryAllByRole('link')).toHaveLength(0)
-    expect(hero.querySelectorAll('[style], [class]')).toHaveLength(0)
+  })
+
+  it('shows destination art with alt text and a scrim under the title (AC2, AC7, AC11)', async () => {
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const hero = document.querySelector('.trip-hero') as HTMLElement
+    const img = await within(hero).findByRole('img', { name: /Lisbon/ })
+    expect(img.getAttribute('alt')).not.toBe('')
+    expect(hero.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    const scrim = hero.querySelector('.scrim')!
+    expect(scrim).not.toBeNull()
+    expect(scrim.compareDocumentPosition(hero.querySelector('h1')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('shows the tabs below the hero (AC2)', async () => {

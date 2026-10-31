@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { addTraveller } from './api'
@@ -126,7 +127,10 @@ export function TravelersTab({ trip, onChanged }: TravelersTabProps) {
       ) : (
         <ul className="person-list" aria-label="Travellers on this trip">
           {travellers.length === 0 ? (
-            <li className="empty-state">No travellers yet.</li>
+            <li className="empty-state">
+              <EmptyStateArt />
+              No travellers yet.
+            </li>
           ) : (
             travellers.map((traveller) => (
               <li className="person" key={traveller.id}>

@@ -9,7 +9,7 @@ const phone = phoneStart === -1 ? '' : css.slice(phoneStart)
 
 describe('entry screens', () => {
   it('has the sign-in split, trip cover, step and control rules', () => {
-    for (const sel of ['.auth-split', '.auth-brand', '.trip-cover', '.steps', '.step.is-current']) {
+    for (const sel of ['.auth-split', '.auth-brand', '.trip-row','.steps', '.step.is-current']) {
       expect(css).toContain(sel)
     }
     expect(css).toMatch(/\.chip\[aria-pressed="true"\]\s*\{[^}]*var\(--color-primary-subtle\)/)
@@ -73,10 +73,9 @@ describe('design system stylesheet', () => {
     expect(phone).toContain('min-height: var(--size-control-lg)')
   })
 
-  it('styles the trip hero with the on-primary token over the primary gradient', () => {
-    expect(css).toMatch(
-      /\.trip-hero\s*\{[^}]*linear-gradient\(var\(--color-primary\), var\(--color-primary-hover\)\)[^}]*color: var\(--color-on-primary\)/,
-    )
+  it('styles the hero text with the on-primary token over the scrim', () => {
+    expect(css).toMatch(/\.hero-title, \.hero-dates\s*\{[^}]*color: var\(--color-on-primary\)/)
+    expect(css).toMatch(/\.scrim\s*\{[^}]*linear-gradient/)
   })
 
   it('puts the cost summary in a right-hand column from 48rem', () => {

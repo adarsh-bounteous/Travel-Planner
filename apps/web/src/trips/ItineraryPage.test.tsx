@@ -79,6 +79,16 @@ describe('ItineraryPage', () => {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
   })
 
+  it('shows destination art with alt text under a scrim on the cover (AC5, AC7, AC11)', async () => {
+    show(planned)
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    const coverSection = document.getElementById('cover') as HTMLElement
+    const img = await within(coverSection).findByRole('img', { name: /Lisbon/ })
+    expect(img.getAttribute('alt')).not.toBe('')
+    expect(coverSection.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    expect(coverSection.querySelector('.scrim')).not.toBeNull()
+  })
+
   it('lists each day once and shows Not yet planned for an empty day (AC4, AC5)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1 })

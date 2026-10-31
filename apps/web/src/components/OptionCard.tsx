@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { IllustrationRef } from '../illustrations/registry'
+import { ImageFrame } from './ImageFrame'
 
 type OptionCardProps = {
   /** Rendered as the card heading. */
@@ -14,6 +16,8 @@ type OptionCardProps = {
   /** Falls back to the title when that is a string. */
   ariaLabel?: string
   as?: 'article' | 'li'
+  /** Decorative 16:9 art at the top of the card; omit for options with no place type. */
+  illustration?: IllustrationRef
   /** Extra body content, such as per-provider offers. */
   children?: ReactNode
 }
@@ -28,11 +32,13 @@ export function OptionCard({
   picked = false,
   ariaLabel,
   as: Tag = 'article',
+  illustration,
   children,
 }: OptionCardProps) {
   const label = ariaLabel ?? (typeof title === 'string' ? title : undefined)
   return (
     <Tag className={`card option-card${picked ? ' is-picked' : ''}`} aria-label={Tag === 'article' ? label : undefined}>
+      {illustration && <ImageFrame ratio="16/9" illustration={illustration} />}
       <div className="option-card-head">
         <h3 className="option-card-title">{title}</h3>
         {badges && <div className="badges option-card-badges">{badges}</div>}

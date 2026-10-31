@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { KeyboardEvent } from 'react'
 import { AlertIcon, XIcon } from '../auth/icons'
 import { searchPlaces } from '../places/api'
@@ -156,6 +157,7 @@ export function AddActivityDrawer({ trip, day, onClose, onAdded }: AddActivityDr
             </div>
           ) : recs.length === 0 ? (
             <div className="empty-state" role="status">
+              <EmptyStateArt />
               <p>No recommendations are available for this day.</p>
               <p className="note-for">Search places or add a custom activity instead.</p>
             </div>

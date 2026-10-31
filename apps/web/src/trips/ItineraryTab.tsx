@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { Link } from 'react-router'
 import { BellIcon, CalendarIcon, EditIcon, PlusIcon } from '../auth/icons'
 import type { Activity, ChosenOption, ChosenStay, Day, Reminder, RestaurantPick, Trip } from './api'
@@ -90,6 +91,7 @@ function ChosenStays({ trip, editable }: { trip: Trip; editable: boolean }) {
       <h3 id="itinerary-stays">Stays</h3>
       {stays.length === 0 && (
         <div className="empty-state">
+        <EmptyStateArt />
           <h3>No stay in your itinerary</h3>
           <p className="text-muted">
             {`Choose a stay for ${formatRange(first.start_date, first.end_date)} and it will show up here.`}
@@ -248,6 +250,7 @@ export function ItineraryTab({
     return (
       <div className="stack stack-lg">
         <div className="empty-state">
+        <EmptyStateArt />
           <h3>No days yet</h3>
           <p>
             {trip.is_owner
@@ -350,6 +353,7 @@ export function ItineraryTab({
               planned.length === 0 &&
               meals.length === 0 && (
                 <div className="empty-state">
+        <EmptyStateArt />
                   <p>Nothing chosen for this day yet</p>
                   <p className="text-sm">
                     Options you choose for {formatDay(day.date)} will show up here.

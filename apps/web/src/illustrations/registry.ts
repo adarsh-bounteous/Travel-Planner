@@ -2,7 +2,7 @@ import type { PlaceType } from '../places/api'
 
 export type Region = 'europe' | 'asia' | 'americas' | 'africa'
 
-export type IllustrationRef = { destination?: string; country?: string; placeType: PlaceType }
+export type IllustrationRef = { destination?: string; country?: string; placeType?: PlaceType }
 
 const FOLDERS: Record<string, string> = {
   lisbon: 'destination',
@@ -14,6 +14,7 @@ const FOLDERS: Record<string, string> = {
   park: 'type',
   food: 'type',
   shopping: 'type',
+  generic: 'generic',
 }
 
 // Lazy glob: each SVG becomes its own on-demand chunk, so no art URL or data URI lands in the main bundle.
@@ -41,11 +42,12 @@ export function regionOfCountry(country: string): Region | undefined {
   return REGION_OF_COUNTRY[country]
 }
 
-/** Destination art first, then its region's art, then the place type's art. */
+/** Destination art first, then its region's art, then the place type's art, then the generic art. */
 export function resolveIllustration({ destination, country, placeType }: IllustrationRef): string {
   const destinationKey = destination ? `destination/${destination.trim().toLowerCase()}` : undefined
   if (destinationKey && destinationKey in illustrationLoaders) return destinationKey
   const region = country ? regionOfCountry(country) : undefined
   if (region && `region/${region}` in illustrationLoaders) return `region/${region}`
-  return `type/${placeType}`
+  if (placeType && `type/${placeType}` in illustrationLoaders) return `type/${placeType}`
+  return 'generic/generic'
 }

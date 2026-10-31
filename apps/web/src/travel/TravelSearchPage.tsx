@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { SearchIcon } from '../auth/icons'
@@ -202,6 +203,7 @@ export function TravelSearchPage() {
         ) : (
           <>
             <div className="empty-state" role="status">
+              <EmptyStateArt />
               <SearchIcon />
               <h2>No results for this place</h2>
               <p>

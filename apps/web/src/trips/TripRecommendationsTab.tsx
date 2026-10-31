@@ -5,7 +5,8 @@ import { AlertIcon, HeartIcon, InfoIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
 import type { Place } from '../places/api'
-import { PlaceCover } from '../places/PlaceCover'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { ImageFrame } from '../components/ImageFrame'
 import { PlaceDetails } from '../places/PlaceDetails'
 import { PlacesSourceNote } from '../places/PlacesSourceNote'
 import { DestinationGate } from './DestinationGate'
@@ -94,6 +95,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
           )}
           {recs.length === 0 ? (
             <div className="empty-state">
+              <EmptyStateArt />
               <h2>No recommendations for this destination yet</h2>
               <p>Try another destination, or plan your days in the meantime.</p>
               <button type="button" className="btn btn-primary" onClick={onBack}>
@@ -102,6 +104,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             </div>
           ) : shown.length === 0 ? (
             <div className="empty-state">
+              <EmptyStateArt />
               <h2>Pick an interest to see ideas</h2>
               <p>Choose one of your trip's interests above.</p>
             </div>
@@ -111,7 +114,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             const saved = !!r.place && savedIds.has(r.place.id)
             return (
               <li key={r.id} className="card stack">
-                <PlaceCover seed={r.place?.id ?? r.id} />
+                <ImageFrame ratio="16/9" illustration={{ placeType: r.place?.place_type }} />
                 <h3>{r.name}</h3>
                 {r.interest && <span className="badge badge-neutral">{r.interest}</span>}
                 <p className="text-sm text-muted">{r.detail}</p>

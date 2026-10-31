@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from '../places/api'
@@ -96,6 +97,7 @@ export function ExplorePage() {
   } else if (places.length === 0) {
     body = (
       <div className="empty-state">
+        <EmptyStateArt />
         <h2>No places match</h2>
         <p>Change the search or the filters to see more places.</p>
       </div>

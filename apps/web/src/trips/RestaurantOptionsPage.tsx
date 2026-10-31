@@ -7,6 +7,7 @@ import { DestinationGate } from './DestinationGate'
 import { DiningNeedsDrawer } from './DiningNeedsDrawer'
 import { RestaurantLink } from './RestaurantLink'
 import { formatMoney, plural } from './stayOptions'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { OptionCard } from '../components/OptionCard'
 import { Toast } from './Toast'
 
@@ -19,6 +20,7 @@ function RestaurantCard({ option, home }: { option: RestaurantOption; home: bool
       badges={<span className={home ? 'badge badge-success' : 'badge'}>{option.cuisine}</span>}
       meta={`${option.cuisine} cuisine, ${option.dining_style.toLowerCase()} dining. ${option.typical_price === null ? 'Typical price not available.' : `Typically ${formatMoney(option.typical_price, option.currency)} per person.`}`}
       actions={<RestaurantLink name={option.name} url={option.url} />}
+      illustration={{ placeType: 'food' }}
     >
       <div className="restaurant-photo" role="img" aria-label={`Photo placeholder for ${option.name}`}>
         <ImageIcon />
@@ -147,6 +149,7 @@ export function RestaurantOptionsPage() {
 
       {empty && (
         <div className="empty-state" role="status">
+          <EmptyStateArt />
           <SearchIcon />
           <h2>No restaurants match your filters.</h2>
           <p>Try relaxing a filter, such as budget or a trip need, to see more options.</p>

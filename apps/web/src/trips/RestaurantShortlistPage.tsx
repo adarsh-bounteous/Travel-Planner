@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { Link, Navigate, useParams } from 'react-router'
 import { AlertIcon, SearchIcon } from '../auth/icons'
 import { fetchRestaurantShortlist, fetchTrip } from './api'
@@ -149,6 +150,7 @@ export function RestaurantShortlistPage() {
           )}
           {visible.length === 0 && (
             <div className="empty-state">
+              <EmptyStateArt />
               <SearchIcon />
               <h2>{shortlist.entries.length === 0 ? 'No restaurants to shortlist' : 'Your shortlist is empty'}</h2>
               {shortlist.entries.length === 0 ? (

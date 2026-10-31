@@ -32,6 +32,13 @@ describe('resolveIllustration', () => {
     expect(regionOfCountry('Atlantis')).toBeUndefined()
   })
 
+  it('falls back to the generic art when nothing matches', () => {
+    expect(resolveIllustration({ destination: 'Atlantis' })).toBe('generic/generic')
+    expect(resolveIllustration({})).toBe('generic/generic')
+    expect(resolveIllustration({ placeType: 'food' })).toBe('type/food')
+    expect(illustrationLoaders).toHaveProperty(['generic/generic'])
+  })
+
   it('has a loader for every key the resolver can return', () => {
     for (const t of PLACE_TYPES) {
       expect(illustrationLoaders[resolveIllustration({ placeType: t })]).toBeTypeOf('function')

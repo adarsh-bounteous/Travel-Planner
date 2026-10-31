@@ -26,19 +26,44 @@ const oslo = {
 }
 
 describe('MyTripsPage entry look', () => {
-  it('gives each card a gradient cover, a status badge and the same Open link', async () => {
+  it('gives each card an illustration, a status badge and the same Open link', async () => {
     stubApi({ 'GET /trips': { status: 200, body: [lisbon, { ...oslo, stays: [{ id: 's' }] }] } })
     renderAt('/')
     await screen.findByRole('heading', { name: 'Lisbon' })
     const container = document.body
     const cards = container.querySelectorAll('li.card')
-    expect(container.querySelectorAll('li.card .trip-cover')).toHaveLength(2)
+    expect(container.querySelectorAll('li.card > .imgc')).toHaveLength(2)
     for (const card of cards) {
       expect(card.querySelector('.badge-success, .badge-neutral')).not.toBeNull()
     }
     expect(cards[0].querySelector('.badge-neutral')).toHaveTextContent('No stays yet')
     expect(cards[1].querySelector('.badge-success')).toHaveTextContent('1 stay')
     expect(screen.getByRole('link', { name: 'Open Lisbon' })).toHaveAttribute('href', '/trips/t1')
+  })
+})
+
+describe('MyTripsPage imagery', () => {
+  it('shows the destination art on a 16:9 frame hidden from screen readers (AC1, AC9, AC12)', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [{ ...lisbon, name: 'Lisbon weekend', place: 'Lisbon' }] } })
+    renderAt('/')
+    const card = (await screen.findByRole('heading', { name: 'Lisbon weekend' })).closest('li')!
+    expect(card.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    await waitFor(() => expect(card.querySelector('.imgc img')).not.toBeNull())
+    expect(card.querySelector('.imgc img')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('falls back to generic art for an unknown destination (AC13)', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [{ id: 't9', name: 'Cold', destination: 'Reykjavik' }] } })
+    renderAt('/')
+    const card = (await screen.findByRole('heading', { name: 'Cold' })).closest('li')!
+    await waitFor(() => expect(card.querySelector('.imgc img')).not.toBeNull())
+  })
+
+  it('shows art in the no-trips empty state (AC6)', async () => {
+    stubApi({ 'GET /trips': { status: 200, body: [] } })
+    renderAt('/')
+    await screen.findByRole('heading', { name: 'No trips yet' })
+    expect(document.querySelector('.empty-state .imgc')).not.toBeNull()
   })
 })
 

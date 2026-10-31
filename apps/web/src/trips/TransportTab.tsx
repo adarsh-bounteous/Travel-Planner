@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { Link } from 'react-router'
 import { AlertIcon } from '../auth/icons'
 import { BookingLink } from '../travel/BookingLink'
@@ -116,7 +117,10 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
                 </div>
               ) : (
                 <>
-                  <div className="empty-state">No transport picked yet</div>
+                  <div className="empty-state">
+                    <EmptyStateArt />
+                    No transport picked yet
+                  </div>
                   {editable && (
                     <Link className="btn btn-secondary" to={shortlistHref(trip, leg)}>
                       Choose transport

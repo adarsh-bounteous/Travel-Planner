@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import type { ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { fetchLocalMode } from '../auth/api'
@@ -179,6 +180,7 @@ export function DestinationResultsPage() {
         {back}
         {modeNotice}
         <div className="empty-state">
+        <EmptyStateArt />
           <h2>No places match your search</h2>
           <p>Try a different city or place.</p>
           <Link className="btn btn-secondary" to="/">
@@ -216,6 +218,7 @@ export function DestinationResultsPage() {
         </div>
       ) : places.length === 0 ? (
         <div className="empty-state">
+        <EmptyStateArt />
           <h2>No places match these filters</h2>
           <p>Change or clear the filters to see more places.</p>
           <button

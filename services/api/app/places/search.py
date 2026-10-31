@@ -1,9 +1,20 @@
+from datetime import date
 from typing import Literal, Protocol
 
 from pydantic import BaseModel
 
 PlaceType = Literal["landmark", "museum", "park", "food", "shopping"]
 Price = Literal["free", "budget", "moderate", "premium"]
+Category = Literal["sights", "food", "museums", "viewpoints", "nightlife"]
+Source = Literal["seed", "osm"]
+
+# Lets seed places be filtered by category too; shopping has none.
+CATEGORY_FOR_TYPE: dict[str, Category] = {
+    "landmark": "sights",
+    "museum": "museums",
+    "food": "food",
+    "park": "viewpoints",
+}
 
 
 class Place(BaseModel):
@@ -11,9 +22,16 @@ class Place(BaseModel):
     name: str
     image_url: str
     place_type: PlaceType
-    price: Price
+    price: Price | None = None  # OSM has no price
     lat: float
     lng: float
+    category: Category | None = None
+    address: str | None = None
+    opening_hours: str | None = None
+    source: Source = "seed"
+    as_of: date | None = None  # set on seed places served as a fallback
+    provider_id: str | None = None  # "node/123"
+    url: str | None = None  # https://www.openstreetmap.org/node/123
 
 
 class PlaceSearch(Protocol):

@@ -1,5 +1,5 @@
-import { PLACE_TYPE_LABELS, PRICE_LABELS } from './api'
-import type { PlaceFilters as Filters, PlaceType, Price } from './api'
+import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS } from './api'
+import type { Category, PlaceFilters as Filters, PlaceType, Price } from './api'
 
 type ChipGroupProps<T extends string> = {
   label: string
@@ -48,6 +48,12 @@ export function PlaceFilters({
         labels={PLACE_TYPE_LABELS}
         selected={filters.placeType}
         onChange={(placeType) => onChange({ ...filters, placeType })}
+      />
+      <ChipGroup<Category>
+        label="Category"
+        labels={PLACE_CATEGORY_LABELS}
+        selected={filters.category}
+        onChange={(category) => onChange({ ...filters, category })}
       />
       <ChipGroup<Price>
         label="Price"

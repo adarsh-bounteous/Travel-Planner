@@ -8,7 +8,9 @@ import type { Trip } from '../trips/api'
 import { destinationLabel } from '../trips/destination'
 import type { DestinationRef, DestinationStatus } from '../trips/destination'
 import { DestinationGate } from '../trips/DestinationGate'
-import { PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from './api'
+import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from './api'
+import { PlaceDetails } from './PlaceDetails'
+import { PlacesSourceNote } from './PlacesSourceNote'
 import type { Place, PlaceFilters as Filters } from './api'
 import { fetchStarterDestinations } from './starterApi'
 import { useAddToTrip } from './AddToTrip'
@@ -35,7 +37,13 @@ export function DestinationResultsPage() {
       : undefined
   const price =
     priceParam !== null && priceParam in PRICE_LABELS ? (priceParam as Filters['price']) : undefined
+  const categoryParam = params.get('category')
+  const category =
+    categoryParam !== null && categoryParam in PLACE_CATEGORY_LABELS
+      ? (categoryParam as Filters['category'])
+      : undefined
   const view: PlacesView = params.get('view') === 'map' ? 'map' : 'list'
+  const [detailsOf, setDetailsOf] = useState<Place | null>(null)
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [localMode, setLocalMode] = useState<boolean | null>(null)
@@ -46,11 +54,11 @@ export function DestinationResultsPage() {
     if (!area) return
     setPlaces(null)
     setFailed(false)
-    searchPlaces(area, destination ? query || undefined : undefined, { placeType, price }).then(
+    searchPlaces(area, destination ? query || undefined : undefined, { placeType, price, category }).then(
       setPlaces,
       () => setFailed(true),
     )
-  }, [area, destination, query, placeType, price])
+  }, [area, destination, query, placeType, price, category])
 
   useEffect(() => {
     if (!tripId) return
@@ -91,7 +99,7 @@ export function DestinationResultsPage() {
   if (tripReady) {
     if (!chosen || !chosen.place) gateStatus = 'no_destination'
     else if (!countries.includes(chosen.country)) gateStatus = 'no_country_data'
-    else if (places !== null && places.length === 0 && !(placeType !== undefined || price !== undefined))
+    else if (places !== null && places.length === 0 && !(placeType !== undefined || price !== undefined || category !== undefined))
       gateStatus = 'no_place_data'
   }
   const gated = (content: ReactNode) =>
@@ -130,13 +138,14 @@ export function DestinationResultsPage() {
     for (const [name, value] of [
       ['type', filters.placeType],
       ['price', filters.price],
+      ['category', filters.category],
     ] as const) {
       if (value === undefined) next.delete(name)
       else next.set(name, value)
     }
     setParams(next)
   }
-  const filtered = placeType !== undefined || price !== undefined
+  const filtered = placeType !== undefined || price !== undefined || category !== undefined
 
   const back = (
     <div>
@@ -188,7 +197,9 @@ export function DestinationResultsPage() {
         <>
       {panel}
       {savedPanel}
-      <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
+      <PlaceFilters filters={{ placeType, price, category }} onChange={changeFilters} />
+      <PlacesSourceNote places={places} />
+      {detailsOf && <PlaceDetails place={detailsOf} onClose={() => setDetailsOf(null)} />}
       <ViewToggle
         view={view}
         onChange={(next) => setParam('view', next === 'map' ? 'map' : undefined)}
@@ -228,6 +239,7 @@ export function DestinationResultsPage() {
               saved={savedIds.has(place.id)}
               onToggleSave={toggle}
               savePending={pendingIds.has(place.id)}
+              onDetails={place.source === 'osm' ? setDetailsOf : undefined}
             />
           ))}
         </ul>

@@ -133,12 +133,12 @@ describe('Destination results', () => {
     expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
-  it('each card shows a gradient cover, not a photo, and the name (AC4)', async () => {
+  it('each card shows place-type art, not a photo, and the name (AC4)', async () => {
     stubApi(lisbon)
     renderAt('/destinations?q=Lisbon')
-    expect(await screen.findAllByTestId('place-cover')).toHaveLength(2)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
-    expect(screen.getByText('Alfama')).toBeInTheDocument()
+    expect(await screen.findByText('Alfama')).toBeInTheDocument()
+    expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2)
+    expect(document.querySelector('img[src*="img.example"]')).toBeNull()
   })
 
   it('an empty result says no places match (AC5) and prompts a new search (AC6)', async () => {

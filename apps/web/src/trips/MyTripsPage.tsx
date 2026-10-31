@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
+import { ImageFrame } from '../components/ImageFrame'
+import { illustrationRefOfTrip } from '../illustrations/registry'
 import { fetchTrips } from './api'
 import type { Trip } from './api'
 import { Toast } from './Toast'
@@ -31,8 +34,8 @@ function TripRow({ trip }: { trip: Trip }) {
   const destination =
     trip.country && trip.place ? `${trip.country}, ${trip.place}` : trip.destination
   return (
-    <li className="card trip-row">
-      <div className="trip-cover" aria-hidden="true" />
+    <li className="card trip-row lift">
+      <ImageFrame ratio="16/9" illustration={illustrationRefOfTrip(trip)} />
       <div className="trip-info">
         <div className="trip-title">
           <h2>{trip.name}</h2>
@@ -126,6 +129,7 @@ export function MyTripsPage() {
       )}
       {trips && trips.length === 0 && (
         <div className="empty-state">
+          <EmptyStateArt />
           <h2>No trips yet</h2>
           <p>Where to next? Plan your first trip and it will show up here.</p>
           <Link className="btn btn-primary btn-lg" to={GUIDED_SETUP_PATH}>

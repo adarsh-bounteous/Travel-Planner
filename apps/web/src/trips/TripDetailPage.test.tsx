@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { CostSummary, Trip } from './api'
 
@@ -423,7 +423,7 @@ describe('TripDetailPage book trip', () => {
     fireEvent.click(book)
     const dialog = await screen.findByRole('dialog', { name: 'Book trip' })
     fireEvent.keyDown(dialog, { key: 'Escape' })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(book).toHaveFocus()
   })
 })
@@ -542,7 +542,26 @@ describe('TripDetailPage restyle', () => {
     expect(hero).toHaveTextContent('Lisbon, Portugal')
     expect(within(hero).queryAllByRole('button')).toHaveLength(0)
     expect(within(hero).queryAllByRole('link')).toHaveLength(0)
-    expect(hero.querySelectorAll('[style], [class]')).toHaveLength(0)
+  })
+
+  it('puts destination art behind the title and dates, on a scrim, with alt text (AC2, AC7, AC9, AC11)', async () => {
+    open()
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const hero = document.querySelector('.trip-hero .hero') as HTMLElement
+    expect(hero).toBeInTheDocument()
+    expect(hero.querySelector('.imgc')).toHaveStyle({ '--ratio': '16/9' })
+    expect(hero.querySelector('.scrim')).toHaveAttribute('aria-hidden', 'true')
+    expect(within(hero).getByRole('heading', { level: 1, name: 'Lisbon' })).toHaveClass('hero-title')
+    await waitFor(() => expect(hero.querySelector('img')?.getAttribute('src')).toMatch(/lisbon\.svg/))
+    expect(within(hero).getByRole('img', { name: 'Illustration of Lisbon' })).toBeInTheDocument()
+  })
+
+  it('uses the generic art, still with alt text, when the destination has no art (AC13, AC11)', async () => {
+    open(trip({ destination: 'Norway' }))
+    await screen.findByRole('heading', { level: 1, name: 'Lisbon' })
+    const hero = document.querySelector('.trip-hero .hero') as HTMLElement
+    await waitFor(() => expect(hero.querySelector('img')?.getAttribute('src')).toMatch(/generic\.svg/))
+    expect(within(hero).getByRole('img', { name: 'Neutral illustration of hills and a sun' })).toBeInTheDocument()
   })
 
   it('shows the tabs below the hero (AC2)', async () => {

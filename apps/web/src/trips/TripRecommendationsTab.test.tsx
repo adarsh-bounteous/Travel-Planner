@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router'
 import { AuthProvider } from '../auth/AuthProvider'
 import { stubApi } from '../test-api'
@@ -131,10 +131,25 @@ describe('TripRecommendationsTab', () => {
     )
   })
 
-  it.each([true, false])('shows gradient covers and no photo (local mode %s)', async (local_mode) => {
+  it.each([true, false])('shows 16:9 place-type art, never the photo (local mode %s) (AC3, AC9, AC12)', async (local_mode) => {
     open(RECS, { 'GET /startup-status': { status: 200, body: { local_mode } } })
-    expect((await screen.findAllByTestId('place-cover')).length).toBeGreaterThan(0)
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    await screen.findAllByRole('heading', { level: 3 })
+    const frames = document.querySelectorAll('li.card > .imgc')
+    expect(frames).toHaveLength(3)
+    for (const frame of frames) expect(frame).toHaveStyle({ '--ratio': '16/9' })
+    // The fixtures are food, so the first card shows food art, not https://img.example/...jpg.
+    await waitFor(() => expect(document.querySelectorAll('li.card img')).toHaveLength(3))
+    const imgs = document.querySelectorAll<HTMLImageElement>('li.card img')
+    for (const img of imgs) {
+      expect(img.getAttribute('src')).toMatch(/food\.svg/)
+      expect(img).toHaveAttribute('aria-hidden', 'true')
+      expect(img).toHaveAttribute('alt', '')
+    }
+  })
+
+  it('gives a recommendation with no place the generic art (AC3, AC13)', async () => {
+    open([{ id: 'x', name: 'Walk the old town', detail: 'About 1 hour', interest: 'Culture' }])
+    await waitFor(() => expect(document.querySelector('li.card img')?.getAttribute('src')).toMatch(/generic\.svg/))
   })
 
   it('credits OpenStreetMap, shows details and no notice for real places (AC3, AC5, AC12)', async () => {
@@ -150,7 +165,7 @@ describe('TripRecommendationsTab', () => {
     expect(await screen.findByText('node/42')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeInTheDocument()
     expect(screen.queryByText(/Live data unavailable/)).not.toBeInTheDocument()
-    expect(document.querySelectorAll('img')).toHaveLength(0)
+    expect(document.querySelector('img[src^="data:"], img[src*="img.example"]')).toBeNull()
   })
 
   it('shows the saved-data notice and no attribution for seed places (AC11, AC13)', async () => {

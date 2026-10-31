@@ -252,7 +252,7 @@ export function AccountPage() {
       {method === 'google' && <p>You sign in with Google.</p>}
       {saved && (
         <div className="toast-slot">
-          <div className="toast is-open" role="status" aria-live="polite">
+          <div className="toast is-open is-entering" role="status" aria-live="polite">
             <CheckIcon />
             <span>{saved}</span>
           </div>

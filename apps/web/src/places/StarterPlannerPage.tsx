@@ -151,6 +151,9 @@ export function StarterPlannerPage() {
       {booked && (
         <>
           <div className="alert alert-success" role="status">
+            <span className="check-badge is-big is-playing" role="img" aria-label="Booking complete">
+              <CheckIcon />
+            </span>
             <p className="alert-title">
               Trip booked: {booked.place}, {booked.country}
             </p>

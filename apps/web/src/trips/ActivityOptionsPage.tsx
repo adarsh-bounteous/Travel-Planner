@@ -13,6 +13,7 @@ function ActivityCard({ option }: { option: ActivityOption }) {
   const { currency } = option
   return (
     <OptionCard
+      illustration={{}}
       title={option.title}
       badges={option.offer && <span className="badge">{option.offer}</span>}
       meta={option.provider}

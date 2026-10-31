@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { HeartIcon } from '../auth/icons'
 import type { Place } from './api'
-import { PlaceCover } from './PlaceCover'
+import { ImageFrame } from '../components/ImageFrame'
 
 type PlaceCardProps = {
   place: Place
@@ -23,9 +24,14 @@ export function PlaceCard({
   savePending,
   onDetails,
 }: PlaceCardProps) {
+  const wasSaved = useRef(saved)
+  const popped = saved && !wasSaved.current
+  useEffect(() => {
+    wasSaved.current = saved
+  }, [saved])
   return (
-    <li className="card stack">
-      <PlaceCover seed={place.id} />
+    <li className="card stack lift">
+      <ImageFrame ratio="16/9" illustration={{ placeType: place.place_type }} />
       <span>{place.name}</span>
       {saved && (
         <span className="badge">
@@ -41,7 +47,7 @@ export function PlaceCard({
         disabled={savePending}
         onClick={() => onToggleSave(place)}
       >
-        <HeartIcon filled={saved} />
+        <HeartIcon filled={saved} className={popped ? 'heart-pop' : undefined} />
         {saved ? 'Unsave' : 'Save'}
       </button>
       {onDetails && (

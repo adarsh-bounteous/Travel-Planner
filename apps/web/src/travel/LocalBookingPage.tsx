@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
+import { EmptyStateArt } from '../components/EmptyStateArt'
 import { AlertIcon, ArrowLeftIcon } from '../auth/icons'
 import { formatMoney } from '../trips/stayOptions'
 import { fetchBookingPreview } from './api'
@@ -27,6 +28,7 @@ export function LocalBookingPage() {
     return (
       <div className="inbox-col stack">
         <div className="empty-state">
+          <EmptyStateArt />
           <AlertIcon />
           <h2>This page is not available</h2>
           <p>The pretend booking page only exists when local mode is on and the link is one we generated.</p>

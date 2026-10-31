@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import App from '../App'
 import { AuthProvider } from './AuthProvider'
@@ -93,7 +93,7 @@ describe('SignInPage', () => {
     const dialog = await screen.findByRole('dialog', { name: 'No account yet' })
     expect(within(dialog).getByRole('button', { name: 'Sign up' })).toBeInTheDocument()
     fireEvent.keyDown(document, { key: 'Escape' })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('signs in and shows My trips (AC3)', async () => {

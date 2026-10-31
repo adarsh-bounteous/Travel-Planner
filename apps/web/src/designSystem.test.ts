@@ -8,8 +8,8 @@ const phoneStart = css.indexOf('@media (max-width: 47.99rem) {\n  .shell-nav')
 const phone = phoneStart === -1 ? '' : css.slice(phoneStart)
 
 describe('entry screens', () => {
-  it('has the sign-in split, trip cover, step and control rules', () => {
-    for (const sel of ['.auth-split', '.auth-brand', '.trip-cover', '.steps', '.step.is-current']) {
+  it('has the sign-in split, trip card art, step and control rules', () => {
+    for (const sel of ['.auth-split', '.auth-brand', '.trip-row > .imgc', '.steps', '.step.is-current']) {
       expect(css).toContain(sel)
     }
     expect(css).toMatch(/\.chip\[aria-pressed="true"\]\s*\{[^}]*var\(--color-primary-subtle\)/)
@@ -23,8 +23,8 @@ describe('design system stylesheet', () => {
     expect(body).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/)
   })
 
-  it('uses no raw px values (1px visually-hidden boxes aside)', () => {
-    const raw = body.replace(/\b1px\b/g, '')
+  it('uses no raw px values (1px visually-hidden boxes and 0px reduced-motion resets aside)', () => {
+    const raw = body.replace(/\b[01]px\b/g, '')
     expect(raw).not.toMatch(/:\s*[^;{}]*\b\d+px\b/)
   })
 
@@ -38,7 +38,14 @@ describe('design system stylesheet', () => {
     const blocks = css.match(/@media \(prefers-reduced-motion: reduce\)/g) ?? []
     expect(blocks).toHaveLength(1)
     const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
-    expect(rm).toMatch(/animation: none !important/)
+    expect(rm).toMatch(/--mi-lift:\s*0px/)
+    expect(rm).toMatch(/--mi-press:\s*1\b/)
+    expect(rm).toMatch(/--mi-shift:\s*0px/)
+    expect(rm).toMatch(/--mi-pop-peak:\s*1\b/)
+    expect(rm).toMatch(/--mi-drawer-from:\s*0%/)
+    expect(rm).toMatch(/--mi-modal-from:\s*1\b/)
+    expect(rm).toMatch(/--mi-check-from:\s*1\b/)
+    expect(rm).toMatch(/animation-iteration-count: 1 !important/)
     expect(rm).toMatch(/\.motion-move[^}]*transform: none !important/)
     expect(rm).toMatch(/transition-property: opacity/)
     expect(rm).not.toMatch(/transition: none/)
@@ -73,10 +80,9 @@ describe('design system stylesheet', () => {
     expect(phone).toContain('min-height: var(--size-control-lg)')
   })
 
-  it('styles the trip hero with the on-primary token over the primary gradient', () => {
-    expect(css).toMatch(
-      /\.trip-hero\s*\{[^}]*linear-gradient\(var\(--color-primary\), var\(--color-primary-hover\)\)[^}]*color: var\(--color-on-primary\)/,
-    )
+  it('styles the trip hero text with the on-primary token over the overlay scrim', () => {
+    expect(css).toMatch(/\.hero-title, \.hero-dates\s*\{[^}]*color: var\(--color-on-primary\)/)
+    expect(css).toMatch(/\.scrim\s*\{[^}]*var\(--color-overlay\)/)
   })
 
   it('puts the cost summary in a right-hand column from 48rem', () => {

@@ -163,7 +163,17 @@ function PickRow({ pick, travellers, editable, onMove }: PickRowProps) {
       {pick.meal && <span className="meal-label">{mealLabel(pick.meal)}</span>}
       <span className="pick-name">{pick.name}</span>
       <span className="badge badge-neutral">{estimateLabel(pick, travellers)}</span>
-      {editable && onMove && (
+      {editable && onMove && pick.date === null && (
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          aria-label={`Schedule ${pick.name}`}
+          onClick={() => onMove(pick)}
+        >
+          Schedule
+        </button>
+      )}
+      {editable && onMove && pick.date !== null && (
         <button className="btn btn-ghost" type="button" aria-label={`Move ${pick.name}`} onClick={() => onMove(pick)}>
           Move
         </button>
@@ -205,23 +215,8 @@ export function ItineraryTab({
   const loosePicks = unscheduled(restaurants)
   const editable = trip.can_edit ?? trip.is_owner ?? false
 
-  if (days.length === 0)
-    return (
-      <div className="empty-state">
-        <h3>No days yet</h3>
-        <p>
-          {trip.is_owner
-            ? 'Choose Edit trip and set a start and end date. Each date becomes a day.'
-            : 'This trip has no dates yet.'}
-        </p>
-      </div>
-    )
-
-  return (
-    <div className="stack stack-lg">
-      <ChosenTransport trip={trip} />
-      <ChosenStays trip={trip} editable={editable} />
-      <section className="card stack stack-sm" aria-labelledby="itinerary-unscheduled">
+  const unscheduledBox = (
+    <section className="unscheduled stack stack-sm" aria-labelledby="itinerary-unscheduled">
         <div className="title-row">
           <h3 className="text-lg" id="itinerary-unscheduled">
             Unscheduled
@@ -236,6 +231,7 @@ export function ItineraryTab({
             </Link>
           )}
         </div>
+        <p className="text-muted">Holds picks with no day yet.</p>
         {loosePicks.length > 0 ? (
           <ul className="pick-list">
             {loosePicks.map((pick) => (
@@ -245,7 +241,30 @@ export function ItineraryTab({
         ) : (
           <p className="text-muted">No unscheduled restaurants. Anything you add without a day lands here.</p>
         )}
-      </section>
+    </section>
+  )
+
+  if (days.length === 0)
+    return (
+      <div className="stack stack-lg">
+        <div className="empty-state">
+          <h3>No days yet</h3>
+          <p>
+            {trip.is_owner
+              ? 'Choose Edit trip and set a start and end date. Each date becomes a day.'
+              : 'This trip has no dates yet.'}
+          </p>
+        </div>
+        {editable && <div className="alert alert-info">Add trip dates to give picks a day.</div>}
+        {unscheduledBox}
+      </div>
+    )
+
+  return (
+    <div className="stack stack-lg">
+      <ChosenTransport trip={trip} />
+      <ChosenStays trip={trip} editable={editable} />
+      {unscheduledBox}
       <div className="grid">
       {days.map((day, index) => {
         const chosen = options.filter((option) => option.date === day.date)

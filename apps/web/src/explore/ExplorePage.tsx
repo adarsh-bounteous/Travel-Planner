@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from '../places/api'
+import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from '../places/api'
+import { PlaceDetails } from '../places/PlaceDetails'
+import { PlacesSourceNote } from '../places/PlacesSourceNote'
 import type { Place, PlaceFilters as Filters } from '../places/api'
 import { useAddToTrip } from '../places/AddToTrip'
 import { PlaceCard } from '../places/PlaceCard'
@@ -27,7 +29,13 @@ export function ExplorePage() {
       : undefined
   const price =
     priceParam !== null && priceParam in PRICE_LABELS ? (priceParam as Filters['price']) : undefined
+  const categoryParam = params.get('category')
+  const category =
+    categoryParam !== null && categoryParam in PLACE_CATEGORY_LABELS
+      ? (categoryParam as Filters['category'])
+      : undefined
   const view: PlacesView = params.get('view') === 'map' ? 'map' : 'list'
+  const [detailsOf, setDetailsOf] = useState<Place | null>(null)
   const [search, setSearch] = useState(query)
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -38,14 +46,14 @@ export function ExplorePage() {
     let current = true
     setPlaces(null)
     setFailed(false)
-    searchPlaces(destination, query || undefined, { placeType, price }).then(
+    searchPlaces(destination, query || undefined, { placeType, price, category }).then(
       (found) => current && setPlaces(found),
       () => current && setFailed(true),
     )
     return () => {
       current = false
     }
-  }, [destination, query, placeType, price])
+  }, [destination, query, placeType, price, category])
 
   const setParam = (name: string, value: string | undefined) => {
     const next = new URLSearchParams(params)
@@ -58,6 +66,7 @@ export function ExplorePage() {
     for (const [name, value] of [
       ['type', filters.placeType],
       ['price', filters.price],
+      ['category', filters.category],
     ] as const) {
       if (value === undefined) next.delete(name)
       else next.set(name, value)
@@ -105,6 +114,7 @@ export function ExplorePage() {
             saved={savedIds.has(place.id)}
             onToggleSave={toggle}
             savePending={pendingIds.has(place.id)}
+            onDetails={place.source === 'osm' ? setDetailsOf : undefined}
           />
         ))}
       </ul>
@@ -138,7 +148,9 @@ export function ExplorePage() {
           Search
         </button>
       </form>
-      <PlaceFilters filters={{ placeType, price }} onChange={changeFilters} />
+      <PlaceFilters filters={{ placeType, price, category }} onChange={changeFilters} />
+      <PlacesSourceNote places={failed ? null : places} />
+      {detailsOf && <PlaceDetails place={detailsOf} onClose={() => setDetailsOf(null)} />}
       <ViewToggle
         view={view}
         onChange={(next) => setParam('view', next === 'map' ? 'map' : undefined)}

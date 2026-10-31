@@ -15,7 +15,11 @@ from app.locations.cache import DynamoLocationCache
 from app.locations.nominatim import NominatimResolver
 from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
 from app.routers.auth import _local_identity, _set_session, get_now
+from app.integrations.client import IntegrationClient
+from app.locations.cache import InMemoryLocationCache
+from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import LocalPlaceSearch
+from app.places.overpass import OsmPlaceSearch, overpass_settings
 from app.places.tiles import TileSource
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
@@ -46,6 +50,7 @@ from app.trips.recommendations import (
     InMemoryRecommendations,
     RecommendationSource,
 )
+from app.trips.osm_recommendations import FallbackRecommendations, OsmRecommendations
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
@@ -135,6 +140,23 @@ def _local_saved_places() -> PersistentSavedPlaceStore:
 @lru_cache
 def _places() -> PlaceSearch:
     return InMemoryPlaceSearch(SEED_CATALOGUE)
+
+
+@lru_cache
+def _osm_places() -> PlaceSearch:
+    """Real places from OpenStreetMap. Local mode keeps its resolved cities in memory, never in DynamoDB."""
+    settings = get_settings()
+    if settings.local_mode:
+        resolver: DestinationResolver = CachedResolver(
+            NominatimResolver(settings.nominatim_base_url, settings.nominatim_user_agent),
+            InMemoryLocationCache(),
+            RateLimiter(time.monotonic, time.sleep),
+            now=lambda: datetime.now(UTC),
+        )
+    else:
+        resolver = _resolver()
+    client = IntegrationClient([overpass_settings(settings.overpass_base_url)])
+    return OsmPlaceSearch(resolver, client, settings.osm_user_agent or settings.nominatim_user_agent)
 
 
 @lru_cache
@@ -290,7 +312,10 @@ def get_rates() -> RateSource:
 
 
 def get_recommendations() -> RecommendationSource:
-    return _local_recommendations() if get_settings().local_mode else _recommendations()
+    settings = get_settings()
+    seed = _local_recommendations() if settings.local_mode else _recommendations()
+    primary = OsmRecommendations(_osm_places()) if settings.osm_places_enabled else None
+    return FallbackRecommendations(primary, seed, date.today)
 
 
 @lru_cache
@@ -342,7 +367,9 @@ def get_transport_providers() -> list[TransportProvider]:
 
 
 def get_places() -> PlaceSearch:
-    return _local_places() if get_settings().local_mode else _places()
+    settings = get_settings()
+    seed = _local_places() if settings.local_mode else _places()
+    return FallbackPlaceSearch(_osm_places() if settings.osm_places_enabled else None, seed, date.today)
 
 
 @lru_cache

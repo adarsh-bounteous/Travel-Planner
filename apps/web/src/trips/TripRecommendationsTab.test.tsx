@@ -136,4 +136,26 @@ describe('TripRecommendationsTab', () => {
     expect((await screen.findAllByTestId('place-cover')).length).toBeGreaterThan(0)
     expect(document.querySelectorAll('img')).toHaveLength(0)
   })
+
+  it('credits OpenStreetMap, shows details and no notice for real places (AC3, AC5, AC12)', async () => {
+    const osm = {
+      ...place('osm-node-42', 'Museu X'),
+      image_url: 'data:image/svg+xml,x',
+      price: null,
+      source: 'osm' as const,
+      provider_id: 'node/42',
+    }
+    open([{ id: osm.id, name: 'Museu X', detail: 'Museums', interest: 'Culture', place: osm }])
+    fireEvent.click(await screen.findByRole('button', { name: 'Details for Museu X' }))
+    expect(await screen.findByText('node/42')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeInTheDocument()
+    expect(screen.queryByText(/Live data unavailable/)).not.toBeInTheDocument()
+    expect(document.querySelectorAll('img')).toHaveLength(0)
+  })
+
+  it('shows the saved-data notice and no attribution for seed places (AC11, AC13)', async () => {
+    open([{ ...RECS[0], place: { ...place('tom', 'T'), source: 'seed', as_of: '2026-10-31' } }])
+    expect(await screen.findByText(/Live data unavailable, showing saved data/)).toBeInTheDocument()
+    expect(screen.queryByText(/OpenStreetMap contributors/)).not.toBeInTheDocument()
+  })
 })

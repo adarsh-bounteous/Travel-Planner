@@ -137,6 +137,7 @@ a.btn { text-decoration: none; }
 }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-3); text-align: center; color: var(--color-fg-muted); border: var(--border-width) dashed var(--color-border-strong); border-radius: var(--radius-lg); }
 .empty-state h2, .empty-state h3 { color: var(--color-fg); }
+.compare-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .skeleton { display: block; height: var(--size-skeleton-line); background: var(--color-skeleton); border-radius: var(--radius-sm); animation: skeleton-pulse calc(var(--duration-spin) * 2) ease-in-out infinite; }
 @keyframes skeleton-pulse { 50% { opacity: var(--opacity-disabled); } }
 .motion-move { transition: transform var(--motion-duration-base) var(--motion-ease-out), opacity var(--motion-duration-base) var(--motion-ease-out); }
@@ -189,6 +190,11 @@ a.btn { text-decoration: none; }
 .pick-list { list-style: none; margin: 0; padding: 0; }
 .pick-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
 .pick-row + .pick-row { border-top: var(--border-width) solid var(--color-border); }
+.unscheduled { padding: var(--space-3); border: var(--border-width) dashed var(--color-border-strong); border-radius: var(--radius-lg); background: var(--color-surface); }
+.restaurant-picks { list-style: none; margin: 0; padding: 0; }
+.restaurant-pick { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) 0; }
+.restaurant-pick + .restaurant-pick { border-top: var(--border-width) solid var(--color-border); }
+.restaurant-pick-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .pick-name { flex: 1 1 10rem; overflow-wrap: anywhere; font-weight: var(--font-weight-medium); }
 .meal-label { flex: 0 0 5rem; color: var(--color-fg-muted); }
 .meals { border: 0; margin: 0; padding: 0; min-width: 0; }

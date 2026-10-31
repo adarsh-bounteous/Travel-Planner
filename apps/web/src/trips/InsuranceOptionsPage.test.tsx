@@ -43,18 +43,34 @@ describe('insurance options page', () => {
     expect(within(c).getByText('Group total').parentElement).toHaveTextContent('1,096 EUR')
   })
 
-  it('offers Compare plans only with two or more plans (AC3)', async () => {
-    open(options(PLANS.slice(0, 2)))
-    expect(await screen.findByRole('link', { name: 'Compare plans' })).toHaveAttribute(
+  it.each([2, 3])('enables Compare with %i plans and every traveller aged', async (count) => {
+    open(options(PLANS.slice(0, count)))
+    expect(await screen.findByRole('link', { name: 'Compare' })).toHaveAttribute(
       'href',
       '/trips/t1/insurance-options/compare',
     )
   })
 
-  it('has no Compare plans link with one plan (AC3)', async () => {
-    open(options(PLANS.slice(0, 1)))
-    await screen.findByRole('article', { name: 'Globetrek Adventure Plus' })
-    expect(screen.queryByRole('link', { name: 'Compare plans' })).toBeNull()
+  it.each([0, 1])('disables Compare with %i plans and explains what to do', async (count) => {
+    open(options(PLANS.slice(0, count)))
+    const button = await screen.findByRole('button', { name: 'Compare' })
+    expect(button).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Compare' })).toBeNull()
+    expect(button).toHaveAccessibleDescription(/at least 2 plans.*change your trip dates or travellers/i)
+  })
+
+  it('tells the user to add a missing traveller age and keeps Compare disabled', async () => {
+    const travellers = [
+      { label: 'You', age: 34 },
+      { label: 'Maya Chen', age: null },
+    ]
+    open(options(PLANS, { travellers }))
+    expect(
+      await screen.findByText(/Add the missing traveller details to compare plans\. Maya Chen has no age yet\./),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add traveller details' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Compare' })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Compare' })).toBeNull()
   })
 
   it('opens the provider link from a plan (AC4)', async () => {
@@ -165,7 +181,7 @@ describe('insurance options page', () => {
   it('saves the details and shows the comparison (AC4)', async () => {
     const stub = openWithoutDetails()
     await fillForm()
-    expect(await screen.findByRole('link', { name: 'Compare plans' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: 'Compare' })).toHaveAttribute(
       'href',
       '/trips/t1/insurance-options/compare',
     )

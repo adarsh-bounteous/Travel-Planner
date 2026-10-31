@@ -1,11 +1,12 @@
 from datetime import date
+from datetime import date as Date
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel
 
 from app.routers.deps import ApiError, get_trips
-from app.trips.store import Activity, Day, TripStore
+from app.trips.store import Activity, Day, Meal, TripStore
 
 router = APIRouter(prefix="/shared")
 
@@ -22,6 +23,19 @@ class SharedOption(BaseModel):
     currency: str | None = None
 
 
+class SharedRestaurant(BaseModel):
+    """A restaurant pick as a read-only viewer sees it: no link."""
+
+    id: str
+    name: str
+    city: str
+    cuisine: str
+    typical_price: Decimal | None = None
+    currency: str
+    date: Date | None = None  # the field name shadows the type here
+    meal: Meal | None = None
+
+
 class SharedTrip(BaseModel):
     """The itinerary behind a read-only link. An allow-list, so a field added to Trip later stays private."""
 
@@ -33,6 +47,7 @@ class SharedTrip(BaseModel):
     days: list[Day]
     options: list[SharedOption]
     activities: list[Activity]
+    restaurants: list[SharedRestaurant]
     is_owner: bool = False
     can_edit: bool = False
 
@@ -48,6 +63,7 @@ def read_shared_trip(
         raise NOT_FOUND
     response.headers["Cache-Control"] = "no-store"
     return SharedTrip(
-        **trip.model_dump(include=set(SharedTrip.model_fields) - {"options"}),
+        **trip.model_dump(include=set(SharedTrip.model_fields) - {"options", "restaurants"}),
         options=[SharedOption(**o.model_dump()) for o in trip.options],  # extra fields (id, booking_url) are dropped
+        restaurants=[SharedRestaurant(**r.model_dump(exclude={"url"})) for r in trip.restaurants],
     )

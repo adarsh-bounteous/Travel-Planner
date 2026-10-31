@@ -21,6 +21,7 @@ export const APP_ROUTE_PATTERNS = [
   '/trips/:tripId/visa-requirements',
   '/trips/:tripId/shortlists',
   '/trips/:tripId/costs',
+  '/trips/:tripId/itinerary',
   '/places/add',
   '/trips/:tripId',
   '/trips/:tripId/sim-options',

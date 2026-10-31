@@ -143,6 +143,14 @@ export const StarIcon = () => (
   </Icon>
 )
 
+export const BagIcon = () => (
+  <Icon>
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+    <path d="M3 6h18" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </Icon>
+)
+
 export const ChevronDownIcon = () => (
   <Icon>
     <path d="m6 9 6 6 6-6" />

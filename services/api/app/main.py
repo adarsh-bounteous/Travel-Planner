@@ -16,6 +16,7 @@ from app.routers import (
     health,
     insurance,
     invites,
+    itinerary,
     local_google,
     local_inbox,
     local_mode,
@@ -23,6 +24,7 @@ from app.routers import (
     place_tiles,
     places,
     profile,
+    providers_status,
     rates,
     restaurant_options,
     restaurant_picks,
@@ -57,6 +59,7 @@ app = FastAPI(title="Trip Planner API", lifespan=lifespan)
 app.include_router(health.router)
 app.include_router(availability.router)
 app.include_router(startup_status.router)
+app.include_router(providers_status.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(stay_options.router)
@@ -82,6 +85,7 @@ app.include_router(starter_destinations.router)
 app.include_router(saved_places.router)
 app.include_router(rates.router)
 app.include_router(trip_helpers.router)
+app.include_router(itinerary.router)
 
 
 @app.exception_handler(ApiError)

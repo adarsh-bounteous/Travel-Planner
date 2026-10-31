@@ -139,8 +139,20 @@ a.btn { text-decoration: none; }
 .empty-state h2, .empty-state h3 { color: var(--color-fg); }
 .skeleton { display: block; height: var(--size-skeleton-line); background: var(--color-skeleton); border-radius: var(--radius-sm); animation: skeleton-pulse calc(var(--duration-spin) * 2) ease-in-out infinite; }
 @keyframes skeleton-pulse { 50% { opacity: var(--opacity-disabled); } }
+.motion-move { transition: transform var(--motion-duration-base) var(--motion-ease-out), opacity var(--motion-duration-base) var(--motion-ease-out); }
+.motion-move.is-moved { transform: translateX(var(--motion-distance)); }
+
+.imgc { position: relative; aspect-ratio: var(--ratio); overflow: hidden; border-radius: var(--radius-md); background: var(--color-skeleton); border: var(--border-width) solid var(--color-border); }
+.imgc > * { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.imgc-blur { filter: blur(var(--blur-placeholder)); background: var(--color-skeleton); transition: opacity var(--motion-duration-base) var(--motion-ease-out); }
+.imgc-img { opacity: 0; transition: opacity var(--motion-duration-base) var(--motion-ease-out); }
+.imgc.is-loaded .imgc-img { opacity: 1; }
+.imgc.is-loaded .imgc-blur { opacity: 0; }
+
+/* Reduced motion keeps a fade but removes all movement. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition-property: opacity !important; transition-duration: var(--motion-duration-base) !important; transition-timing-function: linear !important; }
+  .motion-move, .motion-move.is-moved { transform: none !important; }
 }
 
 .crumbs ol { display: flex; flex-wrap: wrap; gap: var(--space-1); list-style: none; margin: 0; padding: 0; font-size: var(--font-size-sm); color: var(--color-fg-muted); }
@@ -540,4 +552,47 @@ ol.crumbs [aria-current] { font-weight: var(--font-weight-medium); }
   .compare-table td::before { content: attr(data-label); display: block; font-size: var(--font-size-sm); color: var(--color-fg-muted); }
   .compare-table .compare-table-title::before { content: none; }
   .compare-table .compare-table-title strong { font-size: var(--font-size-lg); }
+}
+
+/* Itinerary page */
+.itin-body { display: grid; gap: var(--space-4); grid-template-columns: minmax(0, 1fr); align-items: start; }
+.section-list { position: sticky; top: 0; z-index: var(--z-dropdown); display: flex; align-items: center; gap: var(--space-1); overflow-x: auto; padding: var(--space-1) 0; background: var(--color-bg); border-bottom: var(--border-width) solid var(--color-border); }
+.section-list-title { flex: none; padding-right: var(--space-2); font-size: var(--font-size-sm); color: var(--color-fg-muted); }
+.section-link { flex: none; display: flex; align-items: center; min-height: var(--size-control-md); padding: 0 var(--space-2); border-radius: var(--radius-md); color: var(--color-fg); font-weight: var(--font-weight-medium); text-decoration: none; }
+.section-link:hover { background: var(--color-surface); color: var(--color-fg); }
+.section-link[aria-current="true"] { color: var(--color-primary); background: var(--color-primary-subtle); }
+/* 48rem = --breakpoint-md (media queries cannot read custom properties) */
+@media (min-width: 48rem) {
+  .itin-body { grid-template-columns: var(--size-menu-min) minmax(0, 1fr); }
+  .section-list { top: var(--space-3); flex-direction: column; align-items: stretch; overflow: visible; border-bottom: 0; padding: 0; }
+  .section-list-title { padding: 0 var(--space-2) var(--space-1); }
+}
+.document { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; max-width: calc(var(--size-modal-width) * 1.5); }
+.document > section, .document > div { scroll-margin-top: var(--space-6); }
+.cover { border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+.cover-art { display: flex; align-items: center; justify-content: center; height: calc(var(--size-control-lg) * 2); background: var(--color-primary-subtle); color: var(--color-primary); }
+.cover-art .icon { width: var(--size-control-md); height: var(--size-control-md); }
+.cover-body { padding: var(--space-4) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+.cover-meta { display: flex; align-items: center; gap: var(--space-2); color: var(--color-fg-muted); }
+.glance { display: flex; flex-direction: column; gap: var(--space-2); }
+.glance .badge { min-height: var(--size-control-md); padding: 0 var(--space-3); font-size: var(--font-size-md); gap: var(--space-2); }
+.day-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
+.it-list { list-style: none; margin: 0; padding: 0; }
+.it { display: grid; grid-template-columns: var(--size-control-lg) minmax(0, 1fr); gap: var(--space-1) var(--space-2); padding: var(--space-2) 0; border-top: var(--border-width) solid var(--color-border); }
+.it:first-child { border-top: 0; }
+.it-icon { display: flex; align-items: center; justify-content: center; width: var(--size-control-md); height: var(--size-control-md); border-radius: var(--radius-full); background: var(--color-surface); color: var(--color-fg); }
+.it-type { font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); }
+.it-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.it-detail { overflow-wrap: anywhere; }
+.print-fab { position: sticky; bottom: var(--space-3); align-self: flex-end; margin-top: var(--space-3); }
+
+/* Printing the itinerary: A4, no app navigation or section list, a page per day, link URLs after link text */
+@page { size: A4; margin: 15mm; }
+@media print {
+  .shell-header, .section-list, .print-fab { display: none !important; }
+  .itin-body { display: block; }
+  .document { max-width: none; }
+  .day-card, #still-to-schedule { break-before: page; }
+  .day-card, .it { break-inside: avoid; }
+  .document a[href]::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
 }

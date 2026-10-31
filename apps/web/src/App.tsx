@@ -23,6 +23,7 @@ import { TransportPreferencesPage } from './profile/TransportPreferencesPage'
 import { SavedPage } from './saved/SavedPage'
 import { TransportSearchPage } from './transport/TransportSearchPage'
 import { CostsPage } from './trips/CostsPage'
+import { ItineraryPage } from './trips/ItineraryPage'
 import { CurrencyHelperPage } from './trips/CurrencyHelperPage'
 import { WeatherHelperPage } from './trips/WeatherHelperPage'
 import { InvitePage } from './trips/InvitePage'
@@ -202,6 +203,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <CostsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/itinerary"
+            element={
+              <RequireAuth>
+                <ItineraryPage />
               </RequireAuth>
             }
           />

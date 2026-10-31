@@ -34,6 +34,12 @@ FastAPI service. Python 3.12.
 
 With local mode on, `GET /places` returns places generated from the searched destination (Lisbon, Kyoto and Paris; any other destination has none) instead of the places service, and makes no outside request.
 
+### Provider keys and status
+
+Providers read their keys with `get_secret`: from the environment in local mode, from AWS Secrets Manager (a secret named like the key) otherwise. Outside local mode the environment is never read. The placeholder keys are `PLACES_API_KEY`, `FLIGHT_SEARCH_API_KEY`, `HOTEL_SEARCH_API_KEY`, `EMAIL_API_KEY` and `IDENTITY_API_KEY`. A missing or unreadable key means the provider is `not configured`; the app still starts. The Lambda role needs `secretsmanager:GetSecretValue` on each secret.
+
+`GET /startup-status` lists every provider as `{name, kind, health}`, where health is `configured`, `healthy`, `degraded`, `open circuit` or `not configured`. In local mode `GET /providers/status` returns the same list; outside local mode it is a 404. Secret values are never returned.
+
 ## Run it locally
 
 See [Local setup](../../docs/local-setup.md) for the demo account, reset and faked services. Details:

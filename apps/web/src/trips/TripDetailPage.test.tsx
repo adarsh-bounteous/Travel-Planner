@@ -561,6 +561,63 @@ describe('TripDetailPage restyle', () => {
     expect(screen.getByText(/Insurance: not yet picked/).closest('.card')).not.toBeNull()
   })
 
+  it('shows the restaurant picks on Overview (AC1)', async () => {
+    open(
+      trip({
+        traveller_count: 1,
+        days: [
+          { date: '2027-03-03', name: 'Day 1' },
+          { date: '2027-03-04', name: 'Day 2' },
+        ],
+        restaurants: [
+          {
+            id: 'p1',
+            name: 'Time Out Market',
+            city: 'Lisbon',
+            cuisine: 'Food hall',
+            typical_price: '45',
+            currency: 'EUR',
+            url: null,
+            date: '2027-03-04',
+            meal: 'dinner',
+          },
+        ],
+      }),
+    )
+    fireEvent.click(await screen.findByRole('tab', { name: 'Overview' }))
+    const card = within(screen.getByRole('region', { name: 'Restaurants' }))
+    expect(card.getByText('Time Out Market')).toBeInTheDocument()
+    expect(card.getByText(/Day 2, Dinner/)).toBeInTheDocument()
+    expect(card.getByRole('link', { name: 'View shortlist' })).toHaveAttribute(
+      'href',
+      '/trips/t1/restaurant-options/shortlist',
+    )
+  })
+
+  it('asks for dates instead of opening a dialog when Schedule is used on a trip without days', async () => {
+    open(
+      trip({
+        days: [],
+        restaurants: [
+          {
+            id: 'p1',
+            name: 'Casa Lima',
+            city: 'Lisbon',
+            cuisine: 'Portuguese',
+            typical_price: '19',
+            currency: 'EUR',
+            url: null,
+            date: null,
+            meal: null,
+          },
+        ],
+      }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Schedule Casa Lima' }))
+    expect(screen.getByText('Add trip dates first, then you can give this pick a day.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it('puts the cost summary after the cards in the DOM (AC4, AC5)', async () => {
     open()
     await screen.findByRole('heading', { level: 1, name: 'Lisbon' })

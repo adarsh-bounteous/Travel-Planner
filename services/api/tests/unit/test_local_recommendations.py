@@ -67,8 +67,9 @@ def test_switch_picks_the_source(monkeypatch, mode, has_kyoto):
     monkeypatch.setenv("LOCAL_MODE", mode)
     monkeypatch.setenv("APP_ENV", "local")
     source = get_recommendations()
-    assert isinstance(source, InMemoryRecommendations)
-    assert ("kyoto" in source._catalogue) is has_kyoto
+    seed = source._fallback
+    assert isinstance(seed, InMemoryRecommendations)
+    assert ("kyoto" in seed._catalogue) is has_kyoto
 
 
 def test_editing_a_trip_keeps_its_interests(client):

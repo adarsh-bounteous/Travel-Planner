@@ -34,6 +34,9 @@ class ProviderRegistry:
     def register(self, entry: ProviderEntry) -> None:
         self._entries.append(entry)
 
+    def names(self) -> frozenset[str]:
+        return frozenset(e.name for e in self._entries)
+
     def health_override(self, name: str, state: HealthState | str) -> None:
         """Let an adapter report healthy or degraded from its call results."""
         self._overrides[name] = HealthState(state)

@@ -12,6 +12,10 @@ from botocore.exceptions import (
     NoRegionError,
 )
 
+from datetime import datetime
+
+from app.auth.fake_identity import FakeIdentityProvider
+from app.auth.local_identity import LocalIdentityProvider
 from app.auth.accounts import DynamoAccountStore, InMemoryAccountStore
 from app.config import get_settings
 from app.local_data import LOCAL_DATA_FILE_NAME, LocalDataFile
@@ -21,6 +25,15 @@ from app.trips.local_store import PersistentTripStore
 from app.trips.profile_store import DynamoProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore
 from app.trips.store import DynamoTripStore
+from tests.unit.contract_kit import collect_rules
+from tests.unit.store_contract import (
+    rules_accounts,
+    rules_invites,
+    rules_profiles,
+    rules_saved_places,
+    rules_share_links,
+    rules_trips,
+)
 
 StoreKind = Literal["local", "cloud"]
 
@@ -107,3 +120,51 @@ def _clean(bundle: StoreBundle, accounts_table) -> None:
 
 def make_store(kind: StoreKind, tmp_path: Path) -> StoreBundle:
     return _local(tmp_path) if kind == "local" else _cloud()
+
+
+STORE_RULES = collect_rules(
+    rules_trips, rules_invites, rules_share_links, rules_accounts, rules_profiles, rules_saved_places
+)
+
+
+def store_adapters(tmp_path: Path) -> dict[str, Callable[[], StoreBundle]]:
+    """Local always; cloud only when its tables exist."""
+    adapters = {"local": lambda: _with_identity(make_store("local", tmp_path), _local_identity(tmp_path))}
+    if cloud_tables_present():
+        adapters["cloud"] = lambda: _with_identity(make_store("cloud", tmp_path), _fake_identity)
+    return adapters
+
+
+class _ContractBundle(StoreBundle):
+    """A store bundle that also unpacks as (identity provider, confirm), which the identity rules expect."""
+
+    identity: Callable[[], tuple] = lambda: ()
+
+    def __iter__(self):
+        return iter(self.identity())
+
+
+def _with_identity(bundle: StoreBundle, identity: Callable[[], tuple]) -> _ContractBundle:
+    wrapped = _ContractBundle(**{f: getattr(bundle, f) for f in bundle.__dataclass_fields__})
+    wrapped.identity = identity
+    return wrapped
+
+
+def _fake_identity() -> tuple:
+    provider = FakeIdentityProvider()
+    return provider, provider.confirm
+
+
+def _local_identity(tmp_path: Path) -> Callable[[], tuple]:
+    def build() -> tuple:
+        fresh = tmp_path / f"identity-{uuid4().hex}"
+        fresh.mkdir()
+        provider = LocalIdentityProvider(
+            fresh / "identity.sqlite3",
+            clock=lambda: datetime(2026, 1, 1),
+            send_confirmation=lambda email, link: None,
+            link_base=lambda: "http://localhost",
+        )
+        return provider, lambda email: provider._run("UPDATE users SET confirmed = 1 WHERE email = ?", email)
+
+    return build

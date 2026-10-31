@@ -114,7 +114,7 @@ def _resolver() -> DestinationResolver:
 
 def get_destination_resolver() -> DestinationResolver:
     """Local mode resolves nothing: it makes no outside request."""
-    return NoResolver() if get_settings().local_mode else _resolver()
+    return _resolver() if get_settings().is_live("places") else NoResolver()
 
 
 def get_probe_store() -> ProbeStore:
@@ -304,7 +304,7 @@ def get_local_inbox() -> PersistentInviteSender:
 
 
 def get_invite_sender() -> InviteSender:
-    return _local_invite_sender() if get_settings().local_mode else _invite_sender()
+    return _invite_sender() if get_settings().is_live("email") else _local_invite_sender()
 
 
 def get_rates() -> RateSource:
@@ -355,15 +355,15 @@ def get_insurance_providers() -> list[InsuranceProvider]:
 
 
 def get_stay_providers() -> list[StayProvider]:
-    return _local_stay_providers() if get_settings().local_mode else _stay_providers()
+    return _stay_providers() if get_settings().is_live("hotels") else _local_stay_providers()
 
 
 def get_flight_providers() -> list[FlightProvider]:
-    return _local_flight_providers() if get_settings().local_mode else _flight_providers()
+    return _flight_providers() if get_settings().is_live("flights") else _local_flight_providers()
 
 
 def get_transport_providers() -> list[TransportProvider]:
-    return _local_transport_providers() if get_settings().local_mode else _transport_providers()
+    return _transport_providers() if get_settings().is_live("flights") else _local_transport_providers()
 
 
 def get_places() -> PlaceSearch:

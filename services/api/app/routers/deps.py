@@ -13,6 +13,7 @@ from app.locations.nominatim import NominatimResolver
 from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.places.local_search import LocalPlaceSearch
+from app.places.tiles import TileSource
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
 from app.flights.providers import SEED_CATALOGUES as FLIGHT_SEED_CATALOGUES
@@ -328,6 +329,11 @@ def get_transport_providers() -> list[TransportProvider]:
 
 def get_places() -> PlaceSearch:
     return _local_places() if get_settings().local_mode else _places()
+
+
+@lru_cache
+def get_tile_source() -> TileSource:
+    return TileSource(get_settings())
 
 
 def get_local_seed_target() -> LocalSeedTarget | None:

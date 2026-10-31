@@ -20,6 +20,7 @@ from app.routers import (
     local_inbox,
     local_mode,
     local_reset,
+    place_tiles,
     places,
     profile,
     rates,
@@ -75,6 +76,7 @@ app.include_router(local_google.router)
 app.include_router(local_mode.router)
 app.include_router(travel_search.router)
 app.include_router(profile.router)
+app.include_router(place_tiles.router)
 app.include_router(places.router)
 app.include_router(starter_destinations.router)
 app.include_router(saved_places.router)

@@ -6,6 +6,9 @@ _OFF = {"", "false", "off", "0"}
 _ON = {"true", "on", "1", "yes"}
 
 
+KNOWN_LIVE_PROVIDERS = frozenset({"places"})
+
+
 class LocalModeRefusedError(RuntimeError):
     pass
 
@@ -75,3 +78,15 @@ def stand_ins_for(local_mode: bool) -> LocalStandIns:
         cloud_services=local_mode,
         travel_search=local_mode,
     )
+
+
+def resolve_live_providers(env: Mapping[str, str]) -> frozenset[str]:
+    """The sources opted in to a live provider in local mode (LOCAL_LIVE_PROVIDERS, comma separated)."""
+    names = frozenset(n.strip().lower() for n in env.get("LOCAL_LIVE_PROVIDERS", "").split(",") if n.strip())
+    unknown = names - KNOWN_LIVE_PROVIDERS
+    if unknown:
+        raise LocalModeRefusedError(
+            f"LOCAL_LIVE_PROVIDERS names unknown provider(s) {sorted(unknown)}. "
+            f"Known: {sorted(KNOWN_LIVE_PROVIDERS)}."
+        )
+    return names

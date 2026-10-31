@@ -26,5 +26,6 @@ def startup_status() -> dict[str, object]:
     return {
         "local_mode": settings.local_mode,
         "stand_ins": asdict(stand_ins_for(settings.local_mode)),
+        "map_tiles": settings.map_tiles_enabled,
         "demo_account": _demo_account() if settings.local_mode else None,
     }

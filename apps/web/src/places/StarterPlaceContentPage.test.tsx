@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -34,6 +34,21 @@ describe('Starter place content page', () => {
     expect(screen.getByText('Japan', { selector: 'li' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to trip' })).toHaveAttribute('href', '/trips/plan')
     expect(screen.queryByText(/no data/i)).not.toBeInTheDocument()
+  })
+
+  it('returns to the planner with the picks restored from Back to trip', async () => {
+    stubApi({
+      'GET /starter-destinations/Japan/Tokyo': { status: 200, body: tokyo },
+      'GET /starter-destinations': {
+        status: 200,
+        body: [{ name: 'Japan', places: ['Tokyo', 'Kyoto', 'Osaka'] }],
+      },
+    })
+    renderAt(url)
+    fireEvent.click(await screen.findByRole('link', { name: 'Back to trip' }))
+    expect(await screen.findByRole('heading', { name: 'Plan a trip' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /destination/i })).toHaveTextContent('Japan')
+    expect(screen.getByRole('button', { name: /place/i })).toHaveTextContent('Tokyo')
   })
 
   it('shows a busy skeleton while loading', async () => {

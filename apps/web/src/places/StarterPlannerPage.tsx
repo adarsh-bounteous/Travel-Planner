@@ -102,7 +102,9 @@ export function StarterPlannerPage() {
               />
               <span className="field-hint">
                 {country
-                  ? `${country.places.length} places in ${country.name}.`
+                  ? country.places.length === 0
+                    ? `No starter places are available for ${country.name}.`
+                    : `${country.places.length} places in ${country.name}.`
                   : `Pick a country first to see its ${countries[0]?.places.length ?? 3} places.`}
               </span>
             </div>

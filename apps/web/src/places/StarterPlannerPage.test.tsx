@@ -35,6 +35,30 @@ describe('Starter planner page', () => {
     for (const name of ['Japan', 'Portugal', 'India'])
       expect(screen.getByRole('option', { name })).toBeInTheDocument()
     expect(screen.getByText('7 starter countries to explore.')).toBeInTheDocument()
+    expect(screen.queryByText(/We couldn't load the starter destinations/)).not.toBeInTheDocument()
+  })
+
+  it('says no starter places are available for a country without places', async () => {
+    stubApi({ 'GET /starter-destinations': { status: 200, body: [{ name: 'Atlantis', places: [] }] } })
+    renderAt('/trips/plan')
+    fireEvent.click(await destination())
+    pick('Atlantis')
+    expect(screen.getByText('No starter places are available for Atlantis.')).toBeInTheDocument()
+    expect(screen.queryByText(/0 places in/)).not.toBeInTheDocument()
+  })
+
+  it('opens the place content page from the selected place', async () => {
+    stubApi({
+      ...replies,
+      'GET /starter-destinations/Japan/Tokyo': {
+        status: 200,
+        body: { name: 'Tokyo', places: [], restaurants: [], stays: [], activities: [], medical_guidance: '' },
+      },
+    })
+    renderAt('/trips/plan')
+    await pickJapanTokyo()
+    fireEvent.click(screen.getByRole('link', { name: 'View place content' }))
+    expect(await screen.findByRole('heading', { name: 'Tokyo', level: 2 })).toBeInTheDocument()
   })
 
   it('lists three places for a country and shows ready content, never No data (AC1, AC4)', async () => {

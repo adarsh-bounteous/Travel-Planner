@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { useAuth } from '../auth/AuthProvider'
 import { ImageHero } from '../components/ImageHero'
 import { illustrationRefOfTrip } from '../illustrations/registry'
 import { NotFoundError, TRIP_WRITE_REFUSED, addReminder, fetchTrip, moveActivity } from './api'
@@ -10,6 +11,7 @@ import { AddActivityDrawer } from './AddActivityDrawer'
 import { BookTripDrawer } from './BookTripDrawer'
 import { InsurancePickClearedModal } from './InsurancePickClearedModal'
 import { DeleteTripModal } from './DeleteTripModal'
+import { ItineraryActions } from './ItineraryActions'
 import { ItineraryTab } from './ItineraryTab'
 import { PanelFade } from './PanelFade'
 import { useTabIndicator } from './useTabIndicator'
@@ -74,6 +76,7 @@ const savedMessage = (before: Trip, after: Trip) => {
 
 export function TripDetailPage({ tripId }: { tripId: string }) {
   const navigate = useNavigate()
+  const { email } = useAuth()
   const [trip, setTrip] = useState<Trip | null>(null)
   const [load, setLoad] = useState<LoadState>('loading')
   const [tab, setTab] = useState<Tab>('itinerary')
@@ -253,6 +256,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           Reminders show on their date and stay in the app. We don't send email or push messages.
         </p>
       </div>
+      <ItineraryActions tripId={trip.id} email={email ?? ''} />
       <div className="tabs trip-tabs" role="tablist" aria-label="Trip sections" ref={tablistRef}>
         {TABS.map(({ id, label }) => (
           <button

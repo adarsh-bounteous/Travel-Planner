@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderAt, stubApi } from '../test-api'
 import type { CostSummary, Trip } from './api'
 
@@ -150,6 +150,17 @@ describe('TripDetailPage itinerary', () => {
     expect(screen.queryByRole('button', { name: 'Edit trip' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Rename day/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Delete trip' })).not.toBeInTheDocument()
+  })
+
+  it('shows the itinerary actions to an owner and to an accepted editor (AC1, AC2, AC3)', async () => {
+    for (const overrides of [{}, { is_owner: false }]) {
+      open(trip(overrides))
+      const group = await screen.findByRole('group', { name: 'Itinerary actions' })
+      expect(within(group).getByRole('link', { name: 'View itinerary' })).toHaveAttribute('href', '/trips/t1/itinerary')
+      expect(within(group).getByRole('link', { name: 'Print or Save as PDF' })).toBeInTheDocument()
+      expect(within(group).getByRole('button', { name: 'Email me a copy' })).toBeInTheDocument()
+      cleanup()
+    }
   })
 
   it('shows "Trip not found" for a trip that is not the traveller\'s', async () => {
@@ -492,7 +503,7 @@ describe('TripDetailPage unmatched destination', () => {
   })
 })
 
-// Recorded from the page before the restyle, for an owner of the default trip.
+// Recorded from the page before the restyle, for an owner of the default trip, plus the itinerary actions.
 const OWNER_CONTROLS = [
   'Account',
   'Add activity',
@@ -504,8 +515,10 @@ const OWNER_CONTROLS = [
   'Add restaurants',
   'Book trip',
   'Edit trip',
+  'Email me a copy',
   'Explore',
   'Insurance options',
+  'Print or Save as PDF',
   'Rename',
   'Rename',
   'Rename',
@@ -516,6 +529,7 @@ const OWNER_CONTROLS = [
   'Trips',
   'Trips',
   'View costs in another currency',
+  'View itinerary',
   'Visa requirements',
 ]
 

@@ -7,9 +7,11 @@ type Message = {
   to: string
   trip_name: string
   link: string
-  kind: 'confirmation' | 'email_change' | 'invite'
+  kind: 'confirmation' | 'email_change' | 'invite' | 'itinerary'
   subject: string
   sent_at: string
+  /** The whole message, for an emailed itinerary. The other kinds are a link. */
+  html?: string
 }
 type Load = { state: 'loading' } | { state: 'unavailable' } | { state: 'ready'; messages: Message[] }
 
@@ -33,6 +35,12 @@ const KINDS = {
     badgeText: 'Invite',
     intro: 'You have been invited to plan a trip. Follow this link to accept.',
     action: 'Accept invite',
+  },
+  itinerary: {
+    badge: 'badge-neutral',
+    badgeText: 'Itinerary',
+    intro: '',
+    action: '',
   },
 }
 
@@ -62,21 +70,27 @@ function EmailView({ message, onBack }: { message: Message; onBack: () => void }
           <dt>Sent</dt>
           <dd>{sent}</dd>
         </dl>
-        <div className="mail-body">
-          <p>{kind.intro}</p>
-          <p>
-            <a className="mail-link" href={message.link}>
-              {message.link}
-            </a>
-          </p>
-          <p className="text-muted text-sm">Each link works once and can expire.</p>
+        {message.html === undefined ? (
+          <div className="mail-body">
+            <p>{kind.intro}</p>
+            <p>
+              <a className="mail-link" href={message.link}>
+                {message.link}
+              </a>
+            </p>
+            <p className="text-muted text-sm">Each link works once and can expire.</p>
+          </div>
+        ) : (
+          <iframe className="mail-frame" sandbox="" title={message.subject} srcDoc={message.html} />
+        )}
+      </div>
+      {message.html === undefined && (
+        <div className="cluster">
+          <a className="btn btn-primary" href={message.link}>
+            {kind.action}
+          </a>
         </div>
-      </div>
-      <div className="cluster">
-        <a className="btn btn-primary" href={message.link}>
-          {kind.action}
-        </a>
-      </div>
+      )}
     </div>
   )
 }

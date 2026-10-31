@@ -34,6 +34,8 @@ class PersistentInviteSender(InMemoryInviteSender):
                 self.sent_at.append(datetime.fromisoformat(record["sent_at"]))
                 if record["kind"] is not None:
                     self.kinds[record["link"]] = record["kind"]
+                if record.get("html") is not None:
+                    self.bodies[record["link"]] = record["html"]
         except (KeyError, TypeError, ValueError) as error:
             raise LocalDataFileError(path) from error
 
@@ -48,6 +50,7 @@ class PersistentInviteSender(InMemoryInviteSender):
                         "link": link,
                         "sent_at": sent_at.isoformat(),
                         "kind": self.kinds.get(link),
+                        "html": self.bodies.get(link),
                     }
                     for (to, trip_name, link), sent_at in zip(self.sent, self.sent_at, strict=True)
                 ],

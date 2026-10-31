@@ -328,6 +328,7 @@ class Trip(TripFields):
     checklist_done: list[Literal["passport", "visa", "insurance", "sim", "reminders", "bookings"]] = []  # server-owned: Before you go items marked done
     needed_categories: list[str] = []  # server-owned: categories the traveller needs a pick for
     share_token: str | None = None  # server-owned: changed only through the share-link routes
+    share_itinerary: bool = False  # server-owned: whether the share link shows the full itinerary; reset when the link is revoked
     dining_needs: list[str] = []  # server-owned: extra dining needs for this trip only, changed only through the dining-needs route
     country: str | None = None  # server-owned: set by the destination conversion or a matching destination edit
     place: str | None = None  # server-owned: with country

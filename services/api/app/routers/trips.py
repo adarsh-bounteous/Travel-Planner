@@ -837,7 +837,8 @@ def trip_recommendations(
     status = destination_status(
         chosen,
         needs_place=True,
-        country_has_data=bool(chosen) and country_has_any_place(chosen.country, lambda p: bool(source.for_destination(p))),
+        country_has_data=bool(chosen)
+        and (bool(recommendations) or country_has_any_place(chosen.country, lambda p: bool(source.for_destination(p)))),
         place_has_data=bool(recommendations),
     )
     wanted = {i.casefold() for i in trip.interests}

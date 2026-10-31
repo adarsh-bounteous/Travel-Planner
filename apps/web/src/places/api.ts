@@ -7,11 +7,27 @@ export type Place = {
   name: string
   image_url: string
   place_type: PlaceType
-  price: Price
+  price: Price | null
   lat: number
   lng: number
+  category?: Category | null
+  address?: string | null
+  opening_hours?: string | null
+  source?: 'seed' | 'osm'
+  as_of?: string | null
+  provider_id?: string | null
+  url?: string | null
 }
-export type PlaceFilters = { placeType?: PlaceType; price?: Price }
+export type Category = 'sights' | 'food' | 'museums' | 'viewpoints' | 'nightlife'
+export type PlaceFilters = { placeType?: PlaceType; price?: Price; category?: Category }
+
+export const PLACE_CATEGORY_LABELS: Record<Category, string> = {
+  sights: 'Sights',
+  food: 'Food',
+  museums: 'Museums',
+  viewpoints: 'Viewpoints',
+  nightlife: 'Nightlife',
+}
 
 export const PLACE_TYPE_LABELS: Record<PlaceType, string> = {
   landmark: 'Landmark',
@@ -32,7 +48,9 @@ export const searchPlaces = (destination: string, q?: string, filters: PlaceFilt
   call<Place[]>(
     `/places?destination=${encodeURIComponent(destination)}${q === undefined ? '' : `&q=${encodeURIComponent(q)}`}${
       filters.placeType === undefined ? '' : `&place_type=${filters.placeType}`
-    }${filters.price === undefined ? '' : `&price=${filters.price}`}`,
+    }${filters.price === undefined ? '' : `&price=${filters.price}`}${
+      filters.category === undefined ? '' : `&category=${filters.category}`
+    }`,
   )
 
 /** Whether the map shows real tiles; false when the API says no, or when the call fails. */

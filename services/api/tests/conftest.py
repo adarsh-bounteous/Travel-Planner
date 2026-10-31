@@ -11,6 +11,20 @@ def _local_data_dir(monkeypatch, tmp_path):
     monkeypatch.setenv("LOCAL_DATA_DIR", str(tmp_path / "local-data"))
 
 
+class _NoOsmPlaces:
+    """Tests never reach Overpass: the live search is unavailable, so the seed catalogue is served."""
+
+    def search(self, destination):
+        raise RuntimeError("overpass is not reachable in tests")
+
+
+@pytest.fixture(autouse=True)
+def _no_overpass(monkeypatch):
+    from app.routers import deps
+
+    monkeypatch.setattr(deps, "_osm_places", lambda: _NoOsmPlaces())
+
+
 @pytest.fixture
 def sign_in_as():
     """Return a function that builds a client with its own cookie jar, signed in as `email`.

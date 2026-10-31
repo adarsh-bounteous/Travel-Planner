@@ -49,10 +49,39 @@ describe('insurance compare page', () => {
     expect(win).toHaveBeenCalledWith('https://asia-pacific.example/plan', '_blank')
   })
 
-  it('goes back to the shortlist when fewer than two plans exist', async () => {
-    open(PLANS.slice(0, 1))
-    expect(await screen.findByRole('heading', { name: 'Insurance options' })).toBeInTheDocument()
-    expect(screen.queryByRole('table', { name: 'Shortlisted insurance plans side by side' })).toBeNull()
+  it('shows two plans when only two exist', async () => {
+    open(PLANS.slice(0, 2))
+    const rows = within(await screen.findByRole('table')).getAllByRole('row')
+    expect(rows).toHaveLength(3)
+  })
+
+  it.each([0, 1])('stays on Compare and explains why with %i plans', async (count) => {
+    open(PLANS.slice(0, count))
+    expect(await screen.findByRole('heading', { name: 'Nothing to compare yet' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Compare plans' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Insurance options' })).toBeNull()
+    expect(screen.queryByRole('table')).toBeNull()
+    expect(screen.getByText(/You need at least 2 plans to compare/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to insurance options' })).toHaveAttribute(
+      'href',
+      '/trips/t1/insurance-options',
+    )
+  })
+
+  it('links to add traveller details when a traveller has no age', async () => {
+    stubApi({
+      'GET /trips/t1': { status: 200, body: { id: 't1', name: 'Japan' } },
+      'GET /trips/t1/insurance-options': {
+        status: 200,
+        body: options([], { travellers: [{ label: 'Maya Chen', age: null }] }),
+      },
+    })
+    renderAt('/trips/t1/insurance-options/compare')
+    expect(await screen.findByRole('heading', { name: "We need a traveller's age" })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add traveller details' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('/trips/t1/insurance-options'),
+    )
   })
 
   it('shows the plans in the shared compare table (AC2)', async () => {

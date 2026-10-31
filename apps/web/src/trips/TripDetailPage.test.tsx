@@ -423,7 +423,7 @@ describe('TripDetailPage book trip', () => {
     fireEvent.click(book)
     const dialog = await screen.findByRole('dialog', { name: 'Book trip' })
     fireEvent.keyDown(dialog, { key: 'Escape' })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(book).toHaveFocus()
   })
 })

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { AnimationEvent, KeyboardEvent, ReactNode } from 'react'
+import { useExit } from '../motion'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select,textarea'
 
@@ -25,6 +26,11 @@ export function Overlay({
   children,
 }: OverlayProps) {
   const panel = useRef<HTMLDivElement>(null)
+  const exit = useExit(onClose)
+  const motion = exit.leaving ? 'is-leaving' : 'is-entering'
+  const onEnd = (event: AnimationEvent<HTMLElement>) => {
+    if (event.target === event.currentTarget) exit.onAnimationEnd()
+  }
 
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null
@@ -36,7 +42,7 @@ export function Overlay({
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.stopPropagation()
-      onClose()
+      exit.start()
       return
     }
     if (event.key !== 'Tab' || !panel.current) return
@@ -54,10 +60,11 @@ export function Overlay({
 
   return (
     <>
-      <div className="backdrop" onClick={onClose} aria-hidden="true" />
+      <div className={`backdrop ${motion}`} onClick={exit.start} aria-hidden="true" />
       <div
         ref={panel}
-        className={kind}
+        className={`${kind} ${motion}`}
+        onAnimationEnd={onEnd}
         role={role}
         aria-modal="true"
         aria-labelledby={labelledBy}

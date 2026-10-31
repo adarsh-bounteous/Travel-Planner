@@ -41,6 +41,11 @@ describe('OptionCard', () => {
     expect(screen.getByRole('article', { name: 'Hotel Sol, rank 1' })).toHaveClass('is-picked')
   })
 
+  it('lifts on hover through the lift class (AC4)', () => {
+    render(<OptionCard title="Skyline" />)
+    expect(screen.getByRole('article', { name: 'Skyline' })).toHaveClass('lift')
+  })
+
   it('renders as a list item when asked', () => {
     const { container } = render(
       <ul>

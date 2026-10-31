@@ -67,6 +67,10 @@ def sign_in_as():
     app.dependency_overrides[deps.get_saved_places] = lambda: saved_places
     rates = InMemoryRates({("USD", "EUR"): Decimal("0.92")})
     app.dependency_overrides[deps.get_rates] = lambda: rates
+    from tests.unit.locations_fakes import FakeResolver
+
+    resolver = FakeResolver()
+    app.dependency_overrides[deps.get_destination_resolver] = lambda: resolver
     password = "abcdefghij12"
 
     def make(email: str) -> TestClient:
@@ -80,5 +84,6 @@ def sign_in_as():
     make.invites = invites
     make.trips = trips
     make.rates = rates
+    make.resolver = resolver
     yield make
     app.dependency_overrides.clear()

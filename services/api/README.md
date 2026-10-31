@@ -20,6 +20,8 @@ FastAPI service. Python 3.12.
 | `WEB_ORIGIN` | empty (same origin) | Web App origin the API redirects back to. |
 | `ACCOUNTS_TABLE_NAME` | `trip-planner-accounts` | DynamoDB table holding account-link records (`pk = USER#<id>`). |
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
+| `NOMINATIM_BASE_URL` | `https://nominatim.openstreetmap.org` | Nominatim endpoint that resolves a trip's destination to a location (also cached as `GEOCODE#<hash>` items in the trips table for 30 days). Point it at a self-hosted instance for heavy use. Requests are limited to one a second per process. Local mode makes no request. |
+| `NOMINATIM_USER_AGENT` | `trip-planner-api` | Identifying `User-Agent` sent to Nominatim, as its usage policy requires. Set an app name and contact in production. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
 | `COOKIE_SECURE` | `true` | Set `false` only for local http development. |
 | `LOCAL_DATA_DIR` | `services/api/.local-data` | Local mode only: directory holding the accounts file, `store.json` (trips, invites, share links) `profiles.json` (traveller profiles and preferences) and `inbox.json` (the local inbox), so all survive an API restart. Git-ignored. |

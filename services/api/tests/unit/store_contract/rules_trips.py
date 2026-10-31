@@ -53,3 +53,12 @@ def rule_trips_survive_a_restart(store):
     trip = _trip(store, budget=120)
     store.trips.save_trip(owner, trip)
     assert store.reopen().trips.get_trip(owner, trip.id) == trip
+
+
+def rule_located_trip_round_trips(store):
+    from tests.unit.locations_fakes import LISBON
+
+    owner = store.new_id()
+    trip = _trip(store, destination="Lisbon", location=LISBON)
+    store.trips.save_trip(owner, trip)
+    assert store.trips.get_trip(owner, trip.id) == trip

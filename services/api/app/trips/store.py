@@ -4,6 +4,8 @@ from typing import Annotated, Literal, Protocol
 
 from pydantic import AfterValidator, BaseModel, Field, HttpUrl, StringConstraints, TypeAdapter, model_validator
 
+from app.locations.cache import decimals
+from app.locations.resolver import ResolvedLocation
 from app.trips.profile_store import Mode
 
 LOCAL_BOOKING_PREFIX = "local://booking/"
@@ -330,6 +332,7 @@ class Trip(TripFields):
     place: str | None = None  # server-owned: with country
     destination_unmatched: bool = False  # server-owned: the typed destination could not be matched
     destination_converted: bool = False  # server-owned: False only on trips saved before the conversion existed
+    location: ResolvedLocation | None = None  # server-owned: set only by destination resolution, never read from a request body
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:
@@ -484,11 +487,9 @@ class DynamoTripStore:
         return self._to_trip(item) if item else None
 
     def save_trip(self, owner_id: str, trip: Trip) -> None:
-        item = {
-            k: v for k, v in trip.model_dump(mode="json").items() if v is not None
-        }
-        if trip.budget is not None:
-            item["budget"] = Decimal(str(trip.budget))  # boto3 rejects floats
+        item = decimals(  # boto3 rejects floats
+            {k: v for k, v in trip.model_dump(mode="json").items() if v is not None}
+        )
         self._table.put_item(
             Item={**item, "pk": self._pk(owner_id), "sk": f"TRIP#{trip.id}"}
         )

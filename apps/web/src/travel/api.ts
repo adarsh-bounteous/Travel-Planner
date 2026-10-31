@@ -45,6 +45,18 @@ export const fetchBookingPreview = (ref: string) =>
 
 export const fetchLocalMode = () => call<{ local_mode: boolean }>('/local/mode')
 
+export type ProviderStatus = { name: string; kind: string; health: string }
+
+/** Thrown when the API hides the provider list, which it does outside local mode (404). */
+export class ProvidersNotAllowedError extends Error {}
+
+export async function fetchProviderStatuses(): Promise<ProviderStatus[]> {
+  const response = await fetch('/providers/status', { credentials: 'same-origin' })
+  if (response.status === 404) throw new ProvidersNotAllowedError()
+  if (!response.ok) throw new Error(`request failed: ${response.status}`)
+  return (await response.json()).providers
+}
+
 /** Thrown when a live deployment refuses to turn local mode on (409). */
 export class LocalModeNotAllowedError extends Error {}
 

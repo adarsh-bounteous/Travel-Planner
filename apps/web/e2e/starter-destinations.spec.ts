@@ -42,6 +42,9 @@ test('every starter place books and shows its content', async ({ page }) => {
       await page.getByRole('link', { name: 'View place content' }).click()
       await expect(page.getByRole('heading', { name: 'Medical guidance' })).toBeVisible()
       await expect(page.getByText(/no data/i)).toHaveCount(0)
+      await page.getByRole('link', { name: 'Back to trip' }).click()
+      await expect(page.getByRole('heading', { name: 'Plan a trip' })).toBeVisible()
+      await expect(page.getByRole('button', { name: /place/i })).toHaveText(new RegExp(place))
     }
   }
 })

@@ -10,6 +10,8 @@ type PlaceCardProps = {
   saved: boolean
   onToggleSave: (place: Place) => void
   savePending?: boolean
+  /** When given, a Details button opens the place's provider details. */
+  onDetails?: (place: Place) => void
 }
 
 export function PlaceCard({
@@ -19,6 +21,7 @@ export function PlaceCard({
   saved,
   onToggleSave,
   savePending,
+  onDetails,
 }: PlaceCardProps) {
   return (
     <li className="card stack">
@@ -41,6 +44,16 @@ export function PlaceCard({
         <HeartIcon filled={saved} />
         {saved ? 'Unsave' : 'Save'}
       </button>
+      {onDetails && (
+        <button
+          type="button"
+          className="btn btn-ghost"
+          aria-label={`Details for ${place.name}`}
+          onClick={() => onDetails(place)}
+        >
+          Details
+        </button>
+      )}
       {onAdd && (
         <button
           type="button"

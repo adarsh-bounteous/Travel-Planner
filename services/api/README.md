@@ -22,8 +22,9 @@ FastAPI service. Python 3.12.
 | `TRIPS_TABLE_NAME` | `trip-planner-trips` | DynamoDB table holding Trips (`pk = USER#<owner id>`, `sk = TRIP#<trip id>`, both strings). Provisioned outside this repo; also holds editor-invite index items (`INVITE#<token>`, `EDITOR#<email>`); needs `GetItem`, `PutItem`, `Query`, `DeleteItem`. |
 | `NOMINATIM_BASE_URL` | `https://nominatim.openstreetmap.org` | Nominatim endpoint that resolves a trip's destination to a location (also cached as `GEOCODE#<hash>` items in the trips table for 30 days). Point it at a self-hosted instance for heavy use. Requests are limited to one a second per process. Local mode makes no request. |
 | `NOMINATIM_USER_AGENT` | `trip-planner-api` | Identifying `User-Agent` sent to Nominatim, as its usage policy requires. Set an app name and contact in production. |
-| `LOCAL_LIVE_PROVIDERS` | empty | Comma-separated sources that use a live provider in local mode. `places` shows real OpenStreetMap tiles on the places map. Unknown names stop startup. Outside local mode the places source is live, so tiles are on. |
+| `LOCAL_LIVE_PROVIDERS` | empty | Comma-separated providers that call their live service in local mode; all others use local stand-ins. Accepted names: `places`, `flights`, `hotels`, `email`, `identity` (`places` also shows real OpenStreetMap tiles on the places map). Names are case-sensitive; spaces and a trailing comma are ignored. Unknown or wrongly-cased names stop startup. Outside local mode the setting has no effect: every provider is live. |
 | `OSM_TILE_URL_TEMPLATE` | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | Tile server the API fetches map tiles from. The public server is for light use only (see the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/)); point this at a commercial or self-hosted provider for heavy use. |
+| `OVERPASS_BASE_URL` | `https://overpass-api.de/api/interpreter` | Overpass server the places search queries for real OpenStreetMap places around the destination. Used wherever the places source is live (same opt-in as map tiles). The public server is for light use only; `OSM_USER_AGENT` identifies the app to it. If it fails or answers nothing, the seed catalogue is shown. |
 | `OSM_USER_AGENT` | `TripPlanner/1.0` | Identifying `User-Agent` sent with every tile request, as the tile policy requires. Set an app name and contact (email or URL) in production: the default has no contact, which the tile policy requires. |
 | `OSM_REFERER` | `WEB_ORIGIN` | `Referer` sent with every tile request. |
 | `INVITE_FROM_ADDRESS` | _(empty)_ | Verified SES sender for editor invite emails (needs `ses:SendEmail`). When empty nothing is sent and the owner copies the invite link from the Travelers tab. |
@@ -33,6 +34,12 @@ FastAPI service. Python 3.12.
 | `APP_ENV` | `production` | Environment name. Local mode is only allowed when this is exactly `local`. |
 
 With local mode on, `GET /places` returns places generated from the searched destination (Lisbon, Kyoto and Paris; any other destination has none) instead of the places service, and makes no outside request.
+
+### Provider keys and status
+
+Providers read their keys with `get_secret`: from the environment in local mode, from AWS Secrets Manager (a secret named like the key) otherwise. Outside local mode the environment is never read. The placeholder keys are `PLACES_API_KEY`, `FLIGHT_SEARCH_API_KEY`, `HOTEL_SEARCH_API_KEY`, `EMAIL_API_KEY` and `IDENTITY_API_KEY`. A missing or unreadable key means the provider is `not configured`; the app still starts. The Lambda role needs `secretsmanager:GetSecretValue` on each secret.
+
+`GET /startup-status` lists every provider as `{name, kind, health}`, where health is `configured`, `healthy`, `degraded`, `open circuit` or `not configured`. In local mode `GET /providers/status` returns the same list; outside local mode it is a 404. Secret values are never returned.
 
 ## Run it locally
 

@@ -4,7 +4,10 @@ import { fetchLocalMode } from '../auth/api'
 import { AlertIcon, HeartIcon, InfoIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
+import type { Place } from '../places/api'
 import { PlaceCover } from '../places/PlaceCover'
+import { PlaceDetails } from '../places/PlaceDetails'
+import { PlacesSourceNote } from '../places/PlacesSourceNote'
 import { DestinationGate } from './DestinationGate'
 import type { TripRecommendations } from './api'
 
@@ -21,6 +24,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
   const [view, setView] = useState<TripRecommendations | null>(null)
   const [local, setLocal] = useState(false)
   const [localKnown, setLocalKnown] = useState(false)
+  const [detailsOf, setDetailsOf] = useState<Place | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set(interests))
 
   useEffect(() => {
@@ -71,6 +75,8 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
         </div>
       ) : (
         <DestinationGate tripId={tripId} destination={view.destination} status={view.status}>
+          <PlacesSourceNote places={recs.flatMap((r) => (r.place ? [r.place] : []))} />
+          {detailsOf && <PlaceDetails place={detailsOf} onClose={() => setDetailsOf(null)} />}
           {interests.length > 0 && (
             <div className="cluster" role="group" aria-label="Trip interests">
               {interests.map((interest) => (
@@ -118,6 +124,16 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
                   >
                     Open
                   </button>
+                  {r.place?.source === 'osm' && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      aria-label={`Details for ${r.name}`}
+                      onClick={() => setDetailsOf(r.place!)}
+                    >
+                      Details
+                    </button>
+                  )}
                   {r.place && (
                     <button
                       type="button"

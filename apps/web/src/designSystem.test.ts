@@ -34,12 +34,22 @@ describe('design system stylesheet', () => {
     }
   })
 
-  it('has one global reduced-motion block that disables animation and transition', () => {
+  it('has one global reduced-motion block that keeps a fade and removes movement', () => {
     const blocks = css.match(/@media \(prefers-reduced-motion: reduce\)/g) ?? []
     expect(blocks).toHaveLength(1)
-    expect(css).toMatch(
-      /prefers-reduced-motion: reduce\)\s*\{\s*\*,\s*\*::before,\s*\*::after\s*\{[^}]*animation: none !important[^}]*transition: none !important/,
-    )
+    const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'))
+    expect(rm).toMatch(/animation: none !important/)
+    expect(rm).toMatch(/\.motion-move[^}]*transform: none !important/)
+    expect(rm).toMatch(/transition-property: opacity/)
+    expect(rm).not.toMatch(/transition: none/)
+  })
+
+  it('uses no icon font, icon package or external icon request', () => {
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf8'))
+    const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).join(' ')
+    expect(deps).not.toMatch(/fontawesome|material-icons|bootstrap-icons|lucide|feather/i)
+    const html = readFileSync(resolve(__dirname, '../index.html'), 'utf8')
+    expect(html).not.toMatch(/<link[^>]+(icon|font)/i)
   })
 
   it('turns the phone header into a horizontally scrolling pill row', () => {

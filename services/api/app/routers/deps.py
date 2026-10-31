@@ -1,4 +1,5 @@
 import time
+from collections.abc import Callable
 from datetime import UTC, date, datetime
 from functools import lru_cache
 
@@ -8,11 +9,17 @@ from app.auth.session import read_session
 from app.availability.store import DynamoProbeStore, InMemoryProbeStore, ProbeStore
 from app.config import Settings, get_settings
 from app.local_seed import LocalSeedTarget
+from app.providers.registry import ProviderRegistry, default_registry
+from app.secrets import get_secret
 from app.locations.cache import DynamoLocationCache
 from app.locations.nominatim import NominatimResolver
 from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
 from app.routers.auth import _local_identity, _set_session, get_now
+from app.integrations.client import IntegrationClient
+from app.locations.cache import InMemoryLocationCache
+from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import LocalPlaceSearch
+from app.places.overpass import OsmPlaceSearch, overpass_settings
 from app.places.tiles import TileSource
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
 from app.flights.options import FlightProvider
@@ -43,6 +50,7 @@ from app.trips.recommendations import (
     InMemoryRecommendations,
     RecommendationSource,
 )
+from app.trips.osm_recommendations import FallbackRecommendations, OsmRecommendations
 from app.trips.profile_store import DynamoProfileStore, ProfileStore
 from app.trips.saved_store import DynamoSavedPlaceStore, SavedPlaceStore
 from app.trips.invites import InviteSender, NoInviteSender, SesInviteSender
@@ -106,7 +114,7 @@ def _resolver() -> DestinationResolver:
 
 def get_destination_resolver() -> DestinationResolver:
     """Local mode resolves nothing: it makes no outside request."""
-    return NoResolver() if get_settings().local_mode else _resolver()
+    return _resolver() if get_settings().is_live("places") else NoResolver()
 
 
 def get_probe_store() -> ProbeStore:
@@ -132,6 +140,23 @@ def _local_saved_places() -> PersistentSavedPlaceStore:
 @lru_cache
 def _places() -> PlaceSearch:
     return InMemoryPlaceSearch(SEED_CATALOGUE)
+
+
+@lru_cache
+def _osm_places() -> PlaceSearch:
+    """Real places from OpenStreetMap. Local mode keeps its resolved cities in memory, never in DynamoDB."""
+    settings = get_settings()
+    if settings.local_mode:
+        resolver: DestinationResolver = CachedResolver(
+            NominatimResolver(settings.nominatim_base_url, settings.nominatim_user_agent),
+            InMemoryLocationCache(),
+            RateLimiter(time.monotonic, time.sleep),
+            now=lambda: datetime.now(UTC),
+        )
+    else:
+        resolver = _resolver()
+    client = IntegrationClient([overpass_settings(settings.overpass_base_url)])
+    return OsmPlaceSearch(resolver, client, settings.osm_user_agent or settings.nominatim_user_agent)
 
 
 @lru_cache
@@ -262,13 +287,24 @@ def require_local_mode() -> None:
         raise ApiError(404, "not_found")
 
 
+@lru_cache
+def get_provider_registry() -> ProviderRegistry:
+    return default_registry()
+
+
+def secret_reader() -> Callable[[str], str | None]:
+    """Reads a provider key for the current mode: None when it is not configured."""
+    local_mode = get_settings().local_mode
+    return lambda name: get_secret(name, local_mode=local_mode)
+
+
 def get_local_inbox() -> PersistentInviteSender:
     require_local_mode()
     return _local_invite_sender()
 
 
 def get_invite_sender() -> InviteSender:
-    return _local_invite_sender() if get_settings().local_mode else _invite_sender()
+    return _invite_sender() if get_settings().is_live("email") else _local_invite_sender()
 
 
 def get_rates() -> RateSource:
@@ -276,7 +312,10 @@ def get_rates() -> RateSource:
 
 
 def get_recommendations() -> RecommendationSource:
-    return _local_recommendations() if get_settings().local_mode else _recommendations()
+    settings = get_settings()
+    seed = _local_recommendations() if settings.local_mode else _recommendations()
+    primary = OsmRecommendations(_osm_places()) if settings.osm_places_enabled else None
+    return FallbackRecommendations(primary, seed, date.today)
 
 
 @lru_cache
@@ -316,19 +355,21 @@ def get_insurance_providers() -> list[InsuranceProvider]:
 
 
 def get_stay_providers() -> list[StayProvider]:
-    return _local_stay_providers() if get_settings().local_mode else _stay_providers()
+    return _stay_providers() if get_settings().is_live("hotels") else _local_stay_providers()
 
 
 def get_flight_providers() -> list[FlightProvider]:
-    return _local_flight_providers() if get_settings().local_mode else _flight_providers()
+    return _flight_providers() if get_settings().is_live("flights") else _local_flight_providers()
 
 
 def get_transport_providers() -> list[TransportProvider]:
-    return _local_transport_providers() if get_settings().local_mode else _transport_providers()
+    return _transport_providers() if get_settings().is_live("flights") else _local_transport_providers()
 
 
 def get_places() -> PlaceSearch:
-    return _local_places() if get_settings().local_mode else _places()
+    settings = get_settings()
+    seed = _local_places() if settings.local_mode else _places()
+    return FallbackPlaceSearch(_osm_places() if settings.osm_places_enabled else None, seed, date.today)
 
 
 @lru_cache

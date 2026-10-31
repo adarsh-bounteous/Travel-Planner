@@ -12,6 +12,13 @@ class CircuitBreaker:
         self._opened_at: float | None = None
         self._trial_in_flight = False
 
+    @property
+    def is_open(self) -> bool:
+        """Whether `allow()` would refuse now, without taking the trial slot."""
+        if self._opened_at is None:
+            return False
+        return self._trial_in_flight or self._clock() - self._opened_at < self._cooldown
+
     def allow(self) -> bool:
         if self._opened_at is None:
             return True

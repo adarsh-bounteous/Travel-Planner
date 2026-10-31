@@ -36,11 +36,21 @@ class Settings:
     osm_tile_url_template: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
     osm_user_agent: str = ""
     osm_referer: str = ""  # falls back to web_origin
+    overpass_base_url: str = "https://overpass-api.de/api/interpreter"
+
+    @property
+    def osm_places_enabled(self) -> bool:
+        """Real OpenStreetMap places only where the places source is live: always outside local mode, opt-in inside it."""
+        return self.is_live("places")
+
+    def is_live(self, provider: str) -> bool:
+        """Outside local mode every provider is live; in local mode only the opted-in ones are."""
+        return (not self.local_mode) or provider in self.live_providers
 
     @property
     def map_tiles_enabled(self) -> bool:
-        """Real map tiles only where the places source is live: always outside local mode, opt-in inside it."""
-        return (not self.local_mode) or "places" in self.live_providers
+        """Real map tiles only where the places source is live."""
+        return self.is_live("places")
 
 
 def session_secret() -> bytes:
@@ -77,4 +87,5 @@ def get_settings() -> Settings:
         osm_tile_url_template=env.get("OSM_TILE_URL_TEMPLATE") or Settings.osm_tile_url_template,
         osm_user_agent=env.get("OSM_USER_AGENT", ""),
         osm_referer=env.get("OSM_REFERER", ""),
+        overpass_base_url=env.get("OVERPASS_BASE_URL") or Settings.overpass_base_url,
     )

@@ -357,7 +357,7 @@ export type RestaurantPick = {
   cuisine: string
   typical_price: string | null
   currency: string
-  url: string | null
+  url?: string | null // absent on the shared read-only view
   date: string | null
   meal: Meal | null
 }
@@ -492,6 +492,28 @@ export const fetchTrips = () => call<Trip[]>('/trips')
 export const createTrip = (trip: TripCreateInput) => call<Trip>('/trips', 'POST', trip)
 
 export const fetchTrip = (id: string) => call<Trip>(`/trips/${encodeURIComponent(id)}`)
+
+export type ItineraryItem = {
+  kind: 'stay' | 'check_in' | 'check_out' | 'transport' | 'activity' | 'meal' | 'reminder'
+  title: string
+  detail: string | null
+  status: 'booked' | 'unbooked' | null
+  link_text: string | null
+  link_url: string | null
+}
+
+export type ItineraryDay = { number: number; date: string; items: ItineraryItem[] }
+
+/** The printable trip document; the server leaves out money, essentials, editors and sharing. */
+export type Itinerary = {
+  cover: { name: string; start_date: string | null; end_date: string | null; destinations: string[] }
+  glance: { booked: number; unbooked: number }
+  days: ItineraryDay[]
+  still_to_schedule: ItineraryItem[]
+}
+
+export const fetchItinerary = (tripId: string) =>
+  call<Itinerary>(`/trips/${encodeURIComponent(tripId)}/itinerary`)
 
 export const updateTrip = (id: string, trip: TripInput) =>
   call<Trip>(`/trips/${encodeURIComponent(id)}`, 'PUT', trip)

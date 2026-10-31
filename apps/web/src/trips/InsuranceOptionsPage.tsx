@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { AlertIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, InfoIcon, SearchIcon } from '../auth/icons'
 import {
   addTraveller,
   chooseInsurance,
@@ -11,6 +11,7 @@ import {
   saveInsuranceDetails,
 } from './api'
 import type { InsuranceOptions, Trip } from './api'
+import { compareState } from './insuranceCompare'
 import { InsuranceDetailsForm } from './InsuranceDetailsForm'
 import type { InsuranceDetails } from './InsuranceDetailsForm'
 import { InsuranceDisclaimer, ProviderUnavailable } from './InsuranceNotices'
@@ -102,6 +103,8 @@ export function InsuranceOptionsPage() {
   const options = result.state === 'ready' ? result.options : null
   const needsOnTrip = options?.missing.filter((item) => item === 'destination' || item === 'trip dates') ?? []
   const plans = options?.plans ?? []
+  const compareHref = `${tripHref}/insurance-options/compare`
+  const compareStatus = options && needsOnTrip.length === 0 ? compareState(options) : null
   return (
     <div className="stack stack-lg">
       <Link className="text-sm" to={tripHref}>
@@ -137,6 +140,42 @@ export function InsuranceOptionsPage() {
           failed={saveFailed}
           onCompare={compare}
         />
+      )}
+      {compareStatus?.kind === 'missing-age' && (
+        <div className="alert alert-warning cluster" role="alert">
+          <AlertIcon />
+          <p id="compare-reason">
+            Add the missing traveller details to compare plans. {compareStatus.names.join(', ')}{' '}
+            {compareStatus.names.length === 1 ? 'has' : 'have'} no age yet.
+          </p>
+          <a className="text-bold" href={compareStatus.names.includes('You') ? '#owner-age' : '#companion-ages'}>
+            Add traveller details
+          </a>
+        </div>
+      )}
+      {compareStatus && (
+        <div className="compare-bar">
+          <span className="text-bold">
+            {plans.length} {plans.length === 1 ? 'plan' : 'plans'} for your trip
+          </span>
+          {compareStatus.kind === 'ready' ? (
+            <Link className="btn btn-secondary" to={compareHref}>
+              Compare
+            </Link>
+          ) : (
+            <button className="btn btn-secondary" type="button" disabled aria-describedby="compare-reason">
+              Compare
+            </button>
+          )}
+        </div>
+      )}
+      {compareStatus?.kind === 'too-few' && (
+        <div className="alert alert-info cluster" role="status">
+          <InfoIcon />
+          <p id="compare-reason">
+            Compare needs at least 2 plans. Change your trip dates or travellers to see more plans.
+          </p>
+        </div>
       )}
       {options && options.missing.length === 0 && plans.length === 0 && (
         <>
@@ -174,13 +213,6 @@ export function InsuranceOptionsPage() {
               />
             ))}
           </div>
-          {plans.length >= 2 && (
-            <div>
-              <Link className="btn btn-secondary" to={`${tripHref}/insurance-options/compare`}>
-                Compare plans
-              </Link>
-            </div>
-          )}
         </>
       )}
       {options && options.missing.length > 0 && <InsuranceDisclaimer />}

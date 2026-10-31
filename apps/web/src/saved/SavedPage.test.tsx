@@ -40,6 +40,12 @@ describe('Saved page', () => {
     expect(within(map).getAllByRole('listitem')).toHaveLength(2)
   })
 
+  it('the Map tab shows OSM tiles when tiles are on (AC1)', async () => {
+    stubApi({ ...two, 'GET /startup-status': { status: 200, body: { map_tiles: true } } })
+    renderAt('/saved?view=map')
+    expect((await screen.findAllByTestId('map-tile')).length).toBeGreaterThan(0)
+  })
+
   it('the List tab shows all saved places (AC7)', async () => {
     stubApi(two)
     renderAt('/saved?view=map')

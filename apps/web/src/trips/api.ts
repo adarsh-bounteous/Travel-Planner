@@ -357,7 +357,7 @@ export type RestaurantPick = {
   cuisine: string
   typical_price: string | null
   currency: string
-  url: string | null
+  url?: string | null // absent on the shared read-only view
   date: string | null
   meal: Meal | null
 }

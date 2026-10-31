@@ -77,6 +77,18 @@ export function SharedTripPage() {
         onMoveActivity={async () => {}}
         onRemoveActivity={noop}
       />
+      {(trip.restaurants ?? []).length > 0 && (
+        <section className="card stack" aria-labelledby="shared-restaurants">
+          <h2 id="shared-restaurants">Restaurants</h2>
+          <ul className="restaurant-picks">
+            {(trip.restaurants ?? []).map((pick) => (
+              <li className="restaurant-pick" key={pick.id}>
+                <span className="text-bold">{pick.name}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {removed && (
         <AccessRemovedModal
           text="The owner has turned off this read-only link."

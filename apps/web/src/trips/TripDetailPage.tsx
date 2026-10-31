@@ -17,6 +17,7 @@ import { RemoveStayModal } from './RemoveStayModal'
 import { ShareTripModal } from './ShareTripModal'
 import { StayDrawer } from './StayDrawer'
 import { StaysReviewDrawer } from './StaysReviewDrawer'
+import { RestaurantsCard } from './RestaurantsCard'
 import { StaysSection } from './StaysSection'
 import { formatRange } from './stays'
 import { Toast } from './Toast'
@@ -284,7 +285,11 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             onAddActivity={(day) => setPanel({ id: 'add-activity', day })}
             onMoveActivity={move}
             onRemoveActivity={(activity) => setPanel({ id: 'remove-activity', activity })}
-            onMoveRestaurant={(pick) => setPanel({ id: 'move-restaurant', pick })}
+            onMoveRestaurant={(pick) =>
+              (trip.days ?? []).length === 0
+                ? setToast({ id: Date.now(), message: 'Add trip dates first, then you can give this pick a day.' })
+                : setPanel({ id: 'move-restaurant', pick })
+            }
           />
         ) : tab === 'stays' ? (
           <StaysSection
@@ -314,7 +319,10 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             }}
           />
         ) : (
-          <TravelHelpersCard trip={trip} />
+          <div className="stack">
+            <RestaurantsCard trip={trip} canEdit={canEdit} />
+            <TravelHelpersCard trip={trip} />
+          </div>
         )}
       </div>
       {(trip.destination_unmatched || (trip.country && trip.place)) && (

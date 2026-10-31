@@ -150,9 +150,33 @@ a.btn { text-decoration: none; }
 .imgc.is-loaded .imgc-img { opacity: 1; }
 .imgc.is-loaded .imgc-blur { opacity: 0; }
 
+/* Route change: fade and slide. No token exists for 250 ms, so the duration is local. */
+:root { --route-duration: 250ms; --route-shift: var(--space-4); }
+@keyframes route-in { from { opacity: 0; transform: translateX(calc(var(--route-shift) * var(--route-dir, 1))); } to { opacity: 1; transform: none; } }
+@keyframes route-out { to { opacity: 0; transform: translateX(calc(var(--route-shift) * var(--route-dir, 1) * -1)); } }
+.route-view { view-transition-name: route; }
+.route-anim { animation: route-in var(--route-duration) var(--motion-ease-out) both; }
+html.vt-active::view-transition-group(*) { animation-duration: var(--route-duration); }
+html.vt-active::view-transition-old(root), html.vt-active::view-transition-new(root) { animation: none; }
+html.vt-active::view-transition-old(route) { animation: route-out var(--route-duration) var(--motion-ease-out) both; }
+html.vt-active::view-transition-new(route) { animation: route-in var(--route-duration) var(--motion-ease-out) both; }
+
+/* Trip tabs: one underline that slides, and a panel that cross-fades. */
+.trip-tabs { position: relative; }
+.trip-tabs .tab[aria-selected="true"] { border-bottom-color: transparent; }
+.tab-indicator { position: absolute; bottom: 0; left: 0; width: 0; height: var(--border-width-strong); background: var(--color-primary); pointer-events: none; }
+.tab-indicator.is-moving { transition: left var(--motion-duration-base) var(--motion-ease-in-out), width var(--motion-duration-base) var(--motion-ease-in-out); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { to { opacity: 0; } }
+.panel-wrap { position: relative; }
+.panel-in { animation: fade-in var(--motion-duration-base) var(--motion-ease-out) both; }
+.panel-ghost { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; animation: fade-out var(--motion-duration-base) var(--motion-ease-out) both; }
+
 /* Reduced motion keeps a fade but removes all movement. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition-property: opacity !important; transition-duration: var(--motion-duration-base) !important; transition-timing-function: linear !important; }
+  :root { --route-shift: 0px; }
+  .tab-indicator.is-moving { transition: none !important; }
+  *:not(.route-anim):not(.panel-in):not(.panel-ghost), *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition-property: opacity !important; transition-duration: var(--motion-duration-base) !important; transition-timing-function: linear !important; }
   .motion-move, .motion-move.is-moved { transform: none !important; }
 }
 

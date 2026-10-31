@@ -638,3 +638,70 @@ describe('TripDetailPage restyle', () => {
     expect(dayCards.length).toBeGreaterThanOrEqual(3)
   })
 })
+
+describe('TripDetailPage tab transitions', () => {
+  const lefts: Record<string, number> = { 'tab-itinerary': 60, 'tab-stays': 120 }
+  beforeEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
+      configurable: true,
+      get() {
+        return lefts[(this as HTMLElement).id] ?? 0
+      },
+    })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+      configurable: true,
+      get() {
+        return 50
+      },
+    })
+  })
+  afterEach(() => {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).offsetLeft
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).offsetWidth
+  })
+
+  const indicator = () => document.querySelector('.tab-indicator') as HTMLElement
+
+  it('slides the underline to the selected tab (AC3)', async () => {
+    open()
+    const stays = await screen.findByRole('tab', { name: 'Stays' })
+    expect(indicator().style.left).toBe('60px')
+    expect(indicator()).not.toHaveClass('is-moving')
+    fireEvent.click(stays)
+    expect(indicator().style.left).toBe('120px')
+    expect(indicator()).toHaveClass('is-moving')
+    expect(indicator()).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('cross-fades the panel and drops the ghost when done (AC4)', async () => {
+    open()
+    fireEvent.click(await screen.findByRole('tab', { name: 'Stays' }))
+    const ghost = document.querySelector('.panel-ghost') as HTMLElement
+    expect(ghost).not.toBeNull()
+    expect(ghost).toHaveAttribute('aria-hidden', 'true')
+    expect(ghost).toHaveAttribute('inert')
+    expect(ghost.querySelectorAll('[id]')).toHaveLength(0)
+    expect(ghost).not.toHaveAttribute('id')
+    expect(screen.getByRole('tabpanel')).toHaveClass('panel-in')
+    fireEvent.animationEnd(screen.getByRole('tabpanel'))
+    expect(document.querySelector('.panel-ghost')).toBeNull()
+  })
+
+  it('has no ghost on first render', async () => {
+    open()
+    await screen.findByRole('tab', { name: 'Stays' })
+    expect(document.querySelector('.panel-ghost')).toBeNull()
+  })
+
+  it('keeps focus and live regions the same on a keyboard tab change (AC8)', async () => {
+    open()
+    const stays = await screen.findByRole('tab', { name: 'Stays' })
+    const liveBefore = document.querySelectorAll('[aria-live]').length
+    stays.focus()
+    fireEvent.click(stays)
+    expect(stays).toHaveFocus()
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'tab-stays')
+    expect(document.querySelectorAll('[aria-live]').length).toBe(liveBefore)
+    expect(document.querySelectorAll('.tab-indicator [aria-live], .panel-ghost [role="tabpanel"]')).toHaveLength(0)
+  })
+})

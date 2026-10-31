@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { AlertIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, EditIcon, InfoIcon, RefreshIcon, UserIcon } from '../auth/icons'
 import { fetchTrip, fetchVisa, setVisaSelfCheck } from './api'
 import type { Trip, VisaResult, VisaView } from './api'
 import { CompanionDetailsDrawer } from './CompanionDetailsDrawer'
@@ -56,6 +56,7 @@ export function VisaRequirementsPage() {
       <div className="alert alert-danger" role="alert">
         <p>We couldn't load the visa requirements. Try again.</p>
         <button className="btn btn-secondary" type="button" onClick={reload}>
+          <RefreshIcon />
           Retry
         </button>
       </div>
@@ -95,6 +96,7 @@ export function VisaRequirementsPage() {
             {loaded && `Rules published by provider on ${formatDate(loaded.view.published_on)}`}
           </span>
           <button className="btn btn-ghost btn-sm" type="button" onClick={reload}>
+            <RefreshIcon />
             Refresh rules
           </button>
         </span>
@@ -114,7 +116,10 @@ export function VisaRequirementsPage() {
         <div className="grid">
           {loaded.view.travellers.map((row) => (
             <article className="card traveller-card stack stack-sm" key={keyOf(row)}>
-              <h3>{row.name}</h3>
+              <h3>
+                <UserIcon />
+                {row.name}
+              </h3>
               <p className="text-sm text-muted">
                 Citizenship: {row.citizenship || 'Not yet entered'} · Residence:{' '}
                 {row.residence || 'Not yet entered'}
@@ -132,10 +137,12 @@ export function VisaRequirementsPage() {
                       aria-label={`Enter details for ${row.name}`}
                       onClick={() => setEditing(row.traveller_id)}
                     >
+                      <EditIcon />
                       Enter details
                     </button>
                   ) : (
                     <Link className="btn btn-ghost btn-sm" to="/profile">
+                      <UserIcon />
                       Enter details in your profile
                     </Link>
                   )}
@@ -188,6 +195,7 @@ export function VisaRequirementsPage() {
                       aria-pressed={row.marked_self_check}
                       onClick={() => mark(row)}
                     >
+                      <CheckIcon />
                       I'll check myself
                     </button>
                     <p className="text-sm text-muted" role="status">

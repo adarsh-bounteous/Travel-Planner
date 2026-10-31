@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, HeartIcon, RefreshIcon, SearchIcon } from '../auth/icons'
 import { fetchStayOptions, fetchTrip, stayQuery } from './api'
 import type { Stay, StayCriteria, StayOptions } from './api'
 import { PropertyCard } from './PropertyCard'
@@ -122,6 +122,7 @@ export function StayOptionsPage() {
                 We couldn't load stays. Check your connection and try again.
               </span>
               <button className="btn btn-secondary" type="button" onClick={() => run(applied, 'apply')}>
+                <RefreshIcon />
                 Retry
               </button>
             </div>
@@ -137,6 +138,7 @@ export function StayOptionsPage() {
                     className="btn btn-secondary"
                     to={`/trips/${encodeURIComponent(tripId)}/stays/${encodeURIComponent(stayId)}/shortlist?${stayQuery(applied)}`}
                   >
+                    <HeartIcon />
                     View shortlist
                   </Link>
                 </div>
@@ -160,9 +162,11 @@ export function StayOptionsPage() {
               <p className="text-sm">{describeCriteria(applied, stay.place)}</p>
               <div className="actions-end">
                 <button className="btn btn-primary" type="button" onClick={relax}>
+                  <RefreshIcon />
                   Relax filters
                 </button>
                 <button className="btn btn-secondary" type="button" onClick={widen}>
+                  <SearchIcon />
                   Widen search
                 </button>
               </div>

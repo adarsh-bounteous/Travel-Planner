@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertIcon, CheckIcon, PlusIcon, XIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, PlusIcon, ShieldIcon, XIcon } from '../auth/icons'
 import { FieldError } from './FieldError'
 
 export type InsuranceDetails = { ownerAge: number; companionAges: number[]; activities: string[] }
@@ -219,7 +219,8 @@ export function InsuranceDetailsForm({
           disabled={!complete || busy}
           onClick={() => ownerAge !== null && onCompare({ ownerAge, companionAges: companions, activities })}
         >
-          {busy ? <span className="spinner" role="status" aria-label="Saving details" /> : 'Compare plans'}
+          {busy ? <span className="spinner" role="status" aria-label="Saving details" /> : <ShieldIcon />}
+          Compare plans
         </button>
       </div>
     </div>

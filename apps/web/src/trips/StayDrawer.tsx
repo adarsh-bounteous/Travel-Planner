@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BedIcon, CheckIcon, XIcon } from '../auth/icons'
 import { addStay, updateStay } from './api'
 import type { Stay, StayInput, Trip } from './api'
 import { FieldError } from './FieldError'
@@ -68,7 +69,10 @@ export function StayDrawer({ trip, stay, onClose, onSaved }: StayDrawerProps) {
             save()
           }}
         >
-          <h2 id="stay-title">{stay ? 'Edit stay' : 'Add stay'}</h2>
+          <h2 id="stay-title">
+            <BedIcon />
+            {stay ? 'Edit stay' : 'Add stay'}
+          </h2>
           <div className={`field${invalid && errors.place ? ' is-invalid' : ''}`}>
             <label className="field-label" htmlFor="stay-place">
               Place
@@ -118,9 +122,11 @@ export function StayDrawer({ trip, stay, onClose, onSaved }: StayDrawerProps) {
           )}
           <div className="overlay-actions end">
             <button className="btn btn-ghost" type="button" onClick={onClose}>
+              <XIcon />
               Cancel
             </button>
             <button className="btn btn-primary" type="submit" disabled={pending || invalid}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save stay'}
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertIcon, EyeIcon } from '../auth/icons'
+import { AlertIcon, ArrowRightIcon, EyeIcon, ListIcon } from '../auth/icons'
 import { emailItinerary } from './api'
 import { Toast } from './Toast'
 
@@ -47,10 +47,12 @@ export function ItineraryActions({ tripId, email, showView = true, onPrint }: It
         )}
         {onPrint ? (
           <button className="btn btn-secondary" type="button" onClick={onPrint}>
+            <ListIcon />
             Print or Save as PDF
           </button>
         ) : (
           <Link className="btn btn-secondary" to={`${itineraryPath}?print=1`}>
+            <ListIcon />
             Print or Save as PDF
           </Link>
         )}
@@ -67,7 +69,10 @@ export function ItineraryActions({ tripId, email, showView = true, onPrint }: It
               Sending copy…
             </>
           ) : (
-            'Email me a copy'
+            <>
+              <ArrowRightIcon />
+              Email me a copy
+            </>
           )}
         </button>
       </div>

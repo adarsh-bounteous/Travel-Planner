@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { AlertIcon, ChevronDownIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, ChevronDownIcon, XIcon } from '../auth/icons'
 import { evaluateDestination, formatDestination, parseDestination } from '../places/destinationMatch'
 import type { Catalogue, Choice } from '../places/destinationMatch'
 import { fetchStarterDestinations } from '../places/starterApi'
@@ -234,9 +234,11 @@ export function DestinationPicker({ idPrefix, value, onChange, error }: Destinat
               className="btn btn-primary btn-sm"
               onClick={() => choose(suggestion)}
             >
+              <CheckIcon />
               Use {suggestion.place}
             </button>
             <button type="button" className="btn btn-ghost btn-sm" onClick={clearFeedback}>
+              <XIcon />
               No thanks
             </button>
           </div>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { SearchIcon } from '../auth/icons'
+import { EditIcon, SearchIcon } from '../auth/icons'
 import { OptionCard } from '../components/OptionCard'
 import { ValidationError } from '../trips/api'
 import { formatMoney } from '../trips/stayOptions'
@@ -142,6 +142,7 @@ export function TravelSearchPage() {
 
   const searchButton = (
     <button className="btn btn-primary" type="submit" disabled={pending}>
+      <SearchIcon />
       {pending ? (
         <>
           <span className="spinner" aria-hidden="true" /> Searching…
@@ -196,6 +197,7 @@ export function TravelSearchPage() {
             </div>
             <div className="cluster">
               <button className="btn btn-ghost" type="button" onClick={() => setDone(null)}>
+                <EditIcon />
                 Change search
               </button>
             </div>
@@ -213,6 +215,7 @@ export function TravelSearchPage() {
             <div className="cluster">
               {searchButton}
               <button className="btn btn-ghost" type="button" onClick={() => setDone(null)}>
+                <EditIcon />
                 Change search
               </button>
             </div>

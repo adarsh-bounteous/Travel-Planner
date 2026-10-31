@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, ArrowRightIcon, ShieldIcon } from '../auth/icons'
 import { fetchVisa } from './api'
 import type { VisaResult } from './api'
 import { VisaStatusBadge } from './VisaStatusBadge'
@@ -27,7 +27,10 @@ export function VisaSummaryCard({ tripId, unresolved }: { tripId: string; unreso
 
   return (
     <section className="card stack stack-sm" aria-labelledby="visa-heading">
-      <h3 id="visa-heading">Visa</h3>
+      <h3 id="visa-heading">
+        <ShieldIcon />
+        Visa
+      </h3>
       {rows === null ? (
         <div role="status" aria-label="Loading visa">
           <span className="skeleton" />
@@ -55,6 +58,7 @@ export function VisaSummaryCard({ tripId, unresolved }: { tripId: string; unreso
       )}
       <div>
         <Link className="btn btn-primary" to={`/trips/${encodeURIComponent(tripId)}/visa-requirements`}>
+          <ArrowRightIcon />
           Visa requirements
         </Link>
       </div>

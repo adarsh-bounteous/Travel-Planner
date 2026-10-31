@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ArrowRightIcon, BellIcon, EditIcon, EyeIcon } from '../auth/icons'
+import { ArrowRightIcon, BagIcon, BellIcon, CompassIcon, EditIcon, EyeIcon, ShieldIcon } from '../auth/icons'
 import { useAuth } from '../auth/AuthProvider'
 import { ImageHero } from '../components/ImageHero'
 import { illustrationRefOfTrip } from '../illustrations/registry'
@@ -213,6 +213,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
               aria-describedby={bookable ? undefined : 'book-hint'}
               onClick={() => setPanel({ id: 'book' })}
             >
+              <BagIcon />
               Book trip
             </button>
             {!bookable && (
@@ -293,6 +294,7 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
             className="btn btn-secondary"
             to={`/trips/${encodeURIComponent(trip.id)}/insurance-options`}
           >
+            <ShieldIcon />
             Insurance options
           </Link>
         )}
@@ -350,7 +352,10 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
       </PanelFade>
       {(trip.destination_unmatched || (trip.country && trip.place)) && (
         <section className="card stack" aria-labelledby="destination-heading">
-          <h2 id="destination-heading">Destination</h2>
+          <h2 id="destination-heading">
+            <CompassIcon />
+            Destination
+          </h2>
           <div className="field">
             <label className="field-label" htmlFor="d-typed">
               Destination (typed)

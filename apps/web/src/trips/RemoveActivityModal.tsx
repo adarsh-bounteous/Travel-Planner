@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TrashIcon, XIcon } from '../auth/icons'
 import { removeActivity } from './api'
 import type { Activity, Trip } from './api'
 import { Overlay } from './Overlay'
@@ -29,7 +30,10 @@ export function RemoveActivityModal({ tripId, activity, onClose, onRemoved }: Re
   return (
     <Overlay kind="modal" labelledBy="remove-activity-title" onClose={onClose}>
       <div className="stack stack-lg">
-        <h2 id="remove-activity-title">Remove this activity?</h2>
+        <h2 id="remove-activity-title">
+          <TrashIcon />
+          Remove this activity?
+        </h2>
         <p>
           <strong>{activity.name}</strong> will be removed from this day.
         </p>
@@ -40,9 +44,11 @@ export function RemoveActivityModal({ tripId, activity, onClose, onRemoved }: Re
         )}
         <div className="overlay-actions end">
           <button className="btn btn-secondary" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="button" disabled={pending} onClick={remove}>
+            <TrashIcon />
             {pending ? 'Removing…' : 'Remove'}
           </button>
         </div>

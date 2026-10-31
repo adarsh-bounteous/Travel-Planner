@@ -4,7 +4,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { usePageName } from '../pageTitle'
 import { useAuth } from '../auth/AuthProvider'
-import { ArrowLeftIcon, SearchIcon } from '../auth/icons'
+import { ArrowLeftIcon, SearchIcon, SuitcaseIcon } from '../auth/icons'
 import { fetchItinerary, NotFoundError } from './api'
 import type { Itinerary } from './api'
 import { ItineraryActions } from './ItineraryActions'
@@ -71,6 +71,7 @@ export function ItineraryPage() {
           add you as an editor.
         </p>
         <Link className="btn btn-primary" to="/">
+          <SuitcaseIcon />
           Go to your trips
         </Link>
       </div>

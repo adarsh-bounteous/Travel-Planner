@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, CheckIcon, InfoIcon, SearchIcon } from '../auth/icons'
+import {
+  AlertIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  InfoIcon,
+  RefreshIcon,
+  SearchIcon,
+  UserIcon,
+} from '../auth/icons'
 import { fetchMedicalGuidance, fetchTrip } from './api'
 import type { MedicalGuidanceView, Trip, TravellerGuidance, VaccinationGuidance } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -28,7 +36,10 @@ const Confirm = ({ note }: { note: string }) => (
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <div className="stack stack-sm">
-    <h3 className="section-title">{title}</h3>
+    <h3 className="section-title">
+      <InfoIcon />
+      {title}
+    </h3>
     {children}
   </div>
 )
@@ -46,7 +57,10 @@ function TravellerCard({ row }: { row: TravellerGuidance }) {
   return (
     <section className="card stack" aria-labelledby={id}>
       <div className="stack stack-sm">
-        <h2 id={id}>{row.name}</h2>
+        <h2 id={id}>
+          <UserIcon />
+          {row.name}
+        </h2>
         <p className="text-sm text-muted">
           Lives in {row.residence || 'an unknown country'}, {row.citizenship || 'unknown'} citizen
         </p>
@@ -64,6 +78,7 @@ function TravellerCard({ row }: { row: TravellerGuidance }) {
               target="_blank"
               rel="noopener"
             >
+              <ArrowRightIcon />
               Official government travel site
             </a>
           )}
@@ -168,6 +183,7 @@ export function MedicalGuidancePage() {
       <div className="alert alert-danger" role="alert">
         <p>We couldn't load the medical guidance. Try again.</p>
         <button className="btn btn-secondary" type="button" onClick={reload}>
+          <RefreshIcon />
           Retry
         </button>
       </div>

@@ -105,6 +105,22 @@ describe('AppHeader', () => {
     expect(within(header).getByRole('link', { name: 'Saved' })).toHaveAttribute('href', '/saved')
   })
 
+  it('shows an icon from the set in every navigation link', async () => {
+    mockMe(200, { email: 'maya@example.com' })
+    renderAt('/saved')
+    const nav = within(await screen.findByRole('navigation', { name: 'Main' }))
+    for (const link of nav.getAllByRole('link')) expect(link.querySelector('svg.icon')).not.toBeNull()
+  })
+
+  it('shows an icon in the signed-out Sign in button', async () => {
+    mockMe(401, {})
+    renderAt('/sign-in')
+    const header = await screen.findByRole('banner')
+    expect(
+      (await within(header).findByRole('link', { name: 'Sign in' })).querySelector('svg.icon'),
+    ).not.toBeNull()
+  })
+
   it('opens My trips from the logo (AC6)', async () => {
     mockMe(200, { email: 'maya@example.com' })
     renderAt('/saved')

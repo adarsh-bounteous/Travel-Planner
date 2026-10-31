@@ -1,4 +1,4 @@
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CalendarIcon, CheckIcon } from '../auth/icons'
 import { Overlay } from './Overlay'
 import { formatRange } from './stays'
 import type { StayWarning } from './stays'
@@ -18,12 +18,10 @@ export function StayWarningModal({ stay, warning, pending, onChange, onSaveAnywa
   return (
     <Overlay kind="modal" role="alertdialog" labelledBy="stay-warning-title" onClose={onChange}>
       <div className="stack stack-lg">
-        <div className="modal-title">
+        <h2 id="stay-warning-title">
           <AlertIcon />
-          <h2 id="stay-warning-title">
-            {overlap ? 'These dates overlap another stay' : 'There is a gap between stays'}
-          </h2>
-        </div>
+          {overlap ? 'These dates overlap another stay' : 'There is a gap between stays'}
+        </h2>
         <p>
           {warning.kind === 'overlap'
             ? `${formatRange(warning.other.start_date, warning.other.end_date)} in ${warning.other.place} overlaps ${formatRange(stay.start_date, stay.end_date)} in ${stay.place}.`
@@ -31,9 +29,11 @@ export function StayWarningModal({ stay, warning, pending, onChange, onSaveAnywa
         </p>
         <div className="overlay-actions end">
           <button className="btn btn-secondary" type="button" onClick={onChange}>
+            <CalendarIcon />
             Change dates
           </button>
           <button className="btn btn-primary" type="button" disabled={pending} onClick={onSaveAnyway}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save anyway'}
           </button>
         </div>

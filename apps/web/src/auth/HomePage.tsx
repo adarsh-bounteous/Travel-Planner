@@ -5,6 +5,7 @@ import { LocalMenu } from '../local/LocalMenu'
 import { DestinationSearch } from '../places/DestinationSearch'
 import { MyTripsPage } from '../trips/MyTripsPage'
 import { useAuth } from './AuthProvider'
+import { ArrowRightIcon, ListIcon } from './icons'
 
 export function HomePage() {
   const { signOut } = useAuth()
@@ -20,6 +21,7 @@ export function HomePage() {
     <div className="stack">
       <div className="overlay-actions end">
         <button className="btn btn-ghost" type="button" onClick={() => setMenuOpen(true)}>
+          <ListIcon />
           Menu
         </button>
       </div>
@@ -35,6 +37,7 @@ export function HomePage() {
       </p>
       <div>
         <button className="btn btn-ghost" type="button" onClick={handleSignOut}>
+          <ArrowRightIcon />
           Sign out
         </button>
       </div>

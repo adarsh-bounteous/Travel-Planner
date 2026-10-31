@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { AlertIcon, TrashIcon } from '../auth/icons'
+import { AlertIcon, BellIcon, CheckIcon, TrashIcon, XIcon } from '../auth/icons'
 import { ForbiddenError, addReminder, deleteReminder, updateReminder } from './api'
 import type { Reminder, Trip } from './api'
 import { formatDay } from './ItineraryTab'
@@ -96,7 +96,10 @@ export function ReminderModal({
     <Overlay kind="modal" labelledBy="reminder-title" onClose={onClose}>
       <form className="stack stack-lg" noValidate onSubmit={submit}>
         <div className="stack stack-sm">
-          <h2 id="reminder-title">{reminder ? 'Edit reminder' : 'Add reminder'}</h2>
+          <h2 id="reminder-title">
+            <BellIcon />
+            {reminder ? 'Edit reminder' : 'Add reminder'}
+          </h2>
           {reminder && (
             <p className="text-muted">
               Attached to {attached ? attached.title : 'the whole trip'}
@@ -181,9 +184,11 @@ export function ReminderModal({
           )}
           <div className="overlay-actions">
             <button className="btn btn-ghost" type="button" onClick={onClose}>
+              <XIcon />
               Cancel
             </button>
             <button className="btn btn-primary" type="submit" disabled={pending}>
+              <CheckIcon />
               {pending ? 'Saving…' : 'Save'}
             </button>
           </div>

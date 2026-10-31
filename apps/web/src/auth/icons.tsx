@@ -186,6 +186,85 @@ export const ClockIcon = () => (
 
 export const CloseIcon = XIcon
 
+export const UsersIcon = () => (
+  <Icon>
+    <circle cx="9" cy="8" r="4" />
+    <path d="M2 21a7 7 0 0 1 14 0" />
+    <path d="M16 4.5a4 4 0 0 1 0 7" />
+    <path d="M22 21a7 7 0 0 0-4.5-6.5" />
+  </Icon>
+)
+
+export const BedIcon = () => (
+  <Icon>
+    <path d="M2 18V6" />
+    <path d="M2 14h20v4" />
+    <path d="M22 14v-2a3 3 0 0 0-3-3h-9v5" />
+    <circle cx="6" cy="11" r="1.5" />
+  </Icon>
+)
+
+export const PlaneIcon = () => (
+  <Icon>
+    <path d="M17.8 19.2 16 11l3.5-3.5A2.1 2.1 0 0 0 16.5 4.5L13 8 4.8 6.2 3.5 7.5l6.5 3.5-3 3-3-.5L3 15l4 2 2 4 1-1-.5-3 3-3 3.5 6.5Z" />
+  </Icon>
+)
+
+export const WalletIcon = () => (
+  <Icon>
+    <path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+  </Icon>
+)
+
+export const SimIcon = () => (
+  <Icon>
+    <path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+    <rect x="8" y="12" width="8" height="6" rx="1" />
+  </Icon>
+)
+
+export const UtensilsIcon = () => (
+  <Icon>
+    <path d="M3 2v7a3 3 0 0 0 6 0V2" />
+    <path d="M6 2v20" />
+    <path d="M18 22V2c-2.5 1.5-4 4-4 8 0 2 1 3 4 3" />
+  </Icon>
+)
+
+export const ShieldIcon = () => (
+  <Icon>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+  </Icon>
+)
+
+export const CompassIcon = () => (
+  <Icon>
+    <circle cx="12" cy="12" r="10" />
+    <path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3Z" />
+  </Icon>
+)
+
+export const ListIcon = () => (
+  <Icon>
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
+  </Icon>
+)
+
+export const RefreshIcon = () => (
+  <Icon>
+    <path d="M21 12a9 9 0 0 0-15-6.7L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 15 6.7L21 16" />
+    <path d="M16 16h5v5" />
+  </Icon>
+)
+
 /** The single icon set, keyed by the names the design uses. */
 export const ICONS = {
   home: HomeIcon,
@@ -199,4 +278,18 @@ export const ICONS = {
   'arrow-right': ArrowRightIcon,
   close: CloseIcon,
   suitcase: SuitcaseIcon,
+  compass: CompassIcon,
+  heart: HeartIcon,
+  users: UsersIcon,
+  bed: BedIcon,
+  plane: PlaneIcon,
+  wallet: WalletIcon,
+  sim: SimIcon,
+  utensils: UtensilsIcon,
+  shield: ShieldIcon,
+  list: ListIcon,
+  refresh: RefreshIcon,
 } as const
+
+/** A name from the icon set, so a call site cannot reference an icon outside it. */
+export type IconName = keyof typeof ICONS

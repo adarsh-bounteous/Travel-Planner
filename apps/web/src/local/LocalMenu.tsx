@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { fetchLocalMode, requestResetLocalData } from '../auth/api'
 import { useAuth } from '../auth/AuthProvider'
-import { AlertIcon, XIcon } from '../auth/icons'
+import { AlertIcon, ListIcon, RefreshIcon, TrashIcon, XIcon } from '../auth/icons'
 import { Overlay } from '../trips/Overlay'
 
 /** The Menu drawer. Its developer tools, and the reset confirmation, exist only while local sign-in is on. */
@@ -46,7 +46,10 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
       <Overlay kind="drawer" labelledBy="menu-title" covered={confirming} onClose={onClose}>
         <div className="stack">
           <div className="between">
-            <h2 id="menu-title">Menu</h2>
+            <h2 id="menu-title">
+              <ListIcon />
+              Menu
+            </h2>
             <button className="btn btn-ghost btn-icon" type="button" aria-label="Close menu" onClick={onClose}>
               <XIcon />
             </button>
@@ -82,6 +85,7 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
                 Developer tools. Visible only while local sign-in is on.
               </p>
               <button className="btn btn-secondary" type="button" onClick={() => setConfirming(true)}>
+                <RefreshIcon />
                 Reset local data
               </button>
             </>
@@ -97,7 +101,10 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
           onClose={() => setConfirming(false)}
         >
           <div className="stack stack-lg">
-            <h2 id="reset-local-title">Reset local data</h2>
+            <h2 id="reset-local-title">
+              <RefreshIcon />
+              Reset local data
+            </h2>
             <p id="reset-local-text">
               All local accounts and sessions will be deleted. Sample data will be restored.
             </p>
@@ -109,9 +116,11 @@ export function LocalMenu({ onClose }: { onClose: () => void }) {
             )}
             <div className="overlay-actions end">
               <button className="btn btn-ghost" type="button" onClick={() => setConfirming(false)}>
+                <XIcon />
                 Cancel
               </button>
               <button className="btn btn-danger" type="button" disabled={pending} onClick={reset}>
+                <TrashIcon />
                 {pending ? 'Resetting…' : 'Reset'}
               </button>
             </div>

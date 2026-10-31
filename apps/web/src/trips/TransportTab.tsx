@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, EditIcon, EyeIcon, PlaneIcon, PlusIcon, XIcon } from '../auth/icons'
 import { BookingLink } from '../travel/BookingLink'
 import { clearTransport, refreshTransport } from './api'
 import type { TransportLeg, TransportPick, Trip } from './api'
@@ -69,7 +69,10 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
 
   return (
     <section className="stack" aria-labelledby="transport-heading">
-      <h2 id="transport-heading">Transport</h2>
+      <h2 id="transport-heading">
+        <PlaneIcon />
+        Transport
+      </h2>
       {changed.map((p) => (
         <div className="alert alert-warning" role="status" key={p.leg}>
           <span className="alert-title">A fare changed after you picked it.</span>
@@ -87,7 +90,10 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
           const pick = picks.find((p) => p.leg === leg)
           return (
             <div className="card stack" key={leg}>
-              <h3>{legName(leg, destination)}</h3>
+              <h3>
+                <PlaneIcon />
+                {legName(leg, destination)}
+              </h3>
               {pick ? (
                 <div className="card leg-pick">
                   <div className="pick-head">
@@ -106,9 +112,11 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
                   {editable && (
                     <div className="cluster">
                       <Link className="btn btn-secondary" to={shortlistHref(trip, leg, pick)}>
+                        <EditIcon />
                         Change
                       </Link>
                       <button className="btn btn-ghost" type="button" onClick={() => clear(pick)}>
+                        <XIcon />
                         Clear
                       </button>
                     </div>
@@ -116,9 +124,13 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
                 </div>
               ) : (
                 <>
-                  <div className="empty-state">No transport picked yet</div>
+                  <div className="empty-state">
+                    <PlaneIcon />
+                    No transport picked yet
+                  </div>
                   {editable && (
                     <Link className="btn btn-secondary" to={shortlistHref(trip, leg)}>
+                      <PlusIcon />
                       Choose transport
                     </Link>
                   )}
@@ -140,6 +152,7 @@ export function TransportTab({ trip: initial, onChanged, onViewItinerary }: Tran
           : 'No picks yet, so nothing is added to your trip.'}
       </p>
       <button className="btn btn-primary" type="button" style={{ alignSelf: 'flex-start' }} onClick={onViewItinerary}>
+        <EyeIcon />
         View itinerary
       </button>
       {toast && <Toast key={toast.id} message={toast.message} />}

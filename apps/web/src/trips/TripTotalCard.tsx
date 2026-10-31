@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { AlertIcon, CheckIcon, InfoIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, InfoIcon, WalletIcon } from '../auth/icons'
 import { useCountUp } from '../motion'
 import type { CostSummary, InsurancePick } from './api'
 
@@ -37,6 +37,7 @@ export function TripTotalCard({
     <section className="card stack stack-sm" aria-label="Trip total">
       <div className="total-row">
         <h2 aria-live="polite">
+          <WalletIcon />
           {counting ? (
             <>
               <span aria-hidden="true">{formatMoney(Math.round(shown), currency)}</span>
@@ -65,6 +66,7 @@ export function TripTotalCard({
       )}
       {costsHref && (
         <Link className="btn btn-ghost" to={costsHref}>
+          <WalletIcon />
           View costs in another currency
         </Link>
       )}

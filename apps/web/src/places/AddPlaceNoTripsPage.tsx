@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { CalendarIcon } from '../auth/icons'
+import { CalendarIcon, PlusIcon } from '../auth/icons'
 import { GUIDED_SETUP_PATH } from '../trips/MyTripsPage'
 import type { Place } from './api'
 
@@ -16,6 +16,7 @@ export function AddPlaceNoTripsPage() {
         <h2>You have no trips yet</h2>
         <p>Places live inside a trip. Set one up first and we'll add this place right after.</p>
         <Link className="btn btn-primary" to={GUIDED_SETUP_PATH} state={{ addPlace: place }}>
+          <PlusIcon />
           New trip
         </Link>
       </div>

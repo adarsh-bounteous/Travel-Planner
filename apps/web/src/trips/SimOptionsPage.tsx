@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, SearchIcon } from '../auth/icons'
+import { AlertIcon, CalendarIcon, SearchIcon } from '../auth/icons'
 import { clearSim, fetchSimOptions, fetchTrip, pickSim } from './api'
 import type { SimOption, SimOptions } from './api'
 import { DestinationGate } from './DestinationGate'
@@ -156,6 +156,7 @@ export function SimOptionsPage() {
           <h2 className="text-lg">No SIM options match this destination and trip dates.</h2>
           <p className="text-muted">Try changing your trip dates and check again.</p>
           <Link className="btn btn-primary" to={tripLink}>
+            <CalendarIcon />
             Change trip dates
           </Link>
         </div>

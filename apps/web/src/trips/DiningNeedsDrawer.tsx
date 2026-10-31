@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UserIcon } from '../auth/icons'
+import { CheckIcon, UserIcon, UtensilsIcon, XIcon } from '../auth/icons'
 import { saveDiningNeeds } from './api'
 import { FieldError } from './FieldError'
 import { Overlay } from './Overlay'
@@ -44,8 +44,14 @@ export function DiningNeedsDrawer({ tripId, needs, profileFilters, onClose, onAp
   return (
     <Overlay kind="drawer" labelledBy="needs-title" describedBy="needs-note" onClose={onClose}>
       <div className="stack">
-        <h2 id="needs-title">Dining needs for this trip</h2>
-        <h3>From your profile</h3>
+        <h2 id="needs-title">
+          <UtensilsIcon />
+          Dining needs for this trip
+        </h2>
+        <h3>
+          <UserIcon />
+          From your profile
+        </h3>
         <div className="cluster" role="group" aria-label="Profile filters">
           {profileFilters.map((label) => (
             <span key={label} className="chip chip-static is-selected">
@@ -54,7 +60,10 @@ export function DiningNeedsDrawer({ tripId, needs, profileFilters, onClose, onAp
             </span>
           ))}
         </div>
-        <h3>Added for this trip</h3>
+        <h3>
+          <UtensilsIcon />
+          Added for this trip
+        </h3>
         <fieldset className="needs-list" aria-describedby="needs-note">
           <legend>Extra needs for this trip</legend>
           {DINING_NEEDS.map(({ id, label }) => (
@@ -78,9 +87,11 @@ export function DiningNeedsDrawer({ tripId, needs, profileFilters, onClose, onAp
         />
         <div className="actions-end">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="button" disabled={saving} onClick={apply}>
+            <CheckIcon />
             {saving ? 'Applying' : 'Apply'}
           </button>
         </div>

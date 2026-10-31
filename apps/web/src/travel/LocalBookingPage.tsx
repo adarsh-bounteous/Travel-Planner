@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { EmptyStateArt } from '../components/EmptyStateArt'
-import { AlertIcon, ArrowLeftIcon } from '../auth/icons'
+import {
+  AlertIcon,
+  ArrowLeftIcon,
+  CalendarIcon,
+  CheckIcon,
+  ListIcon,
+  SearchIcon,
+  WalletIcon,
+} from '../auth/icons'
 import { formatMoney } from '../trips/stayOptions'
 import { fetchBookingPreview } from './api'
 import type { BookingPreview } from './api'
@@ -33,6 +41,7 @@ export function LocalBookingPage() {
           <h2>This page is not available</h2>
           <p>The pretend booking page only exists when local mode is on and the link is one we generated.</p>
           <Link className="btn btn-primary" to="/explore/travel">
+            <SearchIcon />
             Search travel
           </Link>
         </div>
@@ -54,11 +63,20 @@ export function LocalBookingPage() {
       </div>
       <div className="mail-sheet">
         <dl className="mail-meta">
-          <dt>Option</dt>
+          <dt>
+            <ListIcon />
+            Option
+          </dt>
           <dd>{option.name}</dd>
-          <dt>Dates</dt>
+          <dt>
+            <CalendarIcon />
+            Dates
+          </dt>
           <dd>{formatRange(start, end)}</dd>
-          <dt>Price</dt>
+          <dt>
+            <WalletIcon />
+            Price
+          </dt>
           <dd>{`${formatMoney(option.price, option.currency)} ${option.unit}`}</dd>
         </dl>
         <div className="mail-body">
@@ -72,6 +90,7 @@ export function LocalBookingPage() {
       <div className="stack stack-sm">
         <div>
           <button className="btn btn-primary" type="button" disabled aria-describedby="confirm-hint">
+            <CheckIcon />
             Confirm booking
           </button>
         </div>

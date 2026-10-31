@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { AlertIcon } from '../auth/icons'
+import { AlertIcon, CheckIcon, EditIcon, XIcon } from '../auth/icons'
 import { renameDay } from './api'
 import type { Day, Trip } from './api'
 import { Overlay } from './Overlay'
@@ -40,7 +40,10 @@ export function RenameDayModal({ tripId, day, position, onClose, onRenamed }: Re
   return (
     <Overlay kind="modal" labelledBy="rename-title" onClose={onClose}>
       <form className="stack stack-lg" noValidate onSubmit={submit}>
-        <h2 id="rename-title">{`Rename day ${position}`}</h2>
+        <h2 id="rename-title">
+          <EditIcon />
+          {`Rename day ${position}`}
+        </h2>
         <div className={`field${error ? ' is-invalid' : ''}`}>
           <label className="field-label" htmlFor="day-name-input">
             Day name
@@ -69,9 +72,11 @@ export function RenameDayModal({ tripId, day, position, onClose, onRenamed }: Re
         </div>
         <div className="overlay-actions end">
           <button className="btn btn-ghost" type="button" onClick={onClose}>
+            <XIcon />
             Cancel
           </button>
           <button className="btn btn-primary" type="submit" disabled={pending}>
+            <CheckIcon />
             {pending ? 'Saving…' : 'Save'}
           </button>
         </div>

@@ -37,6 +37,14 @@ describe('AppHeader', () => {
     )
   })
 
+  it('shows the logo in the header link (AC1)', async () => {
+    mockMe(401)
+    renderAt('/sign-up')
+    const header = await screen.findByRole('banner')
+    const brand = within(header).getByRole('link', { name: 'Travel Planner' })
+    expect(brand.querySelector('svg.brand-mark')).not.toBeNull()
+  })
+
   it('opens the sign-in page when chosen (AC5)', async () => {
     mockMe(401)
     renderAt('/sign-up')

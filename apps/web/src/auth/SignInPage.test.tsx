@@ -34,6 +34,14 @@ async function submitSignIn(email: string, password: string) {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('SignInPage', () => {
+  it('shows the logo beside the form (AC1)', async () => {
+    mockApi({ '/auth/me': { status: 401 } })
+    renderAt('/sign-in')
+    await screen.findByRole('heading', { name: 'Sign in' })
+    const aside = document.querySelector('.auth-brand') as HTMLElement
+    expect(within(aside).getByRole('img', { name: 'Travel Planner' })).toBeInTheDocument()
+  })
+
   it('shows the wrong-password message and keeps the email (AC10)', async () => {
     mockApi({
       '/auth/me': { status: 401 },

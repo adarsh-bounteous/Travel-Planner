@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import App from './App'
 import { AuthProvider } from './auth/AuthProvider'
@@ -34,6 +34,14 @@ describe('NotFoundPage', () => {
       await screen.findByRole('heading', { level: 1, name: 'Page not found' }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'My trips' })).not.toBeInTheDocument()
+  })
+
+  it('shows the logo above the message (AC1)', async () => {
+    mockMe(200, { email: 'maya@example.com', method: 'email' })
+    renderAt('/no/such/page')
+    await screen.findByRole('heading', { level: 1, name: 'Page not found' })
+    const page = document.querySelector('.nf') as HTMLElement
+    expect(within(page).getByRole('img', { name: 'Travel Planner' })).toBeInTheDocument()
   })
 
   it('keeps known routes ahead of the catch-all (AC1)', async () => {

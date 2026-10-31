@@ -26,7 +26,23 @@ a:hover { color: var(--color-primary-hover); }
 
 .shell-header { border-bottom: var(--border-width) solid var(--color-border); background: var(--color-bg); }
 .shell-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-2) var(--space-3); }
-.shell-brand { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-primary); text-decoration: none; }
+.shell-brand { text-decoration: none; }
+.brand-logo { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-fg); text-decoration: none; }
+.brand-mark { width: var(--size-control-lg); height: var(--size-control-lg); flex: none; }
+.brand-mark .m-bg { fill: var(--color-primary); }
+.brand-mark .m-line { fill: none; stroke: var(--color-on-primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.brand-mark .m-dot { fill: var(--color-on-primary); }
+.brand-word { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); letter-spacing: -0.01em; line-height: 1; }
+.brand-word b { color: var(--color-primary); font-weight: var(--font-weight-bold); }
+.brand-logo-lg .brand-mark { width: calc(var(--size-control-lg) + var(--space-3)); height: calc(var(--size-control-lg) + var(--space-3)); }
+.brand-logo-lg .brand-word { font-size: var(--font-size-xl); }
+.brand-logo-inv { color: var(--color-on-primary); }
+.brand-logo-inv .brand-word b { color: var(--color-on-primary); }
+.brand-logo-inv .m-bg { fill: var(--color-on-primary); }
+.brand-logo-inv .m-line { stroke: var(--color-primary); }
+.brand-logo-inv .m-dot { fill: var(--color-primary); }
+.doc-brand { padding-bottom: var(--space-3); border-bottom: var(--border-width-strong) solid var(--color-primary); }
+.nf-brand { display: flex; justify-content: center; margin-bottom: var(--space-4); text-decoration: none; }
 a.btn { text-decoration: none; }
 .shell-main { width: 100%; max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-4) var(--space-3); min-width: 0; }
 @media (min-width: 48rem) { .shell-main { padding: var(--space-5) var(--space-4); } }

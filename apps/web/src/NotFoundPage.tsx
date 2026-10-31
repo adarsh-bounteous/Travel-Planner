@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router'
+import { BrandLogo } from './components/BrandLogo'
 
 export function NotFoundPage() {
   const { pathname, search } = useLocation()
@@ -7,6 +8,9 @@ export function NotFoundPage() {
   useEffect(() => heading.current?.focus(), [])
   return (
     <div className="nf">
+      <Link className="nf-brand" to="/" aria-label="Travel Planner">
+        <BrandLogo size="lg" />
+      </Link>
       <div className="empty-state">
         <span className="nf-icon" aria-hidden="true">
           <svg className="icon" viewBox="0 0 24 24">

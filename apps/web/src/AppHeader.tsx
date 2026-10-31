@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router'
 import { useAuth } from './auth/AuthProvider'
+import { BrandLogo } from './components/BrandLogo'
 import { MAIN_SECTIONS, mainSectionFor } from './navSections'
 
 // Top bar: logo, main sections, then utility links. Never collapses behind a menu button.
@@ -11,7 +12,7 @@ export function AppHeader() {
     <header className="shell-header">
       <div className="shell-bar">
         <Link className="shell-brand" to="/">
-          Travel Planner
+          <BrandLogo />
         </Link>
         {status === 'signedIn' && (
           <nav className="shell-nav" aria-label="Main">

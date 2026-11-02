@@ -1,7 +1,8 @@
 # 02c Live destination search, everywhere a destination is chosen
 
 Read `docs/agent-prompts/RULES.md` first. Run after 02 (stories 125–134: integration client, Nominatim
-resolver, OSM places, local opt-in). Do it on its own branch.
+resolver, OSM places, local opt-in) and after PR #122 (the Nominatim places backup and the integration
+cache fix). Do it on its own branch.
 
 ## Problem
 Wherever a traveller picks a destination, the app only knows a fixed list: `STARTER_DESTINATIONS`

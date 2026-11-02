@@ -1,7 +1,10 @@
 # 02b Place photos, recorded fixtures and old-trip backfill
 
 Read `docs/agent-prompts/RULES.md` first. Run after 02 (stories 125–134 already built the OpenStreetMap
-resolver, `OsmPlaceSearch`, fallback notice, opt-in and map tiles). This closes what prompt 02 left open.
+resolver, `OsmPlaceSearch`, fallback notice, opt-in and map tiles) and the later fixes merged in PR #122:
+`NominatimPlaceSearch` (`app/places/nominatim_places.py`), the backup `OsmPlaceSearch` asks when the
+public Overpass servers are busy, and the integration cache fix (cached responses no longer keep a stale
+`Content-Encoding` header). This closes what prompt 02 left open.
 
 ## Goal
 Real places currently all show the local placeholder image, the recorded-response folder is empty, and
@@ -22,7 +25,13 @@ trips saved before destination resolving existed stay unresolved. Fix those thre
    `tests/unit/integrations_support/recorded.py`) for Nominatim and Overpass for Lisbon, Kyoto and
    Paris, and one city that is not in the seed data (for example Porto). Add tests that run
    `NominatimResolver` and `OsmPlaceSearch` against them, plus error, timeout and empty-result cases.
-   Do the recording by hand, once, with the provider opted in; tests must never call out.
+   Also record the category searches `NominatimPlaceSearch` sends ("attraction in <city>" and the other
+   phrases) and test the Overpass-down path end to end: Overpass times out, the backup answers, and a
+   second identical search is served from cache and still returns places. Record at least one response
+   gzip-compressed, as the real servers send them. Do the recording by hand, once, with the provider
+   opted in; tests must never call out. Record on a network without TLS inspection, or set
+   `SSL_CERT_FILE` to a bundle that includes the corporate root certificate (a Zscaler-style proxy makes
+   Python fail with `CERTIFICATE_VERIFY_FAILED`). Never turn certificate verification off.
 3. **Backfill old trips.** Trips saved before story 132 load fine but have no location. Add a
    resolve-on-open step: when a trip with a country and place has no location, resolve it once (only
    if the provider is on or the resolver is cached) and store it. Never block the page on it, never
@@ -31,9 +40,11 @@ trips saved before destination resolving existed stay unresolved. Fix those thre
 
 ## Out of scope
 Ratings and price levels (OSM has neither; that needs a different provider). Any change to the
-destination format, the API client files or the devProxy.
+destination format or the devProxy. Don't change the integration client's behaviour except to fix a
+bug you can show with a failing test; the cache fix from PR #122 is already in.
 
 ## Done when
-With `places`, `nominatim` and `commons` opted in, `/explore` for a city never seeded shows real
+With `LOCAL_LIVE_PROVIDERS=places,commons` (the only registered names; `nominatim` and `overpass` are
+not provider names and the API refuses to start with them), `/explore` for a city never seeded shows real
 places, with photos where Commons has one and attribution under each. With them off, everything works
 as today. Recorded-fixture tests and the backfill test pass, and no test touches the network.

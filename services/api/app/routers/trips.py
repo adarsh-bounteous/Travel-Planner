@@ -4,7 +4,7 @@ import secrets
 import uuid
 from datetime import UTC, date, datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel
 
 from app.auth.identity import IdentityProvider
@@ -12,6 +12,7 @@ from app.config import Settings, get_settings
 from app.routers.auth import get_identity, get_now
 from app.routers.deps import (
     ApiError,
+    get_backfill_resolver,
     get_current_user,
     get_destination_resolver,
     get_invite_sender,
@@ -320,23 +321,37 @@ def create_trip(
     return _view(trip, rates, owner)
 
 
+def _backfill_location(trips: TripStore, owner_id: str, trip_id: str, resolver: DestinationResolver) -> None:
+    """Resolve once and store it. Never raises; never changes the destination or updated_at."""
+    try:
+        current = trips.get_trip(owner_id, trip_id)
+        if current is None or current.location is not None:  # deleted, or another open got there first
+            return
+        location = _located(current, resolver).location
+        if location is None:
+            return  # no match stays unstored, so a later open tries again
+        fresh = trips.get_trip(owner_id, trip_id)  # re-read just before writing so a concurrent edit is not overwritten
+        if fresh is not None and fresh.location is None:
+            trips.save_trip(owner_id, fresh.model_copy(update={"location": location}))
+    except Exception:
+        logger.warning("Location backfill failed for trip %s", trip_id, exc_info=True)
+
+
 @router.get("/{trip_id}")
 def get_trip(
     trip_id: str,
+    background: BackgroundTasks,
     user: str = Depends(get_current_user),
     trips: TripStore = Depends(get_trips),
     rates: RateSource = Depends(get_rates),
     profiles: ProfileStore = Depends(get_profiles),
     visa_rules: VisaRuleSource = Depends(get_visa_rules),
     identity: IdentityProvider = Depends(get_identity),
-    resolver: DestinationResolver = Depends(get_destination_resolver),
+    resolver: DestinationResolver = Depends(get_backfill_resolver),
 ) -> TripView:
     trip, owner, is_owner = _load(trips, identity, user, trip_id)  # same 404 for another traveller's trip and one that never existed
-    if trip.location is None:  # first open of a trip saved before locations existed, or one that could not be resolved
-        located = _located(trip, resolver)
-        if located.location is not None:
-            trips.save_trip(owner, located)  # updated_at stays as it was
-            trip = located
+    if trip.location is None and trip.country and trip.place:  # saved before locations existed, or one that could not be resolved
+        background.add_task(_backfill_location, trips, owner, trip.id, resolver)  # runs after the response is sent
     if not trip.days and trip.start_date and trip.end_date:
         trip = trip.model_copy(update={"days": _days(trip, trip.start_date, trip.end_date)})  # saved before days existed; not written
     view = _view(trip, rates, user, owner)

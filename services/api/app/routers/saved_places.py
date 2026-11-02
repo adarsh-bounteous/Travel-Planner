@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 
+from app.places.commons import is_commons_file_page
 from app.places.local_search import PLACEHOLDER_IMAGE
 from app.places.search import Place
 from app.routers.deps import get_current_user, get_saved_places
@@ -11,6 +12,7 @@ MAX_SAVED = 500
 MAX_ID = 100
 MAX_NAME = 200
 MAX_URL = 2048
+MAX_CREDIT = 300
 
 
 def _safe_image_url(url: str) -> bool:
@@ -46,6 +48,17 @@ def save_place(
         or not _safe_image_url(body.image_url)
     ):
         raise HTTPException(422, "invalid place")
+    if body.photo is not None:
+        photo = body.photo
+        if (
+            len(photo.file_url) > MAX_URL
+            or not is_commons_file_page(photo.file_url)
+            or len(photo.author) > MAX_CREDIT
+            or len(photo.licence) > MAX_CREDIT
+        ):
+            raise HTTPException(422, "invalid place")
+        # Only the credit is kept; the third-party thumbnail is not.
+        body = body.model_copy(update={"image_url": PLACEHOLDER_IMAGE, "photo_unavailable": False})
     current = saved.list_saved(owner)
     if len(current) >= MAX_SAVED and all(p.id != body.id for p in current):
         raise HTTPException(422, "too many saved places")

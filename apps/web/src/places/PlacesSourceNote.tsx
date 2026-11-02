@@ -1,6 +1,22 @@
 import { AlertIcon } from '../auth/icons'
 import type { Place } from './api'
 
+/** The Commons photo credit, linking to the photo's file page; says so when its lookup failed. */
+export function PhotoCredit({ place }: { place: Place }) {
+  return (
+    <>
+      {place.photo && (
+        <p className="text-sm text-muted">
+          <a href={place.photo.file_url} target="_blank" rel="noopener noreferrer">
+            Photo: {place.photo.author}, {place.photo.licence}
+          </a>
+        </p>
+      )}
+      {place.photo_unavailable && <p className="text-sm text-muted">Photo unavailable</p>}
+    </>
+  )
+}
+
 /** Credits OpenStreetMap on a page that lists its places; says saved data is shown when none are. */
 export function PlacesSourceNote({ places }: { places: Place[] | null }) {
   if (places === null) return null

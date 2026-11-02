@@ -58,6 +58,7 @@ def default_registry() -> ProviderRegistry:
     return ProviderRegistry(
         [
             ProviderEntry("places", "maps and places", "PLACES_API_KEY"),
+            ProviderEntry("commons", "open photos", "COMMONS_API_KEY"),
             ProviderEntry("flights", "flight search", "FLIGHT_SEARCH_API_KEY"),
             ProviderEntry("hotels", "hotel search", "HOTEL_SEARCH_API_KEY"),
             ProviderEntry("email", "email", "EMAIL_API_KEY"),

@@ -64,6 +64,7 @@ export function SavedPage() {
               key={place.id}
               place={place}
               saved
+              showPhoto={false}
               onToggleSave={unsave}
               savePending={pendingIds.has(place.id)}
             />

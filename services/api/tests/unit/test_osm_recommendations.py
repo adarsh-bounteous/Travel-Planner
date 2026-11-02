@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.places.search import Place
+from app.places.search import Place, PlacePhoto
 from app.trips.osm_recommendations import FallbackRecommendations, OsmRecommendations
 from app.trips.recommendations import SEED_RECOMMENDATIONS, InMemoryRecommendations
 
@@ -44,3 +44,13 @@ def test_off_uses_seed():
     seed = InMemoryRecommendations(SEED_RECOMMENDATIONS)
     recs = FallbackRecommendations(None, seed, lambda: TODAY).for_destination("Lisbon")
     assert recs and recs[0].place.source == "seed"
+
+
+def test_recommendation_places_get_photos():  # AC6
+    class Photos:
+        def attach(self, places):
+            credit = PlacePhoto(author="Ana", licence="CC BY 4.0", file_url="https://commons.wikimedia.org/wiki/File:A.jpg")
+            return [p.model_copy(update={"photo": credit}) for p in places]
+
+    recs = OsmRecommendations(Places([osm_place("food")]), Photos()).for_destination("Lisbon")
+    assert recs[0].place.photo.author == "Ana"

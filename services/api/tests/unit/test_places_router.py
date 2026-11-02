@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.places.search import PlacePhoto
 
 
 def test_search_returns_places_with_image_and_name(sign_in_as):
@@ -110,3 +111,60 @@ def test_seed_places_are_stamped_and_filterable_by_category(sign_in_as):
     )
     body = a.get("/places", params={"destination": "Lisbon", "category": "sights"}).json()
     assert body and all(p["source"] == "seed" and p["as_of"] for p in body)
+
+
+class _FakePhotos:
+    def attach(self, places):
+        credit = PlacePhoto(author="Ana", licence="CC BY 4.0", file_url="https://commons.wikimedia.org/wiki/File:A.jpg")
+        return [p.model_copy(update={"photo": credit}) for p in places]
+
+
+def test_places_carry_the_photo_credit(sign_in_as):  # AC6
+    from app.routers import deps
+
+    a = _seeded(sign_in_as)
+    app.dependency_overrides[deps.get_place_photos] = lambda: _FakePhotos()
+    body = a.get("/places", params={"destination": "Lisbon"}).json()
+    assert body[0]["photo"] == {
+        "author": "Ana",
+        "licence": "CC BY 4.0",
+        "file_url": "https://commons.wikimedia.org/wiki/File:A.jpg",
+    }
+
+
+def test_photos_are_attached_after_the_filters(sign_in_as):
+    from app.routers import deps
+
+    seen = []
+
+    class Recording:
+        def attach(self, places):
+            seen.append([p.name for p in places])
+            return places
+
+    a = _seeded(sign_in_as)
+    app.dependency_overrides[deps.get_place_photos] = lambda: Recording()
+    a.get("/places", params={"destination": "Lisbon", "q": "belem"})
+    assert seen == [["Belém Tower"]]
+
+
+def test_with_photos_off_tagged_places_keep_the_placeholder(sign_in_as):  # AC13
+    from app.places.commons import NoPhotos
+    from app.places.local_search import PLACEHOLDER_IMAGE
+    from app.places.search import Place
+    from app.routers import deps
+
+    place = Place(
+        id="osm-1", name="N", image_url=PLACEHOLDER_IMAGE, place_type="landmark", lat=1, lng=2,
+        source="osm", commons_file="File:A.jpg",
+    )
+
+    class Search:
+        def search(self, destination):
+            return [place]
+
+    a = sign_in_as("a@example.com")
+    app.dependency_overrides[deps.get_places] = lambda: Search()
+    app.dependency_overrides[deps.get_place_photos] = lambda: NoPhotos()
+    body = a.get("/places", params={"destination": "Lisbon"}).json()
+    assert body[0]["image_url"] == PLACEHOLDER_IMAGE and body[0]["photo"] is None

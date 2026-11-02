@@ -4,11 +4,11 @@ import { fetchLocalMode } from '../auth/api'
 import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, CompassIcon, HeartIcon, InfoIcon } from '../auth/icons'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { fetchTripRecommendations } from './api'
-import type { Place } from '../places/api'
+import { commonsPhoto, type Place } from '../places/api'
 import { EmptyStateArt } from '../components/EmptyStateArt'
 import { ImageFrame } from '../components/ImageFrame'
 import { PlaceDetails } from '../places/PlaceDetails'
-import { PlacesSourceNote } from '../places/PlacesSourceNote'
+import { PhotoCredit, PlacesSourceNote } from '../places/PlacesSourceNote'
 import { DestinationGate } from './DestinationGate'
 import type { TripRecommendations } from './api'
 
@@ -117,7 +117,12 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
             const saved = !!r.place && savedIds.has(r.place.id)
             return (
               <li key={r.id} className="card stack">
-                <ImageFrame ratio="16/9" illustration={{ placeType: r.place?.place_type }} />
+                <ImageFrame
+                  ratio="16/9"
+                  photo={r.place ? commonsPhoto(r.place) : undefined}
+                  illustration={{ placeType: r.place?.place_type }}
+                />
+                {r.place && <PhotoCredit place={r.place} />}
                 <h3>
                   <CompassIcon />
                   {r.name}

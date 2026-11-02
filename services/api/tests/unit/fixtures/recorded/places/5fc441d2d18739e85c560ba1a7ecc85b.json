@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 203110, \"osm_type\": \"node\", \"osm_id\": 3110, \"lat\": \"35.0236363\", \"lon\": \"135.7800294\", \"category\": \"amenity\", \"type\": \"cafe\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto cafe 0, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}, {\"place_id\": 203111, \"osm_type\": \"way\", \"osm_id\": 3111, \"lat\": \"35.0256363\", \"lon\": \"135.7820294\", \"category\": \"amenity\", \"type\": \"cafe\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto cafe 1, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}]"
+}

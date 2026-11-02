@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 201112, \"osm_type\": \"node\", \"osm_id\": 1112, \"lat\": \"41.1634512\", \"lon\": \"-8.5967884\", \"category\": \"amenity\", \"type\": \"bar\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto bar 0, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}, {\"place_id\": 201113, \"osm_type\": \"way\", \"osm_id\": 1113, \"lat\": \"41.1654512\", \"lon\": \"-8.5947884\", \"category\": \"amenity\", \"type\": \"bar\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto bar 1, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

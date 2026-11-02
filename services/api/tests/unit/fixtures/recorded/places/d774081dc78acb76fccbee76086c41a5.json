@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 202102, \"osm_type\": \"node\", \"osm_id\": 2102, \"lat\": \"38.7117507\", \"lon\": \"-9.1325919\", \"category\": \"tourism\", \"type\": \"viewpoint\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Lisbon viewpoint 0, Lisbon\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}, {\"place_id\": 202103, \"osm_type\": \"way\", \"osm_id\": 2103, \"lat\": \"38.7137507\", \"lon\": \"-9.1305919\", \"category\": \"tourism\", \"type\": \"viewpoint\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Lisbon viewpoint 1, Lisbon\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

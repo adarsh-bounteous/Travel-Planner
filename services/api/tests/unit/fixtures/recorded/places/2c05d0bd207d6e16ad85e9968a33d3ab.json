@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 204102, \"osm_type\": \"node\", \"osm_id\": 4102, \"lat\": \"48.8628897\", \"lon\": \"2.324041\", \"category\": \"tourism\", \"type\": \"viewpoint\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris viewpoint 0, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}, {\"place_id\": 204103, \"osm_type\": \"way\", \"osm_id\": 4103, \"lat\": \"48.8648897\", \"lon\": \"2.326041\", \"category\": \"tourism\", \"type\": \"viewpoint\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris viewpoint 1, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}]"
+}

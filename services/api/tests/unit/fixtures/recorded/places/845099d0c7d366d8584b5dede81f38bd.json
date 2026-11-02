@@ -1,0 +1,8 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\"version\": 0.6, \"generator\": \"Overpass API\", \"elements\": [{\"type\": \"node\", \"id\": 1001, \"tags\": {\"name\": \"[scrubbed]\", \"tourism\": \"attraction\"}, \"lat\": 41.1504512, \"lon\": -8.6097884}, {\"type\": \"way\", \"id\": 1002, \"tags\": {\"name\": \"[scrubbed]\", \"tourism\": \"museum\"}, \"center\": {\"lat\": 41.1514512, \"lon\": -8.6087884}}, {\"type\": \"node\", \"id\": 1003, \"tags\": {\"name\": \"[scrubbed]\", \"amenity\": \"restaurant\", \"addr:street\": \"[scrubbed]\", \"addr:housenumber\": \"[scrubbed]\"}, \"lat\": 41.1524512, \"lon\": -8.6077884}, {\"type\": \"node\", \"id\": 1004, \"tags\": {\"name\": \"[scrubbed]\", \"amenity\": \"bar\"}, \"lat\": 41.1534512, \"lon\": -8.6067884}, {\"type\": \"node\", \"id\": 1005, \"tags\": {\"name\": \"[scrubbed]\", \"tourism\": \"viewpoint\"}, \"lat\": 41.1544512, \"lon\": -8.6057884}, {\"type\": \"way\", \"id\": 1006, \"tags\": {\"name\": \"[scrubbed]\", \"historic\": \"monument\"}, \"center\": {\"lat\": 41.1554512, \"lon\": -8.6047884}}]}",
+  "encoding": "gzip"
+}

@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 204106, \"osm_type\": \"node\", \"osm_id\": 4106, \"lat\": \"48.8668897\", \"lon\": \"2.328041\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris monument 0, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}, {\"place_id\": 204107, \"osm_type\": \"way\", \"osm_id\": 4107, \"lat\": \"48.8688897\", \"lon\": \"2.330041\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris monument 1, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}]"
+}

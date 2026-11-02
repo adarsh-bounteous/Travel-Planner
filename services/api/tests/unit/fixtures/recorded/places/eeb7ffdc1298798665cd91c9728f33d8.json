@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 204112, \"osm_type\": \"node\", \"osm_id\": 4112, \"lat\": \"48.8728897\", \"lon\": \"2.334041\", \"category\": \"amenity\", \"type\": \"bar\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris bar 0, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}, {\"place_id\": 204113, \"osm_type\": \"way\", \"osm_id\": 4113, \"lat\": \"48.8748897\", \"lon\": \"2.336041\", \"category\": \"amenity\", \"type\": \"bar\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris bar 1, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}]"
+}

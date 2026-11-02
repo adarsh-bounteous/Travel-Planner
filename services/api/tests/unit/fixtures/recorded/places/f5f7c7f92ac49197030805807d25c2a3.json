@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 201100, \"osm_type\": \"node\", \"osm_id\": 1100, \"lat\": \"41.1514512\", \"lon\": \"-8.6087884\", \"category\": \"tourism\", \"type\": \"attraction\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto attraction 0, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}, {\"place_id\": 201101, \"osm_type\": \"way\", \"osm_id\": 1101, \"lat\": \"41.1534512\", \"lon\": \"-8.6067884\", \"category\": \"tourism\", \"type\": \"attraction\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto attraction 1, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 203108, \"osm_type\": \"node\", \"osm_id\": 3108, \"lat\": \"35.0216363\", \"lon\": \"135.7780294\", \"category\": \"amenity\", \"type\": \"restaurant\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto restaurant 0, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}, {\"place_id\": 203109, \"osm_type\": \"way\", \"osm_id\": 3109, \"lat\": \"35.0236363\", \"lon\": \"135.7800294\", \"category\": \"amenity\", \"type\": \"restaurant\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto restaurant 1, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}]"
+}

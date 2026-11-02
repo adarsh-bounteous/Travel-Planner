@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 100010, \"licence\": \"Data \\u00a9 OpenStreetMap contributors, ODbL 1.0\", \"osm_type\": \"relation\", \"osm_id\": 5010, \"lat\": \"10.5\", \"lon\": \"20.5\", \"category\": \"boundary\", \"type\": \"administrative\", \"place_rank\": 16, \"importance\": 0.75, \"addresstype\": \"city\", \"name\": \"[scrubbed]\", \"display_name\": \"Emptyville, Nowhere\", \"boundingbox\": [\"10.4\", \"10.6\", \"20.4\", \"20.6\"], \"address\": {\"city\": \"[scrubbed]\", \"country\": \"[scrubbed]\", \"country_code\": \"xx\"}}]"
+}

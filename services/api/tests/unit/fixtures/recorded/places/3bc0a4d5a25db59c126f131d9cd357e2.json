@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 204104, \"osm_type\": \"node\", \"osm_id\": 4104, \"lat\": \"48.8648897\", \"lon\": \"2.326041\", \"category\": \"tourism\", \"type\": \"museum\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris museum 0, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}, {\"place_id\": 204105, \"osm_type\": \"way\", \"osm_id\": 4105, \"lat\": \"48.8668897\", \"lon\": \"2.328041\", \"category\": \"tourism\", \"type\": \"museum\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Paris museum 1, Paris\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"fr\"}}]"
+}

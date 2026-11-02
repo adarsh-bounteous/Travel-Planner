@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 100005, \"licence\": \"Data \\u00a9 OpenStreetMap contributors, ODbL 1.0\", \"osm_type\": \"relation\", \"osm_id\": 5005, \"lat\": \"41.1494512\", \"lon\": \"-8.6107884\", \"category\": \"boundary\", \"type\": \"administrative\", \"place_rank\": 16, \"importance\": 0.75, \"addresstype\": \"city\", \"name\": \"[scrubbed]\", \"display_name\": \"Porto, Portugal\", \"boundingbox\": [\"41.1\", \"41.2\", \"-8.7\", \"-8.5\"], \"address\": {\"city\": \"[scrubbed]\", \"country\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

@@ -85,6 +85,7 @@ def sign_in_as():
 
     resolver = FakeResolver()
     app.dependency_overrides[deps.get_destination_resolver] = lambda: resolver
+    app.dependency_overrides[deps.get_backfill_resolver] = lambda: resolver
     password = "abcdefghij12"
 
     def make(email: str) -> TestClient:

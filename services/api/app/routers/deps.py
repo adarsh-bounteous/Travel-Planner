@@ -13,7 +13,14 @@ from app.providers.registry import ProviderRegistry, default_registry
 from app.secrets import get_secret
 from app.locations.cache import DynamoLocationCache
 from app.locations.nominatim import NominatimResolver
-from app.locations.resolver import CachedResolver, DestinationResolver, NoResolver, RateLimiter
+from app.locations.resolver import (
+    CacheOnlyResolver,
+    CachedResolver,
+    DestinationResolver,
+    LocationCache,
+    NoResolver,
+    RateLimiter,
+)
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.integrations.client import IntegrationClient
 from app.locations.cache import InMemoryLocationCache
@@ -119,6 +126,20 @@ def get_destination_resolver() -> DestinationResolver:
     return _resolver() if get_settings().is_live("places") else NoResolver()
 
 
+@lru_cache
+def _location_cache() -> LocationCache:
+    """The resolved-location cache. Local mode keeps it in memory, never in DynamoDB."""
+    settings = get_settings()
+    if settings.local_mode:
+        return InMemoryLocationCache()
+    return DynamoLocationCache(settings.trips_table_name)
+
+
+def get_backfill_resolver() -> DestinationResolver:
+    """Opening an older trip: look up when the provider is on, otherwise only read the cache."""
+    return _resolver() if get_settings().is_live("places") else CacheOnlyResolver(_location_cache())
+
+
 def get_probe_store() -> ProbeStore:
     return _local_probe_store() if get_settings().local_mode else _probe_store()
 
@@ -151,7 +172,7 @@ def _osm_places() -> PlaceSearch:
     if settings.local_mode:
         resolver: DestinationResolver = CachedResolver(
             NominatimResolver(settings.nominatim_base_url, settings.nominatim_user_agent),
-            InMemoryLocationCache(),
+            _location_cache(),
             RateLimiter(time.monotonic, time.sleep),
             now=lambda: datetime.now(UTC),
         )

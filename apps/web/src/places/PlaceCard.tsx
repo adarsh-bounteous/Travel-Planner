@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { HeartIcon, InfoIcon, PlusIcon } from '../auth/icons'
-import type { Place } from './api'
+import { commonsPhoto, type Place } from './api'
 import { ImageFrame } from '../components/ImageFrame'
+import { PhotoCredit } from './PlacesSourceNote'
 
 type PlaceCardProps = {
   place: Place
@@ -13,6 +14,8 @@ type PlaceCardProps = {
   savePending?: boolean
   /** When given, a Details button opens the place's provider details. */
   onDetails?: (place: Place) => void
+  /** False on the Saved screen, which keeps only the photo credit. */
+  showPhoto?: boolean
 }
 
 export function PlaceCard({
@@ -23,6 +26,7 @@ export function PlaceCard({
   onToggleSave,
   savePending,
   onDetails,
+  showPhoto = true,
 }: PlaceCardProps) {
   const wasSaved = useRef(saved)
   const popped = saved && !wasSaved.current
@@ -31,7 +35,12 @@ export function PlaceCard({
   }, [saved])
   return (
     <li className="card stack lift">
-      <ImageFrame ratio="16/9" illustration={{ placeType: place.place_type }} />
+      <ImageFrame
+        ratio="16/9"
+        photo={showPhoto ? commonsPhoto(place) : undefined}
+        illustration={{ placeType: place.place_type }}
+      />
+      <PhotoCredit place={place} />
       <span>{place.name}</span>
       {saved && (
         <span className="badge">

@@ -147,6 +147,14 @@ describe('TripRecommendationsTab', () => {
     }
   })
 
+  it('shows the Commons photo and its credit on a recommendation (AC6)', async () => {
+    const photo = { author: 'Ana', licence: 'CC BY 4.0', file_url: 'https://commons.wikimedia.org/wiki/File:A.jpg' }
+    const thumb = 'https://upload.wikimedia.org/a.jpg'
+    open([{ ...RECS[0], place: { ...place('tom', 'T'), image_url: thumb, photo } }])
+    expect(await screen.findByRole('link', { name: 'Photo: Ana, CC BY 4.0' })).toHaveAttribute('href', photo.file_url)
+    expect(document.querySelector(`li.card img[src="${thumb}"]`)).not.toBeNull()
+  })
+
   it('gives a recommendation with no place the generic art (AC3, AC13)', async () => {
     open([{ id: 'x', name: 'Walk the old town', detail: 'About 1 hour', interest: 'Culture' }])
     await waitFor(() => expect(document.querySelector('li.card img')?.getAttribute('src')).toMatch(/generic\.svg/))

@@ -17,6 +17,16 @@ export type Place = {
   as_of?: string | null
   provider_id?: string | null
   url?: string | null
+  photo?: PlacePhoto | null
+  photo_unavailable?: boolean
+}
+/** The credit for a Wikimedia Commons photo; `file_url` is its Commons file page. */
+export type PlacePhoto = { author: string; licence: string; file_url: string }
+
+/** The photo to show instead of the illustration: only a credited Commons photo on an https URL. */
+export function commonsPhoto(place: Place): { src: string; alt: string } | undefined {
+  if (!place.photo || !place.image_url.startsWith('https://')) return undefined
+  return { src: place.image_url, alt: place.name }
 }
 export type Category = 'sights' | 'food' | 'museums' | 'viewpoints' | 'nightlife'
 export type PlaceFilters = { placeType?: PlaceType; price?: Price; category?: Category }

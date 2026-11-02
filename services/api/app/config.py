@@ -37,6 +37,8 @@ class Settings:
     osm_user_agent: str = ""
     osm_referer: str = ""  # falls back to web_origin
     overpass_base_url: str = "https://overpass-api.de/api/interpreter"
+    commons_photo_cap: int = 8  # most places looked up for a photo in one request
+    commons_cache_ttl_seconds: float = 604800  # how long a looked-up photo is remembered (7 days)
 
     @property
     def osm_places_enabled(self) -> bool:
@@ -51,6 +53,15 @@ class Settings:
     def map_tiles_enabled(self) -> bool:
         """Real map tiles only where the places source is live."""
         return self.is_live("places")
+
+
+def _non_negative(raw: str, default, parse):
+    """A blank, non-numeric or negative setting falls back to its default."""
+    try:
+        value = parse(raw)
+    except ValueError:
+        return default
+    return value if value >= 0 else default
 
 
 def session_secret() -> bytes:
@@ -88,4 +99,8 @@ def get_settings() -> Settings:
         osm_user_agent=env.get("OSM_USER_AGENT", ""),
         osm_referer=env.get("OSM_REFERER", ""),
         overpass_base_url=env.get("OVERPASS_BASE_URL") or Settings.overpass_base_url,
+        commons_photo_cap=_non_negative(env.get("COMMONS_PHOTO_CAP", ""), Settings.commons_photo_cap, int),
+        commons_cache_ttl_seconds=_non_negative(
+            env.get("COMMONS_CACHE_TTL_SECONDS", ""), Settings.commons_cache_ttl_seconds, float
+        ),
     )

@@ -17,6 +17,7 @@ from app.locations.resolver import CachedResolver, DestinationResolver, NoResolv
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.integrations.client import IntegrationClient
 from app.locations.cache import InMemoryLocationCache
+from app.places.commons import CommonsPhotos, NoPhotos, PlacePhotos, commons_settings
 from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import LocalPlaceSearch
 from app.places.nominatim_places import NominatimPlaceSearch, nominatim_places_settings
@@ -162,6 +163,22 @@ def _osm_places() -> PlaceSearch:
         IntegrationClient([nominatim_places_settings(settings.nominatim_base_url)]), user_agent
     )
     return OsmPlaceSearch(resolver, client, user_agent, backup)
+
+
+@lru_cache
+def _commons_photos() -> CommonsPhotos:
+    settings = get_settings()
+    return CommonsPhotos(
+        IntegrationClient(commons_settings()),
+        settings.osm_user_agent or settings.nominatim_user_agent,
+        settings.commons_photo_cap,
+        settings.commons_cache_ttl_seconds,
+    )
+
+
+def get_place_photos() -> PlacePhotos:
+    """Commons photos only where the commons source is live; otherwise places keep their placeholder."""
+    return _commons_photos() if get_settings().is_live("commons") else NoPhotos()
 
 
 @lru_cache
@@ -319,7 +336,7 @@ def get_rates() -> RateSource:
 def get_recommendations() -> RecommendationSource:
     settings = get_settings()
     seed = _local_recommendations() if settings.local_mode else _recommendations()
-    primary = OsmRecommendations(_osm_places()) if settings.osm_places_enabled else None
+    primary = OsmRecommendations(_osm_places(), get_place_photos()) if settings.osm_places_enabled else None
     return FallbackRecommendations(primary, seed, date.today)
 
 

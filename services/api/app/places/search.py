@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal, Protocol
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 PlaceType = Literal["landmark", "museum", "park", "food", "shopping"]
 Price = Literal["free", "budget", "moderate", "premium"]
@@ -15,6 +15,14 @@ CATEGORY_FOR_TYPE: dict[str, Category] = {
     "food": "food",
     "park": "viewpoints",
 }
+
+
+class PlacePhoto(BaseModel):
+    """The credit for a Commons photo: who took it, under what licence, and where its file page is."""
+
+    author: str
+    licence: str  # short label, e.g. "CC BY-SA 4.0"
+    file_url: str  # https://commons.wikimedia.org/wiki/File:...
 
 
 class Place(BaseModel):
@@ -32,6 +40,11 @@ class Place(BaseModel):
     as_of: date | None = None  # set on seed places served as a fallback
     provider_id: str | None = None  # "node/123"
     url: str | None = None  # https://www.openstreetmap.org/node/123
+    photo: PlacePhoto | None = None
+    photo_unavailable: bool = False  # a Commons lookup was tried and failed
+    # OSM tags the photo lookup reads; never sent to the client or stored.
+    commons_file: str | None = Field(default=None, exclude=True)
+    wikidata_id: str | None = Field(default=None, exclude=True)
 
 
 class PlaceSearch(Protocol):

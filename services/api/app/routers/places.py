@@ -4,8 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from pydantic import StringConstraints
 
+from app.places.commons import PlacePhotos
 from app.places.search import Category, Place, PlaceSearch, PlaceType, Price
-from app.routers.deps import get_places
+from app.routers.deps import get_place_photos, get_places
 
 # Read-only seeded catalogue, so a signed-out visitor can browse it and be asked to sign in on Save.
 router = APIRouter(prefix="/places")
@@ -25,8 +26,9 @@ def search_places(
     price: Price | None = None,
     category: Category | None = None,
     places: PlaceSearch = Depends(get_places),
+    photos: PlacePhotos = Depends(get_place_photos),
 ) -> list[Place]:
-    return [
+    filtered = [
         p
         for p in places.search(destination)
         if (q is None or _fold(q) in _fold(p.name))
@@ -34,3 +36,4 @@ def search_places(
         and (price is None or p.price == price)
         and (category is None or p.category == category)
     ]
+    return photos.attach(filtered)

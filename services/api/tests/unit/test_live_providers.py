@@ -120,3 +120,32 @@ def test_readme_row_default_empty():
     readme = (Path(__file__).parents[2] / "README.md").read_text()
     row = next(line for line in readme.splitlines() if line.startswith("| `LOCAL_LIVE_PROVIDERS`"))
     assert [c.strip() for c in row.strip("|").split("|")][1] == "empty"
+
+
+def test_commons_parsed():
+    assert resolve_live_providers({"LOCAL_LIVE_PROVIDERS": "commons"}) == {"commons"}
+
+
+def test_place_photos_follow_the_commons_switch(monkeypatch):  # AC13
+    from app.places.commons import CommonsPhotos, NoPhotos
+
+    _env(monkeypatch, "places")
+    assert isinstance(deps.get_place_photos(), NoPhotos)
+    _env(monkeypatch, "places,commons")
+    assert isinstance(deps.get_place_photos(), CommonsPhotos)
+    _env(monkeypatch, "places", local=False)
+    assert isinstance(deps.get_place_photos(), CommonsPhotos)
+
+
+def test_commons_settings_defaults_and_fallbacks(monkeypatch):
+    monkeypatch.delenv("COMMONS_PHOTO_CAP", raising=False)
+    monkeypatch.delenv("COMMONS_CACHE_TTL_SECONDS", raising=False)
+    assert get_settings().commons_photo_cap == 8
+    assert get_settings().commons_cache_ttl_seconds == 604800
+    monkeypatch.setenv("COMMONS_PHOTO_CAP", "3")
+    assert get_settings().commons_photo_cap == 3
+    for bad in ("abc", "", "-1"):
+        monkeypatch.setenv("COMMONS_PHOTO_CAP", bad)
+        monkeypatch.setenv("COMMONS_CACHE_TTL_SECONDS", bad)
+        assert get_settings().commons_photo_cap == 8
+        assert get_settings().commons_cache_ttl_seconds == 604800

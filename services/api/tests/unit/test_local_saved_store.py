@@ -109,7 +109,7 @@ def test_router_save_list_remove(client):
     assert client.put("/saved-places/p1", json=PLACE.model_dump()).status_code == 200
     listed = client.get("/saved-places").json()
     assert [p["id"] for p in listed] == ["p1"]
-    assert set(listed[0]) == set(Place.model_fields)
+    assert set(listed[0]) == set(Place.model_fields) - {"commons_file", "wikidata_id"}  # tags are never stored
     assert client.delete("/saved-places/p1").status_code == 204
     assert client.get("/saved-places").json() == []
 

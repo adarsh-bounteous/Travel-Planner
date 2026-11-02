@@ -3,7 +3,7 @@ from app.integrations.errors import IntegrationError
 from app.integrations.settings import ProviderSettings
 from app.locations.resolver import DestinationResolver, ResolvedLocation
 from app.places.local_search import PLACEHOLDER_IMAGE
-from app.places.search import Category, Place, PlaceType
+from app.places.search import Category, Place, PlaceSearch, PlaceType
 
 RADIUS_METRES = 5000
 OSM_URL = "https://www.openstreetmap.org"
@@ -102,12 +102,27 @@ def _query(lat: float, lng: float) -> str:
 class OsmPlaceSearch:
     """Real places around a destination, from OpenStreetMap through Overpass."""
 
-    def __init__(self, resolver: DestinationResolver, client: IntegrationClient, user_agent: str) -> None:
+    def __init__(
+        self,
+        resolver: DestinationResolver,
+        client: IntegrationClient,
+        user_agent: str,
+        backup: PlaceSearch | None = None,
+    ) -> None:
         self._resolver = resolver
         self._client = client
         self._user_agent = user_agent
+        self._backup = backup  # asked when Overpass cannot answer (the public servers are often at capacity)
 
     def search(self, destination: str) -> list[Place]:
+        try:
+            return self._search_overpass(destination)
+        except OsmUnavailableError:
+            if self._backup is None:
+                raise
+            return self._backup.search(destination)
+
+    def _search_overpass(self, destination: str) -> list[Place]:
         location = self._resolver.resolve(None, destination, None)
         if location is None:
             raise OsmUnavailableError("destination not resolved")

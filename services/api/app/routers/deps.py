@@ -19,6 +19,7 @@ from app.integrations.client import IntegrationClient
 from app.locations.cache import InMemoryLocationCache
 from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import LocalPlaceSearch
+from app.places.nominatim_places import NominatimPlaceSearch, nominatim_places_settings
 from app.places.overpass import OsmPlaceSearch, overpass_settings
 from app.places.tiles import TileSource
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, PlaceSearch
@@ -155,8 +156,12 @@ def _osm_places() -> PlaceSearch:
         )
     else:
         resolver = _resolver()
+    user_agent = settings.osm_user_agent or settings.nominatim_user_agent
     client = IntegrationClient([overpass_settings(settings.overpass_base_url)])
-    return OsmPlaceSearch(resolver, client, settings.osm_user_agent or settings.nominatim_user_agent)
+    backup = NominatimPlaceSearch(
+        IntegrationClient([nominatim_places_settings(settings.nominatim_base_url)]), user_agent
+    )
+    return OsmPlaceSearch(resolver, client, user_agent, backup)
 
 
 @lru_cache

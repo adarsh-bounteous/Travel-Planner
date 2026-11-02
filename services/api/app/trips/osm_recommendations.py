@@ -3,6 +3,7 @@ from collections.abc import Callable
 from datetime import date
 
 from app.places.fallback import stamp_seed
+from app.places.commons import PlacePhotos
 from app.places.search import Place, PlaceSearch
 from app.trips.recommendations import Recommendation, RecommendationSource
 
@@ -38,11 +39,15 @@ def _recommendation(place: Place) -> Recommendation:
 class OsmRecommendations:
     """Recommendations from real OpenStreetMap places; raises when the search does."""
 
-    def __init__(self, places: PlaceSearch) -> None:
+    def __init__(self, places: PlaceSearch, photos: PlacePhotos | None = None) -> None:
         self._places = places
+        self._photos = photos
 
     def for_destination(self, destination: str) -> list[Recommendation]:
-        return [_recommendation(p) for p in self._places.search(destination)]
+        found = self._places.search(destination)
+        if self._photos is not None:
+            found = self._photos.attach(found)
+        return [_recommendation(p) for p in found]
 
 
 class FallbackRecommendations:

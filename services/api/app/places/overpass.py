@@ -75,6 +75,8 @@ def element_to_place(element: dict) -> Place | None:
         source="osm",
         provider_id=f"{osm_type}/{osm_id}",
         url=f"{OSM_URL}/{osm_type}/{osm_id}",
+        commons_file=tags.get("wikimedia_commons"),
+        wikidata_id=tags.get("wikidata"),
     )
 
 

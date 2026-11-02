@@ -17,6 +17,8 @@ enhancement list; they don't depend on any outside service, so they come first.
 | 3 | [00c-ui-motion-and-imagery.md](00c-ui-motion-and-imagery.md) | Brand and logo, local illustrations, one icon set, page transitions and micro-animations, per-trip accent themes | Nothing |
 | 4 | [01-integration-groundwork.md](01-integration-groundwork.md) | Shared HTTP client, caching, retries, keys, recorded responses, provider status, local opt-in | Nothing |
 | 5 | [02-places-geocoding.md](02-places-geocoding.md) | Real places search and destination lookup, and real photos where licences allow | Choose a places provider and get an API key |
+| 5b | [02b-places-photos-and-fixtures.md](02b-places-photos-and-fixtures.md) | Real photos with attribution, recorded test fixtures, backfill for old trips | Nothing (Wikimedia Commons needs no key) |
+| 5c | [02c-live-destination-picker.md](02c-live-destination-picker.md) | Search any city by keyword everywhere a destination is chosen; trips work for places outside the starter list | Nothing |
 | 6 | [03-reference-data.md](03-reference-data.md) | Real exchange rates, weather and visa rules | Choose the rates and visa providers (weather can use Open-Meteo, no key) |
 | 7 | [03b-visa-application-help.md](03b-visa-application-help.md) | "Apply for your visa": official link, document checklist, latest safe date to apply, progress tracking | Nothing new |
 | 8 | [04-ai-recommendations.md](04-ai-recommendations.md) | Claude-ranked, personalised recommendations from real places | Anthropic API key and a monthly budget |

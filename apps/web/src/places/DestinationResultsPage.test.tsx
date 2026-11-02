@@ -168,6 +168,33 @@ describe('Destination results', () => {
     stubApi({ 'GET /places?destination=Lisbon': { status: 500 } })
     renderAt('/destinations?q=Lisbon')
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load places.")
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(document.querySelectorAll('li.card')).toHaveLength(0)
+  })
+
+  it('shows a visible alert and no cards when the request times out', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (path: string) => {
+        if (path === '/auth/me')
+          return new Response(JSON.stringify({ email: 'maya@example.com', method: 'email' }), {
+            status: 200,
+          })
+        throw new DOMException('The operation timed out.', 'TimeoutError')
+      }),
+    )
+    renderAt('/destinations?q=Lisbon')
+    expect(await screen.findByRole('alert')).toBeVisible()
+    expect(document.querySelectorAll('li.card')).toHaveLength(0)
+  })
+
+  it('shows a visible message when the provider is down and nothing is cached', async () => {
+    stubApi({ 'GET /places?destination=Lisbon': { status: 503 } })
+    renderAt('/destinations?q=Lisbon')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "We couldn't load places. Try searching again.",
+    )
+    expect(document.querySelectorAll('li.card')).toHaveLength(0)
   })
 
   it('redirects to Home without a search', async () => {

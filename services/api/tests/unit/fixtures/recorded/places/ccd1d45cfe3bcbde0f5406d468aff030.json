@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 202110, \"osm_type\": \"node\", \"osm_id\": 2110, \"lat\": \"38.7197507\", \"lon\": \"-9.1245919\", \"category\": \"amenity\", \"type\": \"cafe\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Lisbon cafe 0, Lisbon\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}, {\"place_id\": 202111, \"osm_type\": \"way\", \"osm_id\": 2111, \"lat\": \"38.7217507\", \"lon\": \"-9.1225919\", \"category\": \"amenity\", \"type\": \"cafe\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Lisbon cafe 1, Lisbon\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

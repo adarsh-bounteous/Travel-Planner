@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 203100, \"osm_type\": \"node\", \"osm_id\": 3100, \"lat\": \"35.0136363\", \"lon\": \"135.7700294\", \"category\": \"tourism\", \"type\": \"attraction\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto attraction 0, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}, {\"place_id\": 203101, \"osm_type\": \"way\", \"osm_id\": 3101, \"lat\": \"35.0156363\", \"lon\": \"135.7720294\", \"category\": \"tourism\", \"type\": \"attraction\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto attraction 1, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}]"
+}

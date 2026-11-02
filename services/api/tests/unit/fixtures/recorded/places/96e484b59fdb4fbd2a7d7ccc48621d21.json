@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 201106, \"osm_type\": \"node\", \"osm_id\": 1106, \"lat\": \"41.1574512\", \"lon\": \"-8.6027884\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto monument 0, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}, {\"place_id\": 201107, \"osm_type\": \"way\", \"osm_id\": 1107, \"lat\": \"41.1594512\", \"lon\": \"-8.6007884\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Porto monument 1, Porto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"pt\"}}]"
+}

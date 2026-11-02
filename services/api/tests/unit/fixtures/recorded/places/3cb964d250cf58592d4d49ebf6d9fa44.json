@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"place_id\": 203106, \"osm_type\": \"node\", \"osm_id\": 3106, \"lat\": \"35.0196363\", \"lon\": \"135.7760294\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto monument 0, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}, {\"place_id\": 203107, \"osm_type\": \"way\", \"osm_id\": 3107, \"lat\": \"35.0216363\", \"lon\": \"135.7780294\", \"category\": \"historic\", \"type\": \"monument\", \"importance\": 0.3, \"name\": \"[scrubbed]\", \"display_name\": \"Kyoto monument 1, Kyoto\", \"extratags\": {}, \"address\": {\"road\": \"[scrubbed]\", \"city\": \"[scrubbed]\", \"country_code\": \"jp\"}}]"
+}

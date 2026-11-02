@@ -1,7 +1,8 @@
 """Record a real response once, scrub it, and replay it offline through an httpx transport."""
+import gzip
 import hashlib
 import json
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 
 import httpx
@@ -33,7 +34,22 @@ def _path(fixtures_dir: Path, key: str) -> Path:
 
 def _replay(path: Path) -> httpx.Response:
     data = json.loads(path.read_text())
-    return httpx.Response(data["status"], headers=data["headers"], content=data["body"].encode())
+    content = data["body"].encode()
+    headers = dict(data["headers"])
+    if data.get("encoding") == "gzip":  # stored decoded; replay compressed so httpx's decoder runs
+        content = gzip.compress(content)
+        headers["content-encoding"] = "gzip"
+    return httpx.Response(data["status"], headers=headers, content=content)
+
+
+def replaying_http_get(transport: httpx.BaseTransport) -> Callable[..., httpx.Response]:
+    """An `httpx.get` look-alike answered by `transport`, for adapters that take an `http_get` callable."""
+
+    def http_get(*, url, params=None, headers=None, timeout=None) -> httpx.Response:
+        with httpx.Client(transport=transport) as client:
+            return client.get(url, params=params, headers=headers, timeout=timeout)
+
+    return http_get
 
 
 class ReplayTransport(httpx.BaseTransport):
@@ -76,6 +92,9 @@ class RecordingTransport(httpx.BaseTransport):
         }
         headers = {k: scrub_body(v.encode(), secrets=secrets).decode() for k, v in headers.items()}
         self._dir.mkdir(parents=True, exist_ok=True)
+        stored = {"status": response.status_code, "headers": headers, "body": body}
+        if response.headers.get("content-encoding", "").lower() == "gzip":
+            stored["encoding"] = "gzip"
         with path.open("x") as handle:
-            json.dump({"status": response.status_code, "headers": headers, "body": body}, handle, indent=2)
+            json.dump(stored, handle, indent=2)
         return _replay(path)

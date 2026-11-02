@@ -155,7 +155,7 @@ describe('AppHeader', () => {
           : new Response('[]'),
       ),
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByRole('link', { name: 'Explore' })).toHaveAttribute(
       'aria-current',
       'page',

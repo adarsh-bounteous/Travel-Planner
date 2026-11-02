@@ -11,6 +11,8 @@ import { useAddToTrip } from '../places/AddToTrip'
 import { PlaceCard } from '../places/PlaceCard'
 import { PlaceFilters } from '../places/PlaceFilters'
 import { PlacesMap } from '../places/PlacesMap'
+import { DestinationPicker } from '../trips/DestinationPicker'
+import { Toast } from '../trips/Toast'
 import { useSavedPlaces } from '../places/useSavedPlaces'
 import { ViewToggle } from '../places/ViewToggle'
 import type { PlacesView } from '../places/ViewToggle'
@@ -38,6 +40,8 @@ export function ExplorePage() {
       : undefined
   const view: PlacesView = params.get('view') === 'map' ? 'map' : 'list'
   const [detailsOf, setDetailsOf] = useState<Place | null>(null)
+  const [changing, setChanging] = useState(false)
+  const [changed, setChanged] = useState<{ at: number } | null>(null)
   const [search, setSearch] = useState(query)
   const [places, setPlaces] = useState<Place[] | null>(null)
   const [failed, setFailed] = useState(false)
@@ -74,6 +78,12 @@ export function ExplorePage() {
       else next.set(name, value)
     }
     setParams(next)
+  }
+  const changeDestination = (next: string) => {
+    if (next === '') return
+    setParam('destination', next)
+    setChanging(false)
+    setChanged({ at: Date.now() })
   }
   const handleSearch = (event: FormEvent) => {
     event.preventDefault()
@@ -130,11 +140,18 @@ export function ExplorePage() {
       <h1>Explore</h1>
       <p className="cluster">
         <span>Places in {destination}</span>
-        <Link className="btn btn-ghost" to="/">
+        <button
+          className="btn btn-ghost"
+          type="button"
+          aria-expanded={changing}
+          onClick={() => setChanging((now) => !now)}
+        >
           <EditIcon />
           Change destination
-        </Link>
+        </button>
       </p>
+      {changing && <DestinationPicker idPrefix="explore" value="" onChange={changeDestination} />}
+      {changed && <Toast key={changed.at} message="Destination changed" />}
       {panel}
       {savedPanel}
       <form role="search" className="explore-bar" onSubmit={handleSearch}>

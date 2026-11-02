@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { FormEvent, RefObject } from 'react'
 import { AlertIcon, CheckIcon, SuitcaseIcon, TrashIcon, XIcon } from '../auth/icons'
-import { updateTrip } from './api'
+import { ValidationError, updateTrip } from './api'
 import type { Trip } from './api'
 import { DestinationPicker } from './DestinationPicker'
 import { Overlay } from './Overlay'
@@ -21,6 +21,8 @@ type TripSettingsDrawerProps = {
   onDelete: () => void
 }
 
+const NOT_FROM_SEARCH = "That place wasn't in the search results. Search again and pick one."
+
 const dayCount = (start: string, end: string) =>
   (Date.parse(end) - Date.parse(start)) / MS_PER_DAY + 1
 
@@ -36,6 +38,8 @@ export function TripSettingsDrawer({
   const [start, setStart] = useState(trip.start_date ?? '')
   const [end, setEnd] = useState(trip.end_date ?? '')
   const [budget, setBudget] = useState(trip.budget == null ? '' : String(trip.budget))
+  const [placeRef, setPlaceRef] = useState<string>()
+  const [refused, setRefused] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
   const [failed, setFailed] = useState(false)
   const [pending, setPending] = useState(false)
@@ -54,7 +58,7 @@ export function TripSettingsDrawer({
       found.name = `Trip name can't be blank. Enter a name such as "Lisbon Spring".`
       focusOn.name = nameInput
     }
-    if (destination === '') found.destination = 'Choose a country and a place.'
+    if (destination === '') found.destination = 'Search for a city or town and pick one.'
     if (Boolean(start) !== Boolean(end)) {
       found.dates = 'Choose a start and an end date. Each date becomes a day.'
       focusOn.dates = start ? endInput : startInput
@@ -86,10 +90,12 @@ export function TripSettingsDrawer({
           start_date: start || null,
           end_date: end || null,
           budget: rawBudget === '' ? null : Number(rawBudget),
+          ...(destination !== (trip.destination ?? '') && placeRef ? { place_ref: placeRef } : {}),
         }),
       )
-    } catch {
-      setFailed(true)
+    } catch (error) {
+      if (error instanceof ValidationError && error.code === 'place_not_from_search') setRefused(true)
+      else setFailed(true)
       setPending(false)
     }
   }
@@ -135,8 +141,12 @@ export function TripSettingsDrawer({
         <DestinationPicker
           idPrefix="settings"
           value={destination}
-          onChange={setDestination}
-          error={errors.destination}
+          onChange={(next, ref) => {
+            setDestination(next)
+            setPlaceRef(ref)
+            setRefused(false)
+          }}
+          error={errors.destination ?? (refused ? NOT_FROM_SEARCH : undefined)}
         />
         <div className={`field${invalid('dates')}`}>
           <label className="field-label" htmlFor="start-date-input">

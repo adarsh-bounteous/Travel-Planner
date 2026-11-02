@@ -9,6 +9,7 @@ import type { Trip } from './api'
 import { countdownLabel, daysUntil, soonestUpcomingTripId } from './tripCountdown'
 import { Toast } from './Toast'
 import { UnmatchedBadge } from './UnmatchedBadge'
+import { RematchNote } from './LivePlaceNotes'
 
 /** Where the guided set-up lives; New trip and Plan your first trip both launch it. */
 export const GUIDED_SETUP_PATH = '/trips/new'
@@ -48,6 +49,7 @@ function TripRow({ trip, countdown }: { trip: Trip; countdown: boolean }) {
           {trip.destination_unmatched && <UnmatchedBadge />}
         </div>
         {destination && <p>{destination}</p>}
+        <RematchNote trip={trip} />
         {dates && <p className="text-sm text-muted">{dates}</p>}
         {countdown && trip.start_date && (
           <p className="countdown">{countdownLabel(daysUntil(trip.start_date, new Date()))}</p>

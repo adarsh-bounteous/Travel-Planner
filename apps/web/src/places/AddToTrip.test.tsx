@@ -43,7 +43,7 @@ const placesPosts = (fetchMock: ReturnType<typeof stubApi>) =>
 describe('Add a place to a trip', () => {
   it('shows an add action on each place card (AC1)', async () => {
     stubApi({ ...base, 'GET /trips': { status: 200, body: [] } })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findAllByRole('button', { name: /^Add .* to trip$/ })).toHaveLength(2)
   })
 
@@ -53,7 +53,7 @@ describe('Add a place to a trip', () => {
       'GET /trips': { status: 200, body: [lisbonTrip] },
       'POST /trips/t1/places': { status: 201, body: { ...lisbonTrip, places: [] } },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     const toast = await screen.findByRole('status')
     expect(within(toast).getByText('Place added')).toBeInTheDocument()
@@ -73,7 +73,7 @@ describe('Add a place to a trip', () => {
       'GET /trips': { status: 200, body: [lisbonTrip] },
       'POST /trips/t1/places': { status: 500 },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     const toast = await screen.findByRole('alert')
     expect(toast.querySelector('.toast-error')).not.toBeNull()
@@ -89,7 +89,7 @@ describe('Add a place to a trip', () => {
       'GET /trips': { status: 200, body: [lisbonTrip, romeTrip] },
       'POST /trips/t2/places': { status: 201, body: { ...romeTrip, places: [] } },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     const dialog = await screen.findByRole('dialog', { name: 'Choose a trip' })
     expect(placesPosts(fetchMock)).toHaveLength(0)
@@ -109,7 +109,7 @@ describe('Add a place to a trip', () => {
       'POST /trips/new-id/places': { status: 201, body: { id: 'new-id', name: 'Lisbon' } },
       'GET /trips/new-id': { status: 200, body: { id: 'new-id', name: 'Lisbon', destination: 'Lisbon' } },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     expect(await screen.findByRole('heading', { name: 'You have no trips yet' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('link', { name: 'New trip' }))
@@ -144,7 +144,7 @@ describe('Add a place to a trip', () => {
       'POST /trips/new-id/places': { status: 500 },
       'GET /trips/new-id': { status: 200, body: { id: 'new-id', name: 'Lisbon', destination: 'Lisbon' } },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     fireEvent.click(await screen.findByRole('link', { name: 'New trip' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Continue' }))
@@ -170,7 +170,7 @@ describe('Add a place to a trip', () => {
       'POST /trips/t1/places': { status: 201, body: lisbonTrip },
     })
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     await screen.findByText('Place added')
     act(() => {
@@ -190,7 +190,7 @@ describe('Add a place to a trip', () => {
       'POST /trips/t1/places': { status: 201, body: lisbonTrip },
       'GET /trips/t1': { status: 200, body: lisbonTrip },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Open trip' }))
     expect(await screen.findByRole('heading', { name: 'Lisbon trip' })).toBeInTheDocument()
@@ -202,7 +202,7 @@ describe('Add a place to a trip', () => {
       'GET /trips': { status: 200, body: [lisbonTrip] },
       'POST /trips/t1/places': { status: 409, body: { code: 'already_on_trip' } },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('That place is already on this trip.')
     expect(screen.queryByText('Place added')).not.toBeInTheDocument()
@@ -210,7 +210,7 @@ describe('Add a place to a trip', () => {
 
   it('shows an error when the trips cannot be loaded', async () => {
     stubApi(base)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Add Alfama to trip' }))
     expect(await screen.findByRole('alert')).toHaveTextContent(
       "We couldn't add that place. Try again.",

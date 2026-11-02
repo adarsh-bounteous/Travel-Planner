@@ -8,7 +8,7 @@ from app.main import app
 from app.trips.cost import summarise_cost
 from app.trips.rates import InMemoryRates
 from app.trips.store import InsurancePick, Trip
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip, trip_body
 
 
 def _trip(client, **extra):
@@ -22,7 +22,7 @@ def _trip(client, **extra):
         risky_activities=True,
         **extra,
     )
-    tid = client.post("/trips", json=body).json()["id"]
+    tid = create_trip(client, **body)
     client.post(f"/trips/{tid}/travellers", json={"name": "Marco", "age": 61})
     return tid
 
@@ -50,19 +50,16 @@ def test_options_access_and_auth(sign_in_as):
 
 def test_no_matching_plan_is_a_200_with_an_empty_list(sign_in_as):
     a = sign_in_as("a@example.com")
-    tid = a.post(
-        "/trips",
-        json=trip_body(  # longer than any plan covers
-            destination="Japan", start_date="2027-01-01", end_date="2027-02-19", owner_age=30, risky_activities=False, traveller_count=1
-        ),
-    ).json()["id"]
+    tid = create_trip(  # longer than any plan covers
+        a, destination="Japan", start_date="2027-01-01", end_date="2027-02-19", owner_age=30, risky_activities=False, traveller_count=1
+    )
     body = a.get(f"/trips/{tid}/insurance-options").json()
     assert body["plans"] == [] and body["missing"] == []
 
 
 def test_missing_details_are_reported(sign_in_as):
     a = sign_in_as("a@example.com")
-    tid = a.post("/trips", json=trip_body(destination="Japan")).json()["id"]
+    tid = create_trip(a, destination="Japan")
     body = a.get(f"/trips/{tid}/insurance-options").json()
     assert body["plans"] == [] and "risky activities answer" in body["missing"]
 

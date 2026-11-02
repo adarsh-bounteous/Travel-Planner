@@ -33,6 +33,7 @@ import { TravelHelpersCard } from './TravelHelpersCard'
 import { TripSettingsDrawer } from './TripSettingsDrawer'
 import { TripRecommendationsTab } from './TripRecommendationsTab'
 import { UnmatchedBadge } from './UnmatchedBadge'
+import { DataStatusCard, RematchNote } from './LivePlaceNotes'
 import { TripTotalCard } from './TripTotalCard'
 import { paletteForTrip, paletteStyle } from './tripPalettes'
 import { VisaSummaryCard } from './VisaSummaryCard'
@@ -350,6 +351,8 @@ export function TripDetailPage({ tripId }: { tripId: string }) {
           </div>
         )}
       </PanelFade>
+      <RematchNote trip={trip} />
+      <DataStatusCard trip={trip} />
       {(trip.destination_unmatched || (trip.country && trip.place)) && (
         <section className="card stack" aria-labelledby="destination-heading">
           <h2 id="destination-heading">

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { destinationLabel } from './destination'
 import { DestinationGate } from './DestinationGate'
@@ -40,6 +40,32 @@ describe('DestinationGate', () => {
     show('no_place_data')
     expect(screen.getByText('No information available for this place')).toBeInTheDocument()
     expect(screen.queryByText('view content')).not.toBeInTheDocument()
+  })
+
+  it('says data is limited for a live place and offers Try again (AC13, AC14)', () => {
+    const onRetry = vi.fn()
+    render(
+      <MemoryRouter>
+        <DestinationGate
+          tripId="t1"
+          destination={{ country: 'India', place: 'Agra', label: 'Agra, India' }}
+          status="limited_data"
+          feature="visa rules"
+          onRetry={onRetry}
+        >
+          <p>view content</p>
+        </DestinationGate>
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('heading', { name: 'Limited data for Agra, India' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'We couldn’t load visa rules for this place. Your other pages still work. Try again in a moment.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('view content')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
   })
 
   it('uses the same label as the destination picker (AC5)', () => {

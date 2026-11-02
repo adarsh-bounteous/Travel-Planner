@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.trips.starter_destinations import places_in
 from app.trips.store import Trip
 
-DestinationStatus = Literal["ready", "no_destination", "no_country_data", "no_place_data"]
+DestinationStatus = Literal["ready", "no_destination", "no_country_data", "no_place_data", "limited_data"]
 
 
 class ChosenDestination(BaseModel):
@@ -30,13 +30,14 @@ def destination_status(
     needs_place: bool,
     country_has_data: bool,
     place_has_data: bool = True,
+    live: bool = False,
 ) -> DestinationStatus:
     if chosen is None or (needs_place and not chosen.place):
         return "no_destination"
     if not country_has_data:
-        return "no_country_data"
+        return "limited_data" if live else "no_country_data"
     if needs_place and not place_has_data:
-        return "no_place_data"
+        return "limited_data" if live else "no_place_data"
     return "ready"
 
 

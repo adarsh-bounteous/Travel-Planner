@@ -1,21 +1,21 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { DestinationPicker } from './DestinationPicker'
 
-const CATALOGUE = [
-  { name: 'Japan', places: ['Tokyo', 'Kyoto', 'Osaka'] },
-  { name: 'Portugal', places: ['Lisbon', 'Porto', 'Lagos'] },
-  { name: 'India', places: ['Delhi', 'Jaipur', 'Goa'] },
-  { name: 'Thailand', places: ['Bangkok', 'Phuket', 'Krabi'] },
-  { name: 'Mexico', places: ['Oaxaca', 'Tulum', 'Merida'] },
-  { name: 'Morocco', places: ['Marrakech', 'Fes', 'Rabat'] },
-  { name: 'Peru', places: ['Cusco', 'Lima', 'Arequipa'] },
-]
+const JAIPUR = { id: 'starter:India/Jaipur', name: 'Jaipur', region: 'India', kind: 'starter', fullGuide: true }
+const AGRA = { id: 'live:agra.sig', name: 'Agra', region: 'Uttar Pradesh, India', kind: 'live', fullGuide: false }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
 
-function setup(initial = '', fetchReply: () => Response = () => new Response(JSON.stringify(CATALOGUE))) {
-  vi.stubGlobal('fetch', vi.fn(async () => fetchReply()))
+function setup(reply: object, initial = '') {
+  vi.useFakeTimers()
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response(JSON.stringify(reply))),
+  )
   const onChange = vi.fn()
   function Host() {
     const [value, setValue] = useState(initial)
@@ -23,8 +23,9 @@ function setup(initial = '', fetchReply: () => Response = () => new Response(JSO
       <DestinationPicker
         idPrefix="test"
         value={value}
-        onChange={(next) => {
-          onChange(next)
+        onChange={(...args) => {
+          const [next] = args
+          onChange(...args)
           setValue(next)
         }}
       />
@@ -34,103 +35,86 @@ function setup(initial = '', fetchReply: () => Response = () => new Response(JSO
   return onChange
 }
 
-const search = async (text: string) => {
-  fireEvent.click(await screen.findByRole('button', { name: /destination/i }))
-  const box = screen.getByLabelText('Search places')
-  fireEvent.change(box, { target: { value: text } })
-  fireEvent.keyDown(box, { key: 'Enter' })
+async function type(text: string) {
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Destination' }), { target: { value: text } })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(300)
+  })
 }
 
-const optionTexts = (label: string) =>
-  within(screen.getByLabelText(label))
-    .getAllByRole('option')
-    .slice(1)
-    .map((o) => o.textContent)
-
 describe('DestinationPicker', () => {
-  it('is a dropdown with no free-text field (AC1)', async () => {
-    setup()
-    const trigger = await screen.findByRole('button', { name: /destination/i })
-    expect(trigger).toHaveAttribute('aria-haspopup', 'listbox')
-    expect(trigger).toHaveTextContent('Type or pick a destination')
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  it('offers Agra when it is typed (AC1)', async () => {
+    setup({ live: true, unavailable: false, matches: [AGRA] })
+    await type('Agra')
+    expect(screen.getByRole('button', { name: /Agra/ })).toBeInTheDocument()
   })
 
-  it('lists the seven countries (AC3)', async () => {
-    setup()
-    await screen.findByLabelText('Country')
-    expect(optionTexts('Country')).toEqual([
-      'Japan',
-      'Portugal',
-      'India',
-      'Thailand',
-      'Mexico',
-      'Morocco',
-      'Peru',
-    ])
+  it('lists starters before live places, and marks only starters Full guide (AC6, AC7, AC18)', async () => {
+    setup({ live: true, unavailable: false, matches: [AGRA, JAIPUR] })
+    await type('ja')
+    const rows = screen.getAllByRole('button')
+    expect(rows[0]).toHaveTextContent('Jaipur')
+    expect(rows[1]).toHaveTextContent('Agra')
+    expect(rows[0]).toHaveTextContent('Full guide')
+    expect(rows[1]).not.toHaveTextContent('Full guide')
   })
 
-  it('lists only the chosen country\'s places (AC4)', async () => {
-    setup()
-    await screen.findByLabelText('Country')
-    expect(screen.getByLabelText('Place')).toBeDisabled()
-    fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'Portugal' } })
-    expect(optionTexts('Place')).toEqual(['Lisbon', 'Porto', 'Lagos'])
+  it('reports the destination and the signed ref of a live pick (AC2)', async () => {
+    const onChange = setup({ live: true, unavailable: false, matches: [AGRA] })
+    await type('Agra')
+    fireEvent.click(screen.getByRole('button', { name: /Agra/ }))
+    expect(onChange).toHaveBeenLastCalledWith('Agra, India', 'live:agra.sig')
+    expect(screen.getByRole('button', { name: /Agra/ })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('suggests one best match and confirms it (AC5, AC6)', async () => {
-    const onChange = setup()
-    await search('Lisbn')
-    expect(screen.getAllByText(/Did you mean/)).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Use Lisbon' }))
-    expect(onChange).toHaveBeenLastCalledWith('Lisbon, Portugal')
-    expect(screen.getByLabelText('Country')).toHaveValue('Portugal')
-    expect(screen.getByLabelText('Place')).toHaveValue('Lisbon')
-    expect(screen.queryByText(/Did you mean/)).not.toBeInTheDocument()
+  it('reports a starter pick without a ref', async () => {
+    const onChange = setup({ live: true, unavailable: false, matches: [JAIPUR] })
+    await type('Jai')
+    fireEvent.click(screen.getByRole('button', { name: /Jaipur/ }))
+    expect(onChange).toHaveBeenLastCalledWith('Jaipur, India', undefined)
   })
 
-  it('dismisses a suggestion with No thanks', async () => {
-    setup()
-    await search('Lisbn')
-    fireEvent.click(screen.getByRole('button', { name: 'No thanks' }))
-    expect(screen.queryByText(/Did you mean/)).not.toBeInTheDocument()
-  })
-
-  it('shows the no-match message and no suggestion (AC7, AC9)', async () => {
-    setup()
-    await search('Atlantis')
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No country or place matches what you typed.',
-    )
-    expect(screen.queryByText(/Did you mean/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Use / })).not.toBeInTheDocument()
-  })
-
-  it('picks a place from the list', async () => {
-    const onChange = setup()
-    fireEvent.click(await screen.findByRole('button', { name: /destination/i }))
-    fireEvent.click(screen.getByRole('option', { name: /Kyoto/ }))
-    expect(onChange).toHaveBeenLastCalledWith('Kyoto, Japan')
-    expect(screen.getByRole('button', { name: /destination/i })).toHaveTextContent('Kyoto, Japan')
-  })
-
-  it('clears the place when the country changes (AC10)', async () => {
-    const onChange = setup('Lisbon, Portugal')
-    expect(await screen.findByLabelText('Place')).toHaveValue('Lisbon')
-    fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'Japan' } })
-    expect(screen.getByLabelText('Place')).toHaveValue('')
+  it('clears the choice when the text changes', async () => {
+    const onChange = setup({ live: true, unavailable: false, matches: [AGRA] })
+    await type('Agra')
+    fireEvent.click(screen.getByRole('button', { name: /Agra/ }))
+    await type('Agr')
     expect(onChange).toHaveBeenLastCalledWith('')
   })
 
-  it('shows a legacy destination as nothing chosen', async () => {
-    setup('Norway')
-    expect(await screen.findByLabelText('Country')).toHaveValue('')
+  it('says live places are off and offers only starters (AC12, AC19)', async () => {
+    setup({ live: false, unavailable: false, matches: [JAIPUR] })
+    await type('Agra')
+    expect(
+      screen.getByText('Live places are off. Only starter destinations are searched.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Agra')).not.toBeInTheDocument()
   })
 
-  it('says so when the catalogue fails to load', async () => {
-    setup('', () => new Response(null, { status: 500 }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      "We couldn't load the destinations. Reload to try again.",
-    )
+  it('shows the starters and a note when live search is unavailable (AC20, AC21)', async () => {
+    setup({ live: true, unavailable: true, matches: [JAIPUR] })
+    await type('Jai')
+    expect(
+      screen.getByText('Live results are unavailable right now; showing starter destinations only.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Jaipur')).toBeInTheDocument()
+  })
+
+  it('says when nothing matches', async () => {
+    setup({ live: true, unavailable: false, matches: [] })
+    await type('Zzzz')
+    expect(screen.getByText(/No places match/)).toBeInTheDocument()
+  })
+
+  it('shows an already chosen destination without searching', () => {
+    setup({ live: true, unavailable: false, matches: [] }, 'Agra, India')
+    expect(screen.getByRole('searchbox', { name: 'Destination' })).toHaveValue('Agra, India')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('shows the error from the form', () => {
+    vi.stubGlobal('fetch', vi.fn())
+    render(<DestinationPicker idPrefix="t" value="" onChange={() => {}} error="Choose a place." />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose a place.')
   })
 })

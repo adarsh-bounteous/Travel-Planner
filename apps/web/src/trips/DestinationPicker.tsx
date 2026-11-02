@@ -1,290 +1,127 @@
-import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
-import { AlertIcon, CheckIcon, ChevronDownIcon, XIcon } from '../auth/icons'
-import { evaluateDestination, formatDestination, parseDestination } from '../places/destinationMatch'
-import type { Catalogue, Choice } from '../places/destinationMatch'
-import { fetchStarterDestinations } from '../places/starterApi'
+import { useState } from 'react'
+import { AlertIcon, CheckIcon } from '../auth/icons'
+import { matchDestination } from '../places/api'
+import type { DestinationMatch } from '../places/api'
+import { useDestinationSearch } from '../places/useDestinationSearch'
 import { FieldError } from './FieldError'
 
 type DestinationPickerProps = {
   idPrefix: string
   /** Stored "Place, Country", or "" when nothing is chosen. */
   value: string
-  /** Called with "" while the country or the place is missing. */
-  onChange: (destination: string) => void
+  /** Called with "" while nothing is chosen. A live place also passes its signed ref. */
+  onChange: (destination: string, placeRef?: string) => void
   error?: string
 }
 
-const PLACEHOLDER = 'Type or pick a destination'
-const NO_MATCH =
-  'No country or place matches what you typed. Pick a country below, or try another spelling.'
-const PAUSE_MS = 500
+export const HINT_LIVE = 'Search any city or town. Try “Agra”.'
+export const HINT_LIVE_OFF = 'Live places are off. Only starter destinations are searched.'
+export const NOTE_LIVE_UNAVAILABLE =
+  'Live results are unavailable right now; showing starter destinations only.'
+const FAILED = 'We couldn’t search right now. Try again in a moment.'
 
-/** Destination dropdown (search or pick) plus Country and Place selects, shared by create and edit. */
+/** Starter places first, then live ones, whatever order they arrived in. */
+export const starterFirst = (matches: DestinationMatch[]) => [
+  ...matches.filter((m) => m.kind === 'starter'),
+  ...matches.filter((m) => m.kind === 'live'),
+]
+
+/** One searchable destination picker for every place a destination is chosen. */
 export function DestinationPicker({ idPrefix, value, onChange, error }: DestinationPickerProps) {
-  const [catalogue, setCatalogue] = useState<Catalogue | null>(null)
-  const [failed, setFailed] = useState(false)
-  const [country, setCountry] = useState('')
-  const [place, setPlace] = useState('')
-  const [typed, setTyped] = useState('')
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [suggestion, setSuggestion] = useState<Choice | null>(null)
-  const [noMatch, setNoMatch] = useState(false)
-  const root = useRef<HTMLDivElement>(null)
-  const trigger = useRef<HTMLButtonElement>(null)
-  const valueAtLoad = useRef(value)
+  const [text, setText] = useState(value)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const settled = value !== '' && text === value && selectedId === null
+  const { status, result } = useDestinationSearch(settled ? '' : text)
 
-  useEffect(() => {
-    fetchStarterDestinations()
-      .then((loaded) => {
-        const choice = parseDestination(valueAtLoad.current, loaded)
-        setCountry(choice?.country ?? '')
-        setPlace(choice?.place ?? '')
-        setCatalogue(loaded)
-      })
-      .catch(() => setFailed(true))
-  }, [])
+  const inputId = `${idPrefix}-destination`
+  const hintId = `${idPrefix}-destination-h`
+  const errorId = `${idPrefix}-destination-e`
+  const unavailable = status === 'done' && result?.unavailable === true
+  const liveOff = status === 'done' && result?.live === false
+  const matches = status === 'done' && result ? starterFirst(result.matches) : []
 
-  const places = catalogue?.find((c) => c.name === country)?.places ?? []
-  const all = (catalogue ?? []).flatMap((c) => c.places.map((p) => ({ country: c.name, place: p })))
-  const needle = query.trim().toLowerCase()
-  const hits = all.filter(
-    (h) =>
-      !needle || h.place.toLowerCase().includes(needle) || h.country.toLowerCase().includes(needle),
-  )
-
-  const clearFeedback = () => {
-    setSuggestion(null)
-    setNoMatch(false)
+  const choose = (match: DestinationMatch) => {
+    setSelectedId(match.id)
+    onChange(matchDestination(match), match.kind === 'live' ? match.id : undefined)
   }
-  const choose = (next: Choice) => {
-    clearFeedback()
-    setTyped('')
-    setCountry(next.country)
-    setPlace(next.place)
-    onChange(formatDestination(next))
-  }
-  const evaluate = (text: string) => {
-    clearFeedback()
-    if (!catalogue) return
-    const result = evaluateDestination(text, catalogue)
-    if (result.kind === 'empty') return
-    setTyped(text.trim())
-    if (result.kind === 'place') choose(result.choice)
-    else if (result.kind === 'country') {
-      setCountry(result.country)
-      setPlace('')
-      onChange('')
-    } else if (result.kind === 'near') setSuggestion(result.choice)
-    else setNoMatch(true)
-  }
-  const close = (focusTrigger = false) => {
-    setOpen(false)
-    setQuery('')
-    if (focusTrigger) trigger.current?.focus()
-  }
-  const submitSearch = () => {
-    evaluate(query)
-    close(true)
-  }
-
-  // A pause with nothing left in the list evaluates what was typed.
-  useEffect(() => {
-    if (!open || !query.trim() || hits.length > 0) return
-    const timer = setTimeout(submitSearch, PAUSE_MS)
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, query, hits.length])
-
-  useEffect(() => {
-    if (!open) return
-    const outside = (event: MouseEvent) => {
-      if (!root.current?.contains(event.target as Node)) close()
-    }
-    document.addEventListener('mousedown', outside)
-    return () => document.removeEventListener('mousedown', outside)
-  }, [open])
-
-  const onSearchKey = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      submitSearch()
-    } else if (event.key === 'Escape') {
-      event.stopPropagation()
-      close(true)
-    }
-  }
-
-  const changeCountry = (next: string) => {
-    clearFeedback()
-    setTyped('')
-    setCountry(next)
-    setPlace('')
+  const type = (next: string) => {
+    setText(next)
+    setSelectedId(null)
     onChange('')
   }
-  const changePlace = (next: string) => {
-    clearFeedback()
-    setTyped('')
-    setPlace(next)
-    if (next) onChange(formatDestination({ country, place: next }))
-    else onChange('')
-  }
-
-  if (failed)
-    return (
-      <p className="alert alert-danger" role="alert">
-        We couldn't load the destinations. Reload to try again.
-      </p>
-    )
-  if (!catalogue)
-    return (
-      <div className="stack stack-sm" aria-busy="true">
-        <span className="skeleton" />
-        <span className="skeleton" />
-        <span className="skeleton" />
-      </div>
-    )
-
-  const invalid = Boolean(error) || noMatch
-  const label = place ? formatDestination({ country, place }) : typed
-  const hintId = `${idPrefix}-destination-h`
 
   return (
-    <div className="stack stack-lg">
-      <div className={`field${invalid ? ' is-invalid' : ''}`}>
-        <span className="field-label" id={`${idPrefix}-destination-l`}>
+    <section className="card stack" data-wf-id="destination-picker">
+      <div className={`field${error ? ' is-invalid' : ''}`}>
+        <label className="field-label" id={`${idPrefix}-destination-l`} htmlFor={inputId}>
           Destination
-        </span>
-        <div className="dest" ref={root}>
-          <button
-            ref={trigger}
-            type="button"
-            id={`${idPrefix}-destination`}
-            className={`select dest-trigger${invalid ? ' is-invalid' : ''}`}
-            aria-haspopup="listbox"
-            aria-expanded={open}
-            aria-labelledby={`${idPrefix}-destination-l`}
-            aria-invalid={invalid ? true : undefined}
-            aria-describedby={error ? `${idPrefix}-destination-e` : hintId}
-            onClick={() => (open ? close() : setOpen(true))}
-          >
-            <span className={`dest-label${label ? '' : ' text-muted'}`}>{label || PLACEHOLDER}</span>
-            <ChevronDownIcon />
-          </button>
-          {open && (
-            <div className="dest-pop">
-              <input
-                className="input"
-                type="text"
-                aria-label="Search places"
-                placeholder="Search places"
-                autoComplete="off"
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={onSearchKey}
-              />
-              <ul className="dest-list" role="listbox" aria-label="Places">
-                {hits.length > 0 ? (
-                  hits.map((h) => (
-                    <li key={`${h.country}/${h.place}`} role="presentation">
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={h.place === place && h.country === country}
-                        className="dest-item"
-                        onClick={() => {
-                          choose(h)
-                          close(true)
-                        }}
-                      >
-                        <span>{h.place}</span>
-                        <small>{h.country}</small>
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <li className="dest-empty">No listed place contains that text.</li>
-                )}
-              </ul>
-            </div>
-          )}
-        </div>
-        <span className="field-hint" id={hintId}>
-          Pick from the list, or search by place name.
-        </span>
-        {noMatch ? (
-          <p className="field-error no-match" role="alert">
+        </label>
+        <input
+          className={`input${error ? ' is-invalid' : ''}`}
+          id={inputId}
+          type="search"
+          placeholder="Type a city or town"
+          autoComplete="off"
+          value={text}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : hintId}
+          onChange={(event) => type(event.target.value)}
+        />
+        {unavailable ? (
+          <p className="field-hint cluster" id={hintId} role="status">
             <AlertIcon />
-            <span>{NO_MATCH}</span>
+            <span>{NOTE_LIVE_UNAVAILABLE}</span>
           </p>
         ) : (
-          <FieldError id={`${idPrefix}-destination-e`} message={error} />
-        )}
-      </div>
-      {suggestion && (
-        <div className="card suggestion">
-          <p aria-live="polite">
-            Did you mean <strong>{suggestion.place}</strong>?
+          <p className="field-hint" id={hintId}>
+            {liveOff ? HINT_LIVE_OFF : HINT_LIVE}
           </p>
-          <div className="cluster">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => choose(suggestion)}
-            >
-              <CheckIcon />
-              Use {suggestion.place}
-            </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={clearFeedback}>
-              <XIcon />
-              No thanks
-            </button>
-          </div>
+        )}
+        <FieldError id={errorId} message={error} />
+      </div>
+      {status === 'searching' && (
+        <div className="stack" aria-hidden="true">
+          <span className="skeleton" />
+          <span className="skeleton" />
+          <span className="skeleton" />
         </div>
       )}
-      <div className="field">
-        <label className="field-label" htmlFor={`${idPrefix}-country`}>
-          Country
-        </label>
-        <select
-          className="select"
-          id={`${idPrefix}-country`}
-          value={country}
-          onChange={(event) => changeCountry(event.target.value)}
-        >
-          <option value="">Choose a country</option>
-          {catalogue.map((c) => (
-            <option key={c.name} value={c.name}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+      <div aria-live="polite">
+        {status === 'failed' && <p className="field-hint">{FAILED}</p>}
+        {status === 'done' && matches.length === 0 && (
+          <p className="field-hint">No places match “{text.trim()}”. Try another spelling.</p>
+        )}
+        {matches.length > 0 && (
+          <ul className="place-pick-list">
+            {matches.map((m) => (
+              <li key={m.id}>
+                <button
+                  type="button"
+                  className="place-pick"
+                  aria-pressed={selectedId === m.id}
+                  onClick={() => choose(m)}
+                >
+                  <span className="place-pick-main">
+                    <span className="place-pick-name">{m.name}</span>
+                    <span className="text-sm text-muted">{m.region}</span>
+                  </span>
+                  {m.fullGuide && (
+                    <span className="badge badge-success">
+                      <CheckIcon />
+                      Full guide
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      <div className="field">
-        <label className="field-label" htmlFor={`${idPrefix}-place`}>
-          Place
-        </label>
-        <select
-          className="select"
-          id={`${idPrefix}-place`}
-          value={place}
-          disabled={!country}
-          aria-describedby={`${idPrefix}-place-h`}
-          onChange={(event) => changePlace(event.target.value)}
-        >
-          <option value="">{country ? `Choose a place in ${country}` : 'Choose a country first'}</option>
-          {places.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <span className="field-hint" id={`${idPrefix}-place-h`}>
-          Only places in your chosen country are listed.
-        </span>
-      </div>
-    </div>
+      {value !== '' && (
+        <p className="text-sm">
+          Chosen: <strong>{value}</strong>
+        </p>
+      )}
+    </section>
   )
 }

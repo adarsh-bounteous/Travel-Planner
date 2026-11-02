@@ -47,8 +47,8 @@ describe('Starter place content page', () => {
     renderAt(url)
     fireEvent.click(await screen.findByRole('link', { name: 'Back to trip' }))
     expect(await screen.findByRole('heading', { name: 'Plan a trip' })).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: /destination/i })).toHaveTextContent('Japan')
-    expect(screen.getByRole('button', { name: /place/i })).toHaveTextContent('Tokyo')
+    expect(await screen.findByRole('searchbox', { name: 'Destination' })).toHaveValue('Tokyo, Japan')
+    expect(await screen.findByText(/Starter content ready for Tokyo/)).toBeInTheDocument()
   })
 
   it('shows a busy skeleton while loading', async () => {

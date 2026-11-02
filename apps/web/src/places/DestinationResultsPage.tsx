@@ -10,6 +10,7 @@ import { destinationLabel } from '../trips/destination'
 import type { DestinationRef, DestinationStatus } from '../trips/destination'
 import { DestinationGate } from '../trips/DestinationGate'
 import { PLACE_CATEGORY_LABELS, PLACE_TYPE_LABELS, PRICE_LABELS, searchPlaces } from './api'
+import { DestinationMatchesView } from './DestinationMatchesView'
 import { PlaceDetails } from './PlaceDetails'
 import { PlacesSourceNote } from './PlacesSourceNote'
 import type { Place, PlaceFilters as Filters } from './api'
@@ -22,7 +23,16 @@ import { useSavedPlaces } from './useSavedPlaces'
 import { ViewToggle } from './ViewToggle'
 import type { PlacesView } from './ViewToggle'
 
+/** `?q=` alone searches cities and towns; `?destination=` or `?trip=` browses the places in one. */
 export function DestinationResultsPage() {
+  const [params] = useSearchParams()
+  const q = (params.get('q') ?? '').trim()
+  if (q && !params.get('destination')?.trim() && !params.get('trip'))
+    return <DestinationMatchesView key={q} q={q} />
+  return <PlaceBrowse />
+}
+
+function PlaceBrowse() {
   const [params, setParams] = useSearchParams()
   const query = (params.get('q') ?? '').trim()
   const destination = (params.get('destination') ?? '').trim()

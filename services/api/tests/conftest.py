@@ -86,6 +86,10 @@ def sign_in_as():
     resolver = FakeResolver()
     app.dependency_overrides[deps.get_destination_resolver] = lambda: resolver
     app.dependency_overrides[deps.get_backfill_resolver] = lambda: resolver
+    from tests.unit.locations_fakes import FakeLiveSearch
+
+    live_search = FakeLiveSearch()
+    app.dependency_overrides[deps.get_destination_search] = lambda: live_search
     password = "abcdefghij12"
 
     def make(email: str) -> TestClient:
@@ -100,5 +104,6 @@ def sign_in_as():
     make.trips = trips
     make.rates = rates
     make.resolver = resolver
+    make.live_search = live_search
     yield make
     app.dependency_overrides.clear()

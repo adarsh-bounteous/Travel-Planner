@@ -371,6 +371,10 @@ export type Trip = {
   country?: string | null
   place?: string | null
   destination_unmatched?: boolean
+  /** 'live' for a place picked from the search; its data may be limited. */
+  place_source?: 'starter' | 'live' | null
+  /** The text this trip was saved with before it was matched to a place picked earlier. */
+  rematched_from?: string | null
   start_date?: string | null
   end_date?: string | null
   budget?: number | null
@@ -405,7 +409,10 @@ export type Trip = {
 }
 
 export type TripInput = Pick<Trip, 'name' | 'destination' | 'start_date' | 'end_date' | 'budget'> &
-  Pick<Trip, 'owner_age' | 'risky_activities'>
+  Pick<Trip, 'owner_age' | 'risky_activities'> & {
+    /** The signed ref of a live place picked in the search, sent when the destination changes. */
+    place_ref?: string
+  }
 
 /** Everything New trip set-up collects; the API refuses a create without any of them. */
 export type TripCreateInput = {
@@ -416,6 +423,8 @@ export type TripCreateInput = {
   budget: number
   currency: string
   traveller_count: number
+  /** The signed ref of a live place picked in the search. */
+  place_ref?: string
 }
 
 export type TransportMode = 'flight' | 'train' | 'bus' | 'taxi'
@@ -461,7 +470,12 @@ export class NotFoundError extends Error {}
 /** The traveller may see this trip but not change it (403). */
 export class ForbiddenError extends Error {}
 /** The server refused the values (422); the UI shows its own message for it. */
-export class ValidationError extends Error {}
+export class ValidationError extends Error {
+  /** The API's error code when it sent one, e.g. `place_not_from_search`. */
+  constructor(readonly code?: string) {
+    super(code)
+  }
+}
 /** The place is already on this trip (409). */
 export class AlreadyOnTripError extends Error {}
 /** The invite was already accepted (409). */
@@ -486,7 +500,10 @@ export async function call<T>(path: string, method = 'GET', body?: unknown): Pro
   }
   if (response.status === 409 && path.endsWith('/places')) throw new AlreadyOnTripError()
   if (response.status === 409 && (path.endsWith('/accept') || path.startsWith('/invites/'))) throw new InviteUsedError()
-  if (response.status === 422) throw new ValidationError()
+  if (response.status === 422) {
+    const body = await response.json().catch(() => null)
+    throw new ValidationError(typeof body?.code === 'string' ? body.code : undefined)
+  }
   if (!response.ok) throw new Error(`request failed: ${response.status}`)
   if (response.status === 204) return undefined as T
   return response.json()
@@ -497,6 +514,14 @@ export const fetchTrips = () => call<Trip[]>('/trips')
 export const createTrip = (trip: TripCreateInput) => call<Trip>('/trips', 'POST', trip)
 
 export const fetchTrip = (id: string) => call<Trip>(`/trips/${encodeURIComponent(id)}`)
+
+export type DataStatus = {
+  destination: { country: string; place: string | null; label: string } | null
+  features: Record<'recommendations' | 'visa' | 'itinerary', 'available' | 'limited'>
+}
+
+export const fetchDataStatus = (id: string) =>
+  call<DataStatus>(`/trips/${encodeURIComponent(id)}/data-status`)
 
 export type ItineraryItem = {
   kind: 'stay' | 'check_in' | 'check_out' | 'transport' | 'activity' | 'meal' | 'reminder'

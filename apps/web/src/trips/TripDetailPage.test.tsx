@@ -195,37 +195,80 @@ describe('TripDetailPage owner edits', () => {
     expect(body).toMatchObject({ name: 'Lisbon Spring', budget: 2000 })
   })
 
-  it('shows the destination as a dropdown with no free-text field (AC2)', async () => {
+  const SEARCH_AGRA = {
+    'GET /places/search?q=Agra': {
+      status: 200,
+      body: {
+        live: true,
+        unavailable: false,
+        matches: [{ id: 'live:agra.sig', name: 'Agra', region: 'Uttar Pradesh, India', kind: 'live', fullGuide: false }],
+      },
+    },
+  }
+  const pickAgra = async (drawer: HTMLElement) => {
+    fireEvent.change(within(drawer).getByRole('searchbox', { name: 'Destination' }), {
+      target: { value: 'Agra' },
+    })
+    fireEvent.click(await within(drawer).findByRole('button', { name: /Agra/ }))
+  }
+
+  it('shows the destination in a search box (AC2)', async () => {
     open()
     const drawer = await openSettings()
-    const trigger = await within(drawer).findByRole('button', { name: /destination/i })
-    expect(trigger).toHaveTextContent('Lisbon, Portugal')
-    expect(within(drawer).queryByRole('textbox', { name: 'Destination' })).not.toBeInTheDocument()
+    expect(within(drawer).getByRole('searchbox', { name: 'Destination' })).toHaveValue('Lisbon, Portugal')
   })
 
-  it('saves a changed country and place as the destination (AC8)', async () => {
+  it('saves a live place with its signed ref when the destination changed (AC2)', async () => {
     const fetchMock = stubApi({
-      ...CATALOGUE,
+      ...SEARCH_AGRA,
       'GET /trips/t1': { status: 200, body: trip() },
-      'PUT /trips/t1': { status: 200, body: trip({ destination: 'Kyoto, Japan', name: 'Kyoto' }) },
+      'PUT /trips/t1': { status: 200, body: trip({ destination: 'Agra, India', name: 'Agra' }) },
     })
     renderAt('/trips/t1')
     const drawer = await openSettings()
-    fireEvent.change(await within(drawer).findByLabelText('Country'), { target: { value: 'Japan' } })
-    fireEvent.change(within(drawer).getByLabelText('Place'), { target: { value: 'Kyoto' } })
+    await pickAgra(drawer)
     fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Kyoto' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Agra' })).toBeInTheDocument()
     const body = JSON.parse(sent(fetchMock, 'PUT')[0][1]!.body as string)
-    expect(body).toMatchObject({ destination: 'Kyoto, Japan' })
+    expect(body).toMatchObject({ destination: 'Agra, India', place_ref: 'live:agra.sig' })
   })
 
-  it('does not save when no country and place are chosen (AC11)', async () => {
+  it('sends no place ref when the destination did not change', async () => {
+    const fetchMock = stubApi({
+      'GET /trips/t1': { status: 200, body: trip() },
+      'PUT /trips/t1': { status: 200, body: trip() },
+    })
+    renderAt('/trips/t1')
+    const drawer = await openSettings()
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(sent(fetchMock, 'PUT')).toHaveLength(1))
+    expect(JSON.parse(sent(fetchMock, 'PUT')[0][1]!.body as string)).not.toHaveProperty('place_ref')
+  })
+
+  it('says so when the server did not accept the place (AC22)', async () => {
+    stubApi({
+      ...SEARCH_AGRA,
+      'GET /trips/t1': { status: 200, body: trip() },
+      'PUT /trips/t1': { status: 422, body: { code: 'place_not_from_search' } },
+    })
+    renderAt('/trips/t1')
+    const drawer = await openSettings()
+    await pickAgra(drawer)
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
+    expect(
+      await within(drawer).findByText("That place wasn't in the search results. Search again and pick one."),
+    ).toBeInTheDocument()
+  })
+
+  it('does not save when no place is chosen (AC11)', async () => {
     const fetchMock = open()
     const drawer = await openSettings()
-    fireEvent.change(await within(drawer).findByLabelText('Country'), { target: { value: '' } })
+    fireEvent.change(within(drawer).getByRole('searchbox', { name: 'Destination' }), {
+      target: { value: '' },
+    })
     fireEvent.click(within(drawer).getByRole('button', { name: 'Save' }))
     expect(await within(drawer).findByRole('alert')).toHaveTextContent(
-      'Choose a country and a place.',
+      'Search for a city or town and pick one.',
     )
     expect(sent(fetchMock, 'PUT')).toHaveLength(0)
   })

@@ -166,7 +166,7 @@ def test_list_does_not_resolve(sign_in_as):
 def test_unresolved_destination_saves_without_location(sign_in_as, failure):
     client = sign_in_as("a@example.com")
     sign_in_as.resolver.fail_with(failure)
-    response = client.post("/trips", json=body(destination="Atlantis"))
+    response = client.post("/trips", json=body(destination="Lisbon"))
     assert response.status_code == 201
     assert response.json()["location"] is None
     assert client.get(f"/trips/{response.json()['id']}").json()["location"] is None
@@ -176,6 +176,6 @@ def test_edit_to_an_unresolvable_destination_clears_the_location(sign_in_as):
     client = sign_in_as("a@example.com")
     trip_id = client.post("/trips", json=body()).json()["id"]
     sign_in_as.resolver.fail_with("raises")
-    response = client.put(f"/trips/{trip_id}", json=body(destination="Atlantis"))
+    response = client.put(f"/trips/{trip_id}", json=body(destination="Porto"))
     assert response.status_code == 200
     assert response.json()["location"] is None

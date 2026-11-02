@@ -112,7 +112,13 @@ export function VisaRequirementsPage() {
           ))}
         </div>
       ) : (
-        <DestinationGate tripId={tripId} destination={loaded.view.destination} status={loaded.view.status}>
+        <DestinationGate
+          tripId={tripId}
+          destination={loaded.view.destination}
+          status={loaded.view.status}
+          feature="visa rules"
+          onRetry={reload}
+        >
         <div className="grid">
           {loaded.view.travellers.map((row) => (
             <article className="card traveller-card stack stack-sm" key={keyOf(row)}>

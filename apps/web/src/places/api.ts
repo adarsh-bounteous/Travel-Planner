@@ -82,3 +82,33 @@ export const savePlace = (place: Place) =>
 
 export const unsavePlace = (id: string) =>
   call<void>(`/saved-places/${encodeURIComponent(id)}`, 'DELETE')
+
+export type DestinationMatch = {
+  id: string
+  name: string
+  region: string
+  kind: 'starter' | 'live'
+  fullGuide: boolean
+}
+export type DestinationSearchResult = {
+  live: boolean
+  unavailable: boolean
+  matches: DestinationMatch[]
+}
+
+/** The stored "Place, Country" for a match: the region ends with the country ("Uttar Pradesh, India"). */
+export const matchDestination = (match: DestinationMatch) =>
+  `${match.name}, ${match.region.split(', ').pop()}`
+
+/** Cities and towns for a destination choice: starter places first, then live ones. */
+export async function searchDestinations(
+  q: string,
+  signal?: AbortSignal,
+): Promise<DestinationSearchResult> {
+  const response = await fetch(`/places/search?q=${encodeURIComponent(q)}`, {
+    credentials: 'same-origin',
+    signal,
+  })
+  if (!response.ok) throw new Error(`request failed: ${response.status}`)
+  return response.json()
+}

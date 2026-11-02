@@ -58,6 +58,7 @@ class TripFields(BaseModel):
     )
     risky_activities: bool | None = None  # None = not answered; asked at New trip set-up (Traveller profile epic)
     owner_age: int | None = Field(default=None, ge=0, le=120)
+    place_ref: str | None = Field(default=None, max_length=2000)  # write-only: the signed id a live search returned
 
 
 class TripCreate(TripFields):
@@ -335,6 +336,9 @@ class Trip(TripFields):
     destination_unmatched: bool = False  # server-owned: the typed destination could not be matched
     destination_converted: bool = False  # server-owned: False only on trips saved before the conversion existed
     location: ResolvedLocation | None = None  # server-owned: set only by destination resolution, never read from a request body
+    place_ref: None = Field(default=None, exclude=True)  # never stored or returned
+    place_source: Literal["starter", "live"] | None = None  # server-owned: where the chosen place came from
+    rematched_from: str | None = None  # server-owned: the old typed destination this trip was re-matched from
 
 
 def visible_reminders(trip: Trip) -> list[Reminder]:

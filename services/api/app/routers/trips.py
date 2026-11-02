@@ -3,12 +3,13 @@ import re
 import secrets
 import uuid
 from datetime import UTC, date, datetime
+from typing import Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel
 
 from app.auth.identity import IdentityProvider
-from app.config import Settings, get_settings
+from app.config import Settings, get_settings, session_secret
 from app.routers.auth import get_identity, get_now
 from app.routers.deps import (
     ApiError,
@@ -22,7 +23,8 @@ from app.routers.deps import (
     get_trips,
     get_visa_rules,
 )
-from app.locations.resolver import DestinationResolver
+from app.locations.resolver import DestinationResolver, ResolvedLocation
+from app.places.destination_search import verify_place_ref
 from app.trips.destination import (
     ChosenDestination,
     DestinationStatus,
@@ -32,6 +34,7 @@ from app.trips.destination import (
 )
 from app.trips.destination_conversion import convert_trip
 from app.trips.destination_match import best_match
+from app.trips.starter_destinations import fold
 from app.trips.cost import CostSummary, summarise_cost
 from app.trips.invites import InviteSender
 from app.trips.medical import TravellerGuidance, guidance_for
@@ -111,6 +114,7 @@ INVALID_PLACE = ApiError(422, "invalid_place")
 INVALID_TRAVELLER = ApiError(422, "invalid_traveller")
 INVALID_EMAIL = ApiError(422, "invalid_email")
 ALREADY_EDITOR = ApiError(409, "already_editor")
+PLACE_NOT_FROM_SEARCH = ApiError(422, "place_not_from_search")
 
 
 class EditorView(BaseModel):
@@ -175,11 +179,76 @@ def _view(trip: Trip, rates: RateSource, user_id: str, owner_id: str | None = No
 
 
 def _converted(trips: TripStore, owner_id: str, trip: Trip) -> Trip:
-    """The trip with its destination converted; saved once, the first time it is loaded."""
+    """The trip with its destination converted and, if still unmatched, re-matched; saved once when it changes."""
     done = convert_trip(trip)
+    if done.destination_unmatched and not done.country:
+        done = _rematch_to_picked(trips, owner_id, done)
     if done is not trip:
         trips.save_trip(owner_id, done)
     return done
+
+
+class _Picked(BaseModel):
+    country: str
+    place: str
+    source: Literal["starter", "live"]
+    location: ResolvedLocation | None = None  # set for a live pick: it travels in the signed ref
+
+
+def _checked_destination(destination: str | None, place_ref: str | None, now: datetime) -> _Picked:
+    """The place a request names, only if search returned it: a signed live id, or a starter place."""
+    if place_ref:
+        live = verify_place_ref(place_ref, session_secret(), now)
+        if live is None or fold(destination or "") != fold(f"{live.name}, {live.country}"):
+            raise PLACE_NOT_FROM_SEARCH
+        return _Picked(country=live.country, place=live.name, source="live", location=live.location)
+    match = best_match(destination)
+    if match is None:
+        raise PLACE_NOT_FROM_SEARCH
+    return _Picked(country=match[0], place=match[1], source="starter")
+
+
+def _qualifier_matches(text: str, location: ResolvedLocation) -> bool:
+    """A second typed segment ("UP") names the pick's region by prefix or initials, or its country code."""
+    wanted = fold(text)
+    if not wanted:
+        return True
+    if wanted == fold(location.country_code):
+        return True
+    regions = [fold(part) for part in location.name.split(",")[1:]]
+    initials = ["".join(word[0] for word in region.split()) for region in regions]
+    return any(r.startswith(wanted) for r in regions) or wanted in initials
+
+
+def _rematch_to_picked(trips: TripStore, owner_id: str, trip: Trip) -> Trip:
+    """An unmatched old trip takes the one live place this traveller picked before that its text names."""
+    first, _, rest = (trip.destination or "").partition(",")
+    if not fold(first):
+        return trip
+    picks = {
+        (fold(t.place), t.location.name): t
+        for t in trips.list_trips(owner_id)
+        if t.place_source == "live" and t.place and t.country and t.location is not None
+    }
+    found = [
+        p
+        for (name, _), p in picks.items()
+        if name == fold(first) and _qualifier_matches(rest.split(",")[0], p.location)
+    ]
+    if len(found) != 1:
+        return trip
+    pick = found[0]
+    return trip.model_copy(
+        update={
+            "country": pick.country,
+            "place": pick.place,
+            "location": pick.location,
+            "place_source": "live",
+            "destination": f"{pick.place}, {pick.country}",
+            "destination_unmatched": False,
+            "rematched_from": trip.destination,
+        }
+    )
 
 
 def _located(trip: Trip, resolver: DestinationResolver) -> Trip:
@@ -314,9 +383,26 @@ def create_trip(
     now: datetime = Depends(get_now),
     resolver: DestinationResolver = Depends(get_destination_resolver),
 ) -> TripView:
-    trip = Trip(id=uuid.uuid4().hex, updated_at=now, destination_converted=True, **body.model_dump())
+    picked = _checked_destination(body.destination, body.place_ref, now)  # before anything is built, so a rejection saves nothing
+    trip = Trip(
+        id=uuid.uuid4().hex,
+        updated_at=now,
+        destination_converted=True,
+        **body.model_dump(exclude={"place_ref"}),
+    )
     trip.days = _days(trip, trip.start_date, trip.end_date)
-    trip = _located(trip, resolver)
+    if picked.location is not None:  # a live pick carries its location, so the save makes no outside request
+        trip = trip.model_copy(
+            update={
+                "destination": f"{picked.place}, {picked.country}",
+                "country": picked.country,
+                "place": picked.place,
+                "place_source": "live",
+                "location": picked.location,
+            }
+        )
+    else:
+        trip = _located(trip, resolver)
     trips.save_trip(owner, trip)
     return _view(trip, rates, owner)
 
@@ -373,9 +459,16 @@ def update_trip(
     resolver: DestinationResolver = Depends(get_destination_resolver),
 ) -> TripView:
     existing = _owned_trip(trips, identity, owner, trip_id)
+    picked = (
+        _checked_destination(body.destination, body.place_ref, now)
+        if body.destination is not None and body.destination != existing.destination
+        else None
+    )
     # The body cannot carry days, options or currency: keep the stored ones.
     days = _days(existing, body.start_date, body.end_date)
-    fields = body.model_dump()
+    fields = body.model_dump(exclude={"place_ref"})
+    if picked is not None and picked.location is not None:
+        fields["destination"] = f"{picked.place}, {picked.country}"
     if "interests" not in body.model_fields_set:
         del fields["interests"]  # settings edits do not send interests: keep the stored ones
     for kept in ("owner_age", "risky_activities"):
@@ -398,9 +491,22 @@ def update_trip(
             **({"insurance": None} if cleared else {}),
             **({"stays": flagged} if redated else {}),
             **_rematched(existing, body.destination),
+            **(
+                {
+                    "country": picked.country,
+                    "place": picked.place,
+                    "place_source": "live",
+                    "destination_unmatched": False,
+                    "rematched_from": None,
+                }
+                if picked is not None and picked.location is not None
+                else {}
+            ),
         }
     )
-    if (trip.destination, trip.country, trip.place) != (existing.destination, existing.country, existing.place):
+    if picked is not None and picked.location is not None:
+        trip = trip.model_copy(update={"location": picked.location})
+    elif (trip.destination, trip.country, trip.place) != (existing.destination, existing.country, existing.place):
         # A country and place this edit did not rematch describe the old destination: look up the typed one.
         rematched = (trip.country, trip.place) != (existing.country, existing.place)
         query = trip if rematched else trip.model_copy(update={"country": None, "place": None})
@@ -568,7 +674,10 @@ def _visa_view(
     return VisaView(
         destination=chosen,
         status=destination_status(
-            chosen, needs_place=False, country_has_data=bool(chosen) and has_guidance(chosen.country)
+            chosen,
+            needs_place=False,
+            country_has_data=bool(chosen) and has_guidance(chosen.country),
+            live=trip.place_source == "live",
         ),
         published_on=source.published_on(),
         travellers=_visa_results(trip, profile, source),
@@ -638,7 +747,10 @@ def trip_medical_guidance(
     return MedicalGuidanceView(
         destination=chosen,
         status=destination_status(
-            chosen, needs_place=False, country_has_data=bool(chosen) and medical_has_data(chosen.country)
+            chosen,
+            needs_place=False,
+            country_has_data=bool(chosen) and medical_has_data(chosen.country),
+            live=trip.place_source == "live",
         ),
         travellers=[
             guidance_for(
@@ -858,6 +970,48 @@ def day_recommendations(
     return [r for r in source.for_destination(chosen.place) if r.name not in on_day]
 
 
+class FeatureStatus(BaseModel):
+    recommendations: Literal["available", "limited"]
+    visa: Literal["available", "limited"]
+    itinerary: Literal["available", "limited"]
+
+
+class DataStatusView(BaseModel):
+    destination: ChosenDestination | None
+    features: FeatureStatus
+
+
+def _recommendations_available(source: RecommendationSource, place: str) -> bool:
+    try:
+        return bool(source.for_destination(place))
+    except Exception:
+        return False
+
+
+@router.get("/{trip_id}/data-status")
+def trip_data_status(
+    trip_id: str,
+    user: str = Depends(get_current_user),
+    trips: TripStore = Depends(get_trips),
+    identity: IdentityProvider = Depends(get_identity),
+    source: RecommendationSource = Depends(get_recommendations),
+) -> DataStatusView:
+    """Whether each feature has data for this trip's place, so the overview can say where data is limited."""
+    trip, _ = _editable_trip(trips, identity, user, trip_id)
+    chosen = chosen_destination(trip)
+    live = trip.place_source == "live"
+    has_place = chosen is not None and bool(chosen.place)
+    available = {
+        "recommendations": has_place and (not live or _recommendations_available(source, chosen.place)),
+        "visa": chosen is not None and (not live or has_guidance(chosen.country)),
+        "itinerary": has_place and (not live or bool(trip.days or (trip.start_date and trip.end_date))),
+    }
+    return DataStatusView(
+        destination=chosen,
+        features=FeatureStatus(**{k: "available" if v else "limited" for k, v in available.items()}),
+    )
+
+
 class TripRecommendations(BaseModel):
     destination: ChosenDestination | None
     status: DestinationStatus
@@ -874,14 +1028,25 @@ def trip_recommendations(
 ) -> TripRecommendations:
     trip, _ = _editable_trip(trips, identity, user, trip_id)
     chosen = chosen_destination(trip)
+    live = trip.place_source == "live"
     # Place data is measured before the interest filter, so a filter that empties the list is not "no information".
-    recommendations = source.for_destination(chosen.place) if chosen and chosen.place else []
+    try:
+        recommendations = source.for_destination(chosen.place) if chosen and chosen.place else []
+    except Exception:
+        if not live:
+            raise
+        logger.warning("Recommendations failed for trip %s", trip_id, exc_info=True)
+        return TripRecommendations(destination=chosen, status="limited_data", items=[])
     status = destination_status(
         chosen,
         needs_place=True,
         country_has_data=bool(chosen)
-        and (bool(recommendations) or country_has_any_place(chosen.country, lambda p: bool(source.for_destination(p)))),
+        and (
+            bool(recommendations)
+            or (not live and country_has_any_place(chosen.country, lambda p: bool(source.for_destination(p))))
+        ),
         place_has_data=bool(recommendations),
+        live=live,
     )
     wanted = {i.casefold() for i in trip.interests}
     items = [r for r in recommendations if r.interest and r.interest.casefold() in wanted] if wanted else recommendations

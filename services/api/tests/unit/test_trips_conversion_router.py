@@ -53,17 +53,18 @@ def test_editing_a_flagged_trip_to_a_match_clears_the_flag(legacy):
     assert (saved["country"], saved["place"]) == ("Portugal", "Lisbon")
 
 
-def test_editing_to_another_non_match_keeps_the_flag(legacy):
+def test_editing_to_another_non_match_is_refused_and_keeps_the_flag(legacy):
     client, save = legacy
     save("t7", "Atlantis")
     client.get("/trips/t7")
-    saved = client.put("/trips/t7", json={"name": "X", "destination": "Narnia"}).json()
-    assert saved["destination_unmatched"] is True
+    response = client.put("/trips/t7", json={"name": "X", "destination": "Narnia"})
+    assert response.status_code == 422
+    assert client.get("/trips/t7").json()["destination_unmatched"] is True
 
 
 def test_body_cannot_set_the_conversion_fields(legacy):
     client, save = legacy
     save("t7", "Atlantis")
-    body = {"name": "X", "destination": "Narnia", "country": "Japan", "place": "Kyoto", "destination_unmatched": False}
+    body = {"name": "X", "destination": "Atlantis", "country": "Japan", "place": "Kyoto", "destination_unmatched": False}
     saved = client.put("/trips/t7", json=body).json()
     assert saved["country"] is None and saved["destination_unmatched"] is True

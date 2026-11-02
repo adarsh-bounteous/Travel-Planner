@@ -82,7 +82,7 @@ describe('pages', () => {
       'GET /places?destination=Lisbon': { status: 200, body: [withPhoto] },
       'GET /trips': { status: 200, body: [] },
     })
-    renderAt('/destinations?q=Lisbon&view=list')
+    renderAt('/destinations?destination=Lisbon&view=list')
     expect(await screen.findByRole('link', { name: 'Photo: Ana, CC BY 4.0' })).toHaveAttribute('href', PHOTO.file_url)
     expect(document.querySelector(`img[src="${THUMB}"]`)).not.toBeNull()
   })

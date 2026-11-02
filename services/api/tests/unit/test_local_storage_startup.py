@@ -10,7 +10,7 @@ from app.routers import auth, deps
 from app.trips.store import DynamoTripStore
 
 BODY = {
-    "name": "Rome", "destination": "Rome", "start_date": "2026-06-01", "end_date": "2026-06-03",
+    "name": "Rome", "destination": "Lisbon", "start_date": "2026-06-01", "end_date": "2026-06-03",
     "budget": 300, "currency": "EUR", "traveller_count": 1,
 }
 

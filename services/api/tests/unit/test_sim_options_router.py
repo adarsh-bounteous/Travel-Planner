@@ -113,7 +113,7 @@ def test_trip_spanning_march_and_april_shows_sim_options(sign_in_as):
 
 def test_no_match_gives_no_options_and_no_pick(sign_in_as):
     a = sign_in_as("a@example.com")
-    tid = a.post("/trips", json=trip_body(destination="Atlantis, Narnia")).json()["id"]
+    tid = create_trip(a, destination="Atlantis, Narnia")
     out = a.get(f"/trips/{tid}/sim-options").json()
     assert out["options"] == [] and out["picked"] is None
 

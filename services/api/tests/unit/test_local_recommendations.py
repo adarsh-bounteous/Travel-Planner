@@ -7,8 +7,7 @@ from app.main import app
 from app.routers import deps
 from app.routers.deps import get_recommendations
 from app.trips.recommendations import InMemoryRecommendations, Recommendation
-from app.trips.destination_match import best_match
-from tests.trip_body import choose_destination
+from tests.trip_body import choose_destination, create_trip
 from tests.unit.test_local_trips_invites_share import BODY, demo, local  # noqa: F401
 
 
@@ -18,9 +17,7 @@ def client(local):  # noqa: F811
 
 
 def get_for(client, destination, interests=None):
-    body = {**BODY, "destination": destination, "interests": interests or []}
-    tid = client.post("/trips", json=body).json()["id"]
-    choose_destination(tid, *(best_match(destination) or (None, None)))
+    tid = create_trip(client, **{**BODY, "destination": destination, "interests": interests or []})
     r = client.get(f"/trips/{tid}/recommendations")
     assert r.status_code == 200
     return r.json()["items"]

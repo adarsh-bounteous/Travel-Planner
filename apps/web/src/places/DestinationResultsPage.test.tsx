@@ -32,7 +32,7 @@ const lisbon = {
 describe('Destination results filters and map', () => {
   it('choosing a place type lists only that type (AC1)', async () => {
     const fetchMock = stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Museum' }))
     expect(await screen.findAllByRole('listitem')).toHaveLength(1)
     expect(screen.getByText('Belém Tower')).toBeInTheDocument()
@@ -42,7 +42,7 @@ describe('Destination results filters and map', () => {
 
   it('choosing a price lists only matching places (AC2)', async () => {
     const fetchMock = stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Free' }))
     expect(await screen.findByText('Alfama')).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
@@ -51,7 +51,7 @@ describe('Destination results filters and map', () => {
 
   it('the map shows exactly the filtered places (AC3, AC5)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon&type=museum')
+    renderAt('/destinations?destination=Lisbon&type=museum')
     await screen.findByText('Belém Tower')
     fireEvent.click(screen.getByRole('tab', { name: 'Map' }))
     const map = await screen.findByRole('img', { name: 'Map of places' })
@@ -64,13 +64,13 @@ describe('Destination results filters and map', () => {
 
   it('the map shows OSM tiles when tiles are on (AC1)', async () => {
     stubApi({ ...lisbon, 'GET /startup-status': { status: 200, body: { map_tiles: true } } })
-    renderAt('/destinations?q=Lisbon&view=map')
+    renderAt('/destinations?destination=Lisbon&view=map')
     expect((await screen.findAllByTestId('map-tile')).length).toBeGreaterThan(0)
   })
 
   it('the list shows the same filtered places after the map (AC4)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon&type=museum&view=map')
+    renderAt('/destinations?destination=Lisbon&type=museum&view=map')
     fireEvent.click(await screen.findByRole('tab', { name: 'List' }))
     expect(
       screen.getAllByRole('button', { name: /^Save / }).map((b) => b.getAttribute('aria-label')),
@@ -79,7 +79,7 @@ describe('Destination results filters and map', () => {
 
   it('the List tab replaces the map with place cards (AC6)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon&view=map')
+    renderAt('/destinations?destination=Lisbon&view=map')
     expect(await screen.findByRole('img', { name: 'Map of places' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'List' }))
     expect(screen.queryByRole('img', { name: 'Map of places' })).not.toBeInTheDocument()
@@ -91,7 +91,7 @@ describe('Destination results filters and map', () => {
       ...lisbon,
       'GET /places?destination=Lisbon&place_type=park': { status: 200, body: [] },
     })
-    renderAt('/destinations?q=Lisbon&type=park')
+    renderAt('/destinations?destination=Lisbon&type=park')
     expect(await screen.findByText('No places match these filters')).toBeInTheDocument()
     expect(screen.getByText('Change or clear the filters to see more places.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Park' })).toBeInTheDocument()
@@ -101,14 +101,27 @@ describe('Destination results filters and map', () => {
 })
 
 describe('Destination results', () => {
-  it('searching from Home shows results for the destination (AC1)', async () => {
-    stubApi(lisbon)
+  it('searching from Home lists the matching cities and towns (AC1)', async () => {
+    stubApi({
+      ...lisbon,
+      'GET /places/search?q=Lisbon': {
+        status: 200,
+        body: {
+          live: true,
+          unavailable: false,
+          matches: [
+            { id: 'starter:Portugal/Lisbon', name: 'Lisbon', region: 'Portugal', kind: 'starter', fullGuide: true },
+          ],
+        },
+      },
+    })
     renderAt('/')
     fireEvent.change(await screen.findByLabelText('Search a city or place'), {
       target: { value: ' Lisbon ' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
-    expect(await screen.findByRole('heading', { name: 'Places in Lisbon' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Results for “Lisbon”' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Start trip to Lisbon' })).toBeInTheDocument()
   })
 
   it('a blank search stays on Home and makes no places call', async () => {
@@ -122,20 +135,20 @@ describe('Destination results', () => {
 
   it('shows the places as a list of cards (AC2)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findAllByRole('listitem')).toHaveLength(2)
   })
 
   it('Back returns to Home (AC3)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('link', { name: 'Back' }))
     expect(await screen.findByRole('heading', { name: 'My trips' })).toBeInTheDocument()
   })
 
   it('each card shows place-type art, not a photo, and the name (AC4)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByText('Alfama')).toBeInTheDocument()
     expect(document.querySelectorAll('li.card .imgc')).toHaveLength(2)
     expect(document.querySelector('img[src*="img.example"]')).toBeNull()
@@ -143,7 +156,7 @@ describe('Destination results', () => {
 
   it('an empty result says no places match (AC5) and prompts a new search (AC6)', async () => {
     stubApi({ 'GET /places?destination=Zzz': { status: 200, body: [] } })
-    renderAt('/destinations?q=Zzz')
+    renderAt('/destinations?destination=Zzz')
     expect(await screen.findByText('No places match your search')).toBeInTheDocument()
     expect(screen.getByText('Try a different city or place.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Change search' })).toHaveAttribute('href', '/')
@@ -160,13 +173,13 @@ describe('Destination results', () => {
           : new Promise<Response>(() => {}),
       ),
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByRole('status', { name: 'Loading places' })).toBeInTheDocument()
   })
 
   it('shows an alert when the request fails', async () => {
     stubApi({ 'GET /places?destination=Lisbon': { status: 500 } })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByRole('alert')).toHaveTextContent("We couldn't load places.")
     expect(screen.queryByRole('article')).not.toBeInTheDocument()
     expect(document.querySelectorAll('li.card')).toHaveLength(0)
@@ -183,14 +196,14 @@ describe('Destination results', () => {
         throw new DOMException('The operation timed out.', 'TimeoutError')
       }),
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByRole('alert')).toBeVisible()
     expect(document.querySelectorAll('li.card')).toHaveLength(0)
   })
 
   it('shows a visible message when the provider is down and nothing is cached', async () => {
     stubApi({ 'GET /places?destination=Lisbon': { status: 503 } })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByRole('alert')).toHaveTextContent(
       "We couldn't load places. Try searching again.",
     )
@@ -218,7 +231,7 @@ describe('Saving places', () => {
       'GET /saved-places': { status: 200, body: [] },
       'PUT /saved-places/p1': { status: 200, body: alfama },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     expect(await screen.findByRole('button', { name: 'Unsave Alfama' })).toHaveAttribute(
       'aria-pressed',
@@ -233,7 +246,7 @@ describe('Saving places', () => {
       'GET /saved-places': { status: 200, body: [alfama] },
       'DELETE /saved-places/p1': { status: 204 },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
     expect(await screen.findByRole('button', { name: 'Save Alfama' })).toHaveAttribute(
       'aria-pressed',
@@ -253,7 +266,7 @@ describe('Saving places', () => {
       if (path === '/saved-places/p1') list = [alfama]
       return base(path, init)
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     await screen.findByRole('button', { name: 'Unsave Alfama' })
     fireEvent.click(screen.getByRole('link', { name: 'Saved' }))
@@ -263,7 +276,7 @@ describe('Saving places', () => {
 
   it('saved and unsaved places have different map markers (AC5)', async () => {
     stubApi({ ...lisbon, 'GET /saved-places': { status: 200, body: [alfama] } })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('tab', { name: 'Map' }))
     const map = await screen.findByRole('img', { name: 'Map of places' })
     await waitFor(() =>
@@ -279,11 +292,11 @@ describe('Saving places', () => {
 
   it('a signed-out visitor is asked to sign in (AC11)', async () => {
     const fetchMock = stubApi(lisbon, { signedOut: true })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
     expect(putCalls(fetchMock)).toEqual([])
-    expect(sessionStorage.getItem('returnTo')).toBe('/destinations?q=Lisbon')
+    expect(sessionStorage.getItem('returnTo')).toBe('/destinations?destination=Lisbon')
   })
 
   it('a failed save after sign-in alerts and shows no success toast', async () => {
@@ -296,7 +309,7 @@ describe('Saving places', () => {
       },
       { signedOut: true },
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     fireEvent.change(await screen.findByLabelText('Email'), {
       target: { value: 'maya@example.com' },
@@ -317,7 +330,7 @@ describe('Saving places', () => {
       },
       { signedOut: true },
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     fireEvent.change(await screen.findByLabelText('Email'), {
       target: { value: 'maya@example.com' },
@@ -339,7 +352,7 @@ describe('Saving feedback and destination scope', () => {
       'GET /saved-places': { status: 200, body: [] },
       'PUT /saved-places/p1': { status: 200, body: alfama },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     expect(await screen.findByText('Alfama saved to your account.')).toBeInTheDocument()
     const put = fetchMock.mock.calls.find(([, i]) => i?.method === 'PUT')!
@@ -352,7 +365,7 @@ describe('Saving feedback and destination scope', () => {
       'GET /saved-places': { status: 200, body: [] },
       'PUT /saved-places/p1': { status: 500 },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("couldn't update your saved places")
     expect(screen.queryByText('Alfama saved to your account.')).not.toBeInTheDocument()
@@ -383,7 +396,7 @@ describe('Saving feedback and destination scope', () => {
       },
       { signedOut: true },
     )
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     fireEvent.change(await screen.findByLabelText('Email'), {
       target: { value: 'maya@example.com' },
@@ -401,7 +414,7 @@ describe('Saving feedback and destination scope', () => {
       'PUT /saved-places/p1': { status: 200, body: alfama },
       'DELETE /saved-places/p1': { status: 204 },
     })
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Unsave Alfama' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
@@ -424,7 +437,7 @@ describe('Destination results in local mode', () => {
 
   it('shows the local notice and a generated-locally note (AC1, AC5)', async () => {
     stubApi(local)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByText('Alfama')).toBeInTheDocument()
     expect(screen.getByText(/Local mode is on\. Places are generated here/)).toBeInTheDocument()
     expect(screen.getByText('2 places generated locally for Lisbon.')).toBeInTheDocument()
@@ -432,14 +445,14 @@ describe('Destination results in local mode', () => {
 
   it('lists different places for a different destination (AC2)', async () => {
     stubApi(local)
-    renderAt('/destinations?q=Kyoto')
+    renderAt('/destinations?destination=Kyoto')
     expect(await screen.findByText('Bamboo Path Walk')).toBeInTheDocument()
     expect(screen.queryByText('Alfama')).not.toBeInTheDocument()
   })
 
   it('shows an empty-results message and no places for an unmatched query (AC3, AC4)', async () => {
     stubApi(local)
-    renderAt('/destinations?q=Zzyzx')
+    renderAt('/destinations?destination=Zzyzx')
     expect(await screen.findByText('No places match your search')).toBeInTheDocument()
     expect(screen.queryAllByRole('button', { name: /^Save / })).toHaveLength(0)
     expect(document.querySelector('ul.grid')).toBeNull()
@@ -447,14 +460,14 @@ describe('Destination results in local mode', () => {
 
   it('saves a generated place through the Saved flow (AC6)', async () => {
     const fetchMock = stubApi(local)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     fireEvent.click(await screen.findByRole('button', { name: 'Save Alfama' }))
     await waitFor(() => expect(putCalls(fetchMock)).toEqual(['/saved-places/p1']))
   })
 
   it('says local mode is off when the switch is off (AC7)', async () => {
     stubApi(lisbon)
-    renderAt('/destinations?q=Lisbon')
+    renderAt('/destinations?destination=Lisbon')
     expect(await screen.findByText('Alfama')).toBeInTheDocument()
     expect(
       screen.getByText('Local mode is off. Places come from the outside places service.'),

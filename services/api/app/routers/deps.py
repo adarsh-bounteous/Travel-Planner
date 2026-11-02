@@ -23,8 +23,15 @@ from app.locations.resolver import (
 )
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.integrations.client import IntegrationClient
+from app.integrations.rate_limit import RateLimiter as WindowLimiter
 from app.locations.cache import InMemoryLocationCache
 from app.places.commons import CommonsPhotos, NoPhotos, PlacePhotos, commons_settings
+from app.places.destination_search import (
+    CachedDestinationSearch,
+    LiveDestinationSearch,
+    NominatimDestinationSearch,
+    NoLiveSearch,
+)
 from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import LocalPlaceSearch
 from app.places.nominatim_places import NominatimPlaceSearch, nominatim_places_settings
@@ -452,3 +459,23 @@ def get_current_user(
         raise ApiError(401, "not_signed_in")
     _set_session(response, user_id, now, settings)  # slide the 7-day idle window
     return user_id
+
+
+LIVE_SEARCH_CALLS = 3
+LIVE_SEARCH_PERIOD = 3.0
+
+
+@lru_cache
+def _destination_search() -> LiveDestinationSearch:
+    settings = get_settings()
+    return CachedDestinationSearch(
+        NominatimDestinationSearch(settings.nominatim_base_url, settings.nominatim_user_agent),
+        # About Nominatim's one request a second on average; the rest degrade to starters.
+        WindowLimiter(LIVE_SEARCH_CALLS, LIVE_SEARCH_PERIOD, time.monotonic),
+        now=lambda: datetime.now(UTC),
+    )
+
+
+def get_destination_search() -> LiveDestinationSearch:
+    """Live city search where the places source is live; local mode makes no outside request."""
+    return _destination_search() if get_settings().is_live("places") else NoLiveSearch()

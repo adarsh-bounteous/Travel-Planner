@@ -12,7 +12,7 @@ def trip_body(**changes) -> dict:
     }
 
 
-def choose_destination(trip_id: str, country: str | None, place: str | None) -> None:
+def choose_destination(trip_id: str, country: str | None, place: str | None, **more) -> None:
     """Store the chosen country and place on a trip made through the API (POST /trips cannot set them)."""
     from app.main import app
     from app.routers import deps
@@ -20,7 +20,7 @@ def choose_destination(trip_id: str, country: str | None, place: str | None) -> 
     store = app.dependency_overrides.get(deps.get_trips, deps.get_trips)()
     for (owner, id_), trip in list(store._trips.items()):
         if id_ == trip_id:
-            store.save_trip(owner, trip.model_copy(update={"country": country, "place": place}))
+            store.save_trip(owner, trip.model_copy(update={"country": country, "place": place, **more}))
 
 
 def create_trip(client, **changes) -> str:
@@ -28,6 +28,8 @@ def create_trip(client, **changes) -> str:
     from app.trips.destination_match import best_match
 
     body = trip_body(**changes)
-    trip_id = client.post("/trips", json=body).json()["id"]
-    choose_destination(trip_id, *(best_match(body["destination"]) or (None, None)))
+    match = best_match(body["destination"])
+    # POST /trips only takes places search returned: an unmatched text is stored on a starter trip afterwards.
+    trip_id = client.post("/trips", json=body if match else {**body, "destination": "Lisbon"}).json()["id"]
+    choose_destination(trip_id, *(match or (None, None)), **({} if match else {"destination": body["destination"]}))
     return trip_id

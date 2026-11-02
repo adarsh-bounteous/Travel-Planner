@@ -23,6 +23,7 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
   const navigate = useNavigate()
   const { savedIds, toggle, pendingIds, panel } = useSavedPlaces()
   const [view, setView] = useState<TripRecommendations | null>(null)
+  const [attempt, setAttempt] = useState(0)
   const [local, setLocal] = useState(false)
   const [localKnown, setLocalKnown] = useState(false)
   const [detailsOf, setDetailsOf] = useState<Place | null>(null)
@@ -45,7 +46,12 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
     return () => {
       current = false
     }
-  }, [tripId])
+  }, [tripId, attempt])
+
+  const retry = () => {
+    setView(null)
+    setAttempt((n) => n + 1)
+  }
 
   const toggleInterest = (interest: string) =>
     setSelected((now) => {
@@ -75,7 +81,13 @@ export function TripRecommendationsTab({ tripId, interests, onBack }: Props) {
           ))}
         </div>
       ) : (
-        <DestinationGate tripId={tripId} destination={view.destination} status={view.status}>
+        <DestinationGate
+          tripId={tripId}
+          destination={view.destination}
+          status={view.status}
+          feature="recommendations"
+          onRetry={retry}
+        >
           <PlacesSourceNote places={recs.flatMap((r) => (r.place ? [r.place] : []))} />
           {detailsOf && <PlaceDetails place={detailsOf} onClose={() => setDetailsOf(null)} />}
           {interests.length > 0 && (

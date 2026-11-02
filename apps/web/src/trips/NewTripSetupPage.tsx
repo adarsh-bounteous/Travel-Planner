@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { AlertIcon, ArrowLeftIcon, ArrowRightIcon, CheckIcon, EditIcon } from '../auth/icons'
 import type { Place } from '../places/api'
-import { addPlaceToTrip, createTrip, fetchProfile, saveProfile } from './api'
+import { ValidationError, addPlaceToTrip, createTrip, fetchProfile, saveProfile } from './api'
 import type { Profile } from './api'
 import { DestinationPicker } from './DestinationPicker'
 import { FieldError } from './FieldError'
@@ -32,6 +32,8 @@ const SUMMARY_LABELS: Record<keyof TripBasicsErrors, string> = {
   name: 'Trip name',
 }
 
+const NOT_FROM_SEARCH = "That place wasn't in the search results. Search again and pick one."
+
 /** Today as an ISO date in the traveller's own time zone. */
 const today = () => new Date().toLocaleDateString('en-CA')
 
@@ -41,8 +43,15 @@ const today = () => new Date().toLocaleDateString('en-CA')
  */
 export function NewTripSetupPage() {
   const navigate = useNavigate()
-  const addPlace = (useLocation().state as { addPlace?: Place } | null)?.addPlace
-  const [values, setValues] = useState(EMPTY)
+  const launched = useLocation().state as {
+    addPlace?: Place
+    destination?: string
+    placeRef?: string
+  } | null
+  const addPlace = launched?.addPlace
+  const [values, setValues] = useState<TripBasics>({ ...EMPTY, destination: launched?.destination ?? '' })
+  const [placeRef, setPlaceRef] = useState(launched?.placeRef)
+  const [refused, setRefused] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [blocked, setBlocked] = useState(0)
   const [pending, setPending] = useState(false)
@@ -55,6 +64,7 @@ export function NewTripSetupPage() {
 
   // Errors only appear after the first Finish, then follow the inputs.
   const errors: TripBasicsErrors = submitted ? validateTripBasics(values, today()) : {}
+  if (refused && !errors.destination) errors.destination = NOT_FROM_SEARCH
   const invalid = Object.keys(errors) as (keyof TripBasicsErrors)[]
 
   useEffect(() => {
@@ -91,9 +101,15 @@ export function NewTripSetupPage() {
         traveller_count: Number(values.travellers),
         budget: Number(values.budget),
         currency: values.currency,
+        ...(placeRef ? { place_ref: placeRef } : {}),
       })
-    } catch {
-      setFailed(true)
+    } catch (error) {
+      if (error instanceof ValidationError && error.code === 'place_not_from_search') {
+        setRefused(true)
+        setBlocked((n) => n + 1)
+      } else {
+        setFailed(true)
+      }
       setPending(false)
       return
     }
@@ -190,7 +206,11 @@ export function NewTripSetupPage() {
           <DestinationPicker
             idPrefix="setup"
             value={values.destination}
-            onChange={(destination) => setValues((prev) => ({ ...prev, destination }))}
+            onChange={(destination, ref) => {
+              setValues((prev) => ({ ...prev, destination }))
+              setPlaceRef(ref)
+              setRefused(false)
+            }}
             error={errors.destination}
           />
           <div className="stack stack-sm">

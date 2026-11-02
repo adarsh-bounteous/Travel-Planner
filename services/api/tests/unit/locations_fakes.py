@@ -54,3 +54,43 @@ class FakeResolver:
         if self.failure:
             return None
         return LISBON
+
+
+def _candidate(name: str, country: str, region: str, code: str, lat: float, lng: float):
+    from app.places.destination_search import LiveCandidate
+
+    return LiveCandidate(
+        name=name,
+        country=country,
+        region=region,
+        location=ResolvedLocation(
+            name=f"{name}, {region}, {country}",
+            country_code=code,
+            lat=lat,
+            lng=lng,
+            time_zone="Asia/Kolkata",
+            bbox=BoundingBox(south=lat - 0.1, north=lat + 0.1, west=lng - 0.1, east=lng + 0.1),
+        ),
+    )
+
+
+AGRA = _candidate("Agra", "India", "Uttar Pradesh", "IN", 27.18, 78.01)
+JAIPUR_LIVE = _candidate("Jaipur", "India", "Rajasthan", "IN", 26.91, 75.79)
+JABALPUR = _candidate("Jabalpur", "India", "Madhya Pradesh", "IN", 23.18, 79.95)
+
+
+class FakeLiveSearch:
+    """A live city search for router tests: serves the cities whose name contains the query."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+        self.down = False
+        self.cities = [AGRA, JAIPUR_LIVE, JABALPUR]
+
+    def search(self, q):
+        from app.places.destination_search import LiveSearchUnavailable
+
+        self.calls += 1
+        if self.down:
+            raise LiveSearchUnavailable
+        return [c for c in self.cities if q.strip().casefold() in c.name.casefold()]

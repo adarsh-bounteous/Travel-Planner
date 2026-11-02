@@ -1,4 +1,8 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { render } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import App from '../App'
+import { AuthProvider } from '../auth/AuthProvider'
 import { renderAt, stubApi } from '../test-api'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -41,25 +45,37 @@ const replies = {
   'POST /trips': { status: 201, body: created },
   'GET /trips/new-id': { status: 200, body: created },
   'GET /trips': { status: 200, body: [] },
-  'GET /starter-destinations': {
+  'GET /places/search?q=Lisbon': {
     status: 200,
-    body: [
-      { name: 'Japan', places: ['Tokyo', 'Kyoto', 'Osaka'] },
-      { name: 'Portugal', places: ['Lisbon', 'Porto', 'Lagos'] },
-    ],
+    body: {
+      live: true,
+      unavailable: false,
+      matches: [{ id: 'starter:Portugal/Lisbon', name: 'Lisbon', region: 'Portugal', kind: 'starter', fullGuide: true }],
+    },
+  },
+  'GET /places/search?q=Agra': {
+    status: 200,
+    body: {
+      live: true,
+      unavailable: false,
+      matches: [{ id: 'live:agra.sig', name: 'Agra', region: 'Uttar Pradesh, India', kind: 'live', fullGuide: false }],
+    },
   },
 }
 
 const type = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
-const pickDestination = () => {
-  type('Country', 'Portugal')
-  type('Place', 'Lisbon')
+const search = (text: string) =>
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Destination' }), { target: { value: text } })
+
+const pickDestination = async () => {
+  search('Lisbon')
+  fireEvent.click(await screen.findByRole('button', { name: /Lisbon/ }))
 }
 
-function fillAll() {
-  pickDestination()
+async function fillAll() {
+  await pickDestination()
   type('Start date', '2027-03-12')
   type('End date', '2027-03-15')
   type('Number of travellers', '2')
@@ -85,7 +101,7 @@ describe('New trip set-up', () => {
     const fetchMock = stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
     const post = fetchMock.mock.calls.find(([p, init]) => p === '/trips' && init?.method === 'POST')
@@ -103,16 +119,55 @@ describe('New trip set-up', () => {
     expect(await screen.findByText('Trip created. Here are your shortlists.')).toBeInTheDocument()
   })
 
-  it('offers the destination as a dropdown, not a free-text field (AC1)', async () => {
-    stubApi(replies)
+  it('creates a trip to a live place with its signed ref (AC1, AC2)', async () => {
+    const fetchMock = stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    expect(screen.getByRole('button', { name: /destination/i })).toHaveAttribute(
-      'aria-haspopup',
-      'listbox',
+    search('Agra')
+    fireEvent.click(await screen.findByRole('button', { name: /Agra/ }))
+    type('Start date', '2027-03-12')
+    type('End date', '2027-03-15')
+    type('Number of travellers', '2')
+    type('Budget', '1800')
+    type('Trip currency', 'EUR')
+    type('Trip name', 'Agra trip')
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
+    const post = fetchMock.mock.calls.find(([p, init]) => p === '/trips' && init?.method === 'POST')
+    expect(JSON.parse(post![1]!.body as string)).toMatchObject({
+      destination: 'Agra, India',
+      place_ref: 'live:agra.sig',
+    })
+  })
+
+  it('opens with the destination and ref of a place picked on the results page', async () => {
+    stubApi(replies)
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: '/trips/new', state: { destination: 'Agra, India', placeRef: 'live:agra.sig' } }]}
+      >
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </MemoryRouter>,
     )
-    expect(screen.queryByPlaceholderText('Where are you going?')).not.toBeInTheDocument()
-    expect(screen.queryByRole('textbox', { name: 'Destination' })).not.toBeInTheDocument()
+    await toDetails()
+    expect(screen.getByRole('searchbox', { name: 'Destination' })).toHaveValue('Agra, India')
+  })
+
+  it('says so when the server did not accept the place (AC22)', async () => {
+    stubApi({
+      ...replies,
+      'POST /trips': { status: 422, body: { code: 'place_not_from_search' } },
+    })
+    renderAt('/trips/new')
+    await toDetails()
+    await fillAll()
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    expect(
+      (await screen.findAllByText("That place wasn't in the search results. Search again and pick one.")).length,
+    ).toBeGreaterThan(0)
+    expect(screen.queryByText("We couldn't save this trip. Try again.")).not.toBeInTheDocument()
   })
 
   it('does not save when nothing is chosen (AC11)', async () => {
@@ -121,7 +176,7 @@ describe('New trip set-up', () => {
     await toDetails()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(
-      await screen.findByText(/Destination: Choose a country and a place\./),
+      await screen.findByText(/Destination: Search for a city or town and pick one\./),
     ).toBeInTheDocument()
     expect(posts(fetchMock)).toHaveLength(0)
   })
@@ -145,7 +200,7 @@ describe('New trip set-up', () => {
   })
 
   it.each([
-    ['Destination', 'Choose a country and a place.'],
+    ['Destination', 'Search for a city or town and pick one.'],
     ['Start date', 'Enter a start and end date.'],
     ['Number of travellers', 'Enter the number of travellers.'],
     ['Budget', 'Enter a budget.'],
@@ -155,8 +210,8 @@ describe('New trip set-up', () => {
     const fetchMock = stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    fillAll()
-    if (label === 'Destination') type('Country', '')
+    await fillAll()
+    if (label === 'Destination') search('')
     else type(label, '')
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     const field = screen.getByLabelText(label)
@@ -171,7 +226,7 @@ describe('New trip set-up', () => {
     const fetchMock = stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    fillAll()
+    await fillAll()
     type('Number of travellers', '0')
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     const error = await screen.findByText('Enter at least one traveller, as a whole number.')
@@ -183,10 +238,10 @@ describe('New trip set-up', () => {
     stubApi({ ...replies, 'POST /trips': { status: 500 } })
     renderAt('/trips/new')
     await toDetails()
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByText("We couldn't save this trip. Try again.")).toBeInTheDocument()
-    expect(screen.getByLabelText('Place')).toHaveValue('Lisbon')
+    expect(screen.getByRole('searchbox', { name: 'Destination' })).toHaveValue('Lisbon')
     expect(screen.getByRole('button', { name: 'Finish' })).toBeEnabled()
   })
 
@@ -194,7 +249,7 @@ describe('New trip set-up', () => {
     const fetchMock = stubApi({ ...replies, 'POST /trips': { status: 500 } })
     renderAt('/trips/new')
     await toDetails()
-    pickDestination()
+    await pickDestination()
     fireEvent.click(screen.getByRole('button', { name: 'Back' }))
     const dialog = await screen.findByRole('dialog', { name: 'Leave set-up?' })
     expect(within(dialog).getByText('Your trip is not saved until you finish set-up.')).toBeInTheDocument()
@@ -208,7 +263,7 @@ describe('New trip set-up', () => {
     stubApi(replies)
     renderAt('/trips/new')
     await toDetails()
-    pickDestination()
+    await pickDestination()
     fireEvent.click(screen.getByRole('button', { name: 'Back' }))
     fireEvent.click(
       within(await screen.findByRole('dialog', { name: 'Leave set-up?' })).getByRole('button', {
@@ -216,7 +271,7 @@ describe('New trip set-up', () => {
       }),
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(screen.getByLabelText('Place')).toHaveValue('Lisbon')
+    expect(screen.getByRole('searchbox', { name: 'Destination' })).toHaveValue('Lisbon')
   })
 })
 
@@ -302,7 +357,7 @@ describe('New trip set-up profile step', () => {
     cont()
     await screen.findByLabelText('Destination')
     expect(puts(fetchMock)).toHaveLength(0)
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(
       await screen.findByText('Trip created. 3 profile answers saved for next time.'),
@@ -334,7 +389,7 @@ describe('New trip set-up profile step', () => {
     await screen.findByLabelText('Travel style')
     cont()
     await screen.findByLabelText('Destination')
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByText('Trip created. Here are your shortlists.')).toBeInTheDocument()
     expect(puts(fetchMock)).toHaveLength(0)
@@ -363,7 +418,7 @@ describe('New trip set-up profile step', () => {
     type('Residence', 'Portugal')
     cont()
     await screen.findByLabelText('Destination')
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByText("We couldn't save this trip. Try again.")).toBeInTheDocument()
     expect(puts(fetchMock)).toHaveLength(0)
@@ -377,7 +432,7 @@ describe('New trip set-up profile step', () => {
     type('Residence', 'Portugal')
     cont()
     await screen.findByLabelText('Destination')
-    fillAll()
+    await fillAll()
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
     expect(await screen.findByRole('heading', { name: 'Shortlists' })).toBeInTheDocument()
   })

@@ -31,6 +31,30 @@ describe('ExplorePage', () => {
     expect(screen.getByRole('link', { name: 'Search stays, flights and transport' })).toBeInTheDocument()
   })
 
+  it('changes the destination by searching for a city (AC1)', async () => {
+    const fetchMock = stubApi({
+      ...base,
+      'GET /places/search?q=Agra': {
+        status: 200,
+        body: {
+          live: true,
+          unavailable: false,
+          matches: [{ id: 'live:agra.sig', name: 'Agra', region: 'Uttar Pradesh, India', kind: 'live', fullGuide: false }],
+        },
+      },
+      'GET /places?destination=Agra%2C%20India': { status: 200, body: [belem] },
+    })
+    renderAt('/explore')
+    await screen.findByText('Belém Tower')
+    fireEvent.click(screen.getByRole('button', { name: 'Change destination' }))
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Destination' }), { target: { value: 'Agra' } })
+    fireEvent.click(await screen.findByRole('button', { name: /Agra/ }))
+    expect(await screen.findByText('Places in Agra, India')).toBeInTheDocument()
+    expect(await screen.findByText('Destination changed')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith('/places?destination=Agra%2C%20India', expect.anything())
+    expect(screen.queryByRole('searchbox', { name: 'Destination' })).not.toBeInTheDocument()
+  })
+
   it('filters places by name from the search field', async () => {
     const fetchMock = stubApi({
       ...base,

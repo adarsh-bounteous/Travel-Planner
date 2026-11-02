@@ -183,6 +183,13 @@ describe('ItineraryPage', () => {
       expect(screen.getByRole('link', { name })).toBeInTheDocument()
   })
 
+  it('shows Not yet planned, not an error, for a trip to a live place with no days (AC15)', async () => {
+    show({ ...empty, days: [] })
+    await screen.findByRole('heading', { level: 1, name: cover.name })
+    expect(screen.getAllByText('Not yet planned').length).toBeGreaterThanOrEqual(5)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
   it('lists an undated item under Still to schedule (AC6)', async () => {
     show(planned)
     await screen.findByRole('heading', { level: 1 })

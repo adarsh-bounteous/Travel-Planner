@@ -5,14 +5,14 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.routers import deps
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
-from tests.trip_body import trip_body
+from tests.trip_body import create_trip, trip_body
 
 FIXED = datetime(2026, 1, 1, 10, 42, tzinfo=UTC)
 
 
 def _stay(client, place="Lisbon"):
     body = trip_body(name="Trip", start_date="2027-01-01", end_date="2027-01-12", destination=place)
-    tid = client.post("/trips", json=body).json()["id"]
+    tid = create_trip(client, **body)
     stay = {"place": place, "start_date": "2027-01-01", "end_date": "2027-01-05"}
     sid = client.post(f"/trips/{tid}/stays", json=stay).json()["stays"][0]["id"]
     return tid, sid

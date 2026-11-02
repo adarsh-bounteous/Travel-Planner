@@ -16,7 +16,7 @@ def test_each_traveller_lists_only_their_own_trips(sign_in_as):
 
 def test_saved_trip_is_listed(sign_in_as):
     a = sign_in_as("a@example.com")
-    response = a.post("/trips", json=trip_body(destination="Portugal"))
+    response = a.post("/trips", json=trip_body(destination="Lisbon, Portugal"))
     assert response.status_code == 201
     assert response.json()["id"]
     assert [t["id"] for t in a.get("/trips").json()] == [response.json()["id"]]

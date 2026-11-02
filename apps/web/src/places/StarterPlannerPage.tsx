@@ -4,7 +4,7 @@ import { CheckIcon, EyeIcon, SuitcaseIcon } from '../auth/icons'
 import { Toast } from '../trips/Toast'
 import { fetchStarterDestinations } from './starterApi'
 import type { StarterCountry } from './starterApi'
-import { StarterSelect } from './StarterSelect'
+import { DestinationPicker } from '../trips/DestinationPicker'
 
 /** Where the starter planner lives; Back to trip on the content page returns here. */
 export const STARTER_PLAN_PATH = '/trips/plan'
@@ -12,14 +12,19 @@ export const STARTER_PLAN_PATH = '/trips/plan'
 type Load = { status: 'loading' } | { status: 'failed' } | { status: 'loaded'; countries: StarterCountry[] }
 type Picks = { country?: string; place?: string }
 
+const NO_STARTER_CONTENT = 'Only starter destinations have place content. You can still book this trip.'
+
 // Booking only confirms the pick; nothing is saved, so this is a short pause for the spinner, not a wait.
 const BOOKING_MS = 300
 
 export function StarterPlannerPage() {
   const [load, setLoad] = useState<Load>({ status: 'loading' })
-  const [picks, setPicks] = useState<Picks>((useLocation().state as Picks | null) ?? {})
+  const back = (useLocation().state as Picks | null) ?? {}
+  const [destination, setDestination] = useState(
+    back.country && back.place ? `${back.place}, ${back.country}` : '',
+  )
   const [booking, setBooking] = useState(false)
-  const [booked, setBooked] = useState<{ country: string; place: string; at: number } | null>(null)
+  const [booked, setBooked] = useState<{ destination: string; at: number } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -36,22 +41,21 @@ export function StarterPlannerPage() {
     if (!booking) return
     const timer = setTimeout(() => {
       setBooking(false)
-      setBooked({ country: picks.country!, place: picks.place!, at: Date.now() })
+      setBooked({ destination, at: Date.now() })
     }, BOOKING_MS)
     return () => clearTimeout(timer)
-  }, [booking, picks])
+  }, [booking, destination])
 
+  // A starter pick is "Place, Country" found in the catalogue; a live pick has no starter content.
   const countries = load.status === 'loaded' ? load.countries : []
-  const country = countries.find((c) => c.name === picks.country)
-  const place = country?.places.find((p) => p === picks.place)
+  const [pickedPlace, pickedCountry] = destination.split(', ')
+  const country = countries.find((c) => c.name === pickedCountry)
+  const place = country?.places.find((p) => p === pickedPlace)
   const ready = country && place
+  const picked = destination !== ''
 
-  const pickCountry = (name: string) => {
-    setPicks({ country: name })
-    setBooked(null)
-  }
-  const pickPlace = (name: string) => {
-    setPicks((now) => ({ ...now, place: name }))
+  const pick = (next: string) => {
+    setDestination(next)
     setBooked(null)
   }
 
@@ -65,50 +69,11 @@ export function StarterPlannerPage() {
         </div>
       )}
       <div className="card stack">
-        {load.status === 'loading' ? (
-          <div className="stack" aria-busy="true">
-            <span className="skeleton" />
-            <span className="skeleton" />
-            <span className="skeleton" />
-          </div>
-        ) : (
-          <>
-            <div className="field">
-              <span className="field-label" id="dest-label">
-                Destination
-              </span>
-              <StarterSelect
-                labelId="dest-label"
-                listLabel="Countries"
-                options={countries.map((c) => c.name)}
-                value={country?.name ?? null}
-                placeholder="Choose a country"
-                onChange={pickCountry}
-              />
-              <span className="field-hint">{countries.length} starter countries to explore.</span>
-            </div>
-            <div className="field">
-              <span className="field-label" id="place-label">
-                Place
-              </span>
-              <StarterSelect
-                labelId="place-label"
-                listLabel="Places"
-                options={country?.places ?? []}
-                value={place ?? null}
-                placeholder="Choose a place"
-                disabled={!country}
-                onChange={pickPlace}
-              />
-              <span className="field-hint">
-                {country
-                  ? country.places.length === 0
-                    ? `No starter places are available for ${country.name}.`
-                    : `${country.places.length} places in ${country.name}.`
-                  : `Pick a country first to see its ${countries[0]?.places.length ?? 3} places.`}
-              </span>
-            </div>
-          </>
+        <DestinationPicker idPrefix="plan" value={destination} onChange={pick} />
+        {destination !== '' && !ready && (
+          <p className="field-hint" role="status">
+            {NO_STARTER_CONTENT}
+          </p>
         )}
         {ready && (
           <p className="ready" role="status">
@@ -137,7 +102,7 @@ export function StarterPlannerPage() {
           <button
             className="btn btn-primary"
             type="button"
-            disabled={!ready || booking}
+            disabled={!picked || booking}
             onClick={() => setBooking(true)}
           >
             <SuitcaseIcon />
@@ -158,9 +123,13 @@ export function StarterPlannerPage() {
               <CheckIcon />
             </span>
             <p className="alert-title">
-              Trip booked: {booked.place}, {booked.country}
+              Trip booked: {booked.destination}
             </p>
-            <p>Your sample stay and activities are ready to review. View place content to see them.</p>
+            <p>
+              {ready
+                ? 'Your sample stay and activities are ready to review. View place content to see them.'
+                : 'Your pick is saved on this page. Start a trip from the results to plan it.'}
+            </p>
           </div>
           <Toast key={booked.at} message="Trip booked" />
         </>

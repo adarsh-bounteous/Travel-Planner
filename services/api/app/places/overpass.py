@@ -1,7 +1,7 @@
 from app.integrations.client import IntegrationClient
 from app.integrations.errors import IntegrationError
 from app.integrations.settings import ProviderSettings
-from app.locations.resolver import DestinationResolver
+from app.locations.resolver import DestinationResolver, ResolvedLocation
 from app.places.local_search import PLACEHOLDER_IMAGE
 from app.places.search import Category, Place, PlaceType
 
@@ -78,6 +78,21 @@ def element_to_place(element: dict) -> Place | None:
     )
 
 
+def _destination_place(location: ResolvedLocation) -> Place:
+    """The searched place itself, so a city with no tagged points of interest still has a result."""
+    return Place(
+        id=f"osm-destination-{location.lat:.4f}-{location.lng:.4f}",
+        name=location.name.split(",")[0].strip(),
+        image_url=PLACEHOLDER_IMAGE,
+        place_type="landmark",
+        lat=location.lat,
+        lng=location.lng,
+        category="sights",
+        address=location.name,
+        source="osm",
+    )
+
+
 def _query(lat: float, lng: float) -> str:
     around = f"(around:{RADIUS_METRES},{lat:.2f},{lng:.2f})"
     clauses = "".join(f"{kind}{f}[name]{around};" for f in _QUERY_FILTERS for kind in ("node", "way", "relation"))
@@ -110,4 +125,4 @@ class OsmPlaceSearch:
         except (IntegrationError, ValueError, KeyError, TypeError) as error:
             raise OsmUnavailableError(type(error).__name__) from error
         places = (element_to_place(e) for e in elements)
-        return [p for p in places if p is not None]
+        return [_destination_place(location), *(p for p in places if p is not None)]

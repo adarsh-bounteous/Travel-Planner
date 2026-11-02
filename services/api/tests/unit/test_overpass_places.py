@@ -11,7 +11,7 @@ from app.places.fallback import FallbackPlaceSearch
 from app.places.local_search import PLACEHOLDER_IMAGE
 from app.places.overpass import OsmPlaceSearch, OsmUnavailableError, element_to_place, overpass_settings
 from app.places.search import SEED_CATALOGUE, InMemoryPlaceSearch, Place
-from tests.unit.locations_fakes import FakeClock, FakeResolver
+from tests.unit.locations_fakes import LISBON, FakeClock, FakeResolver
 
 URL = "https://overpass.test/api/interpreter"
 
@@ -129,9 +129,24 @@ def test_second_search_is_cached():
     assert len(calls) == 1
 
 
-def test_search_returns_empty_when_nothing_found():
+def test_search_lists_the_destination_itself_when_it_has_no_points_of_interest():
     places, _, _ = make(lambda r: httpx.Response(200, json={"elements": []}))
-    assert places.search("Lisbon") == []
+    found = places.search("Lisbon")
+    assert [p.name for p in found] == ["Lisbon"]
+    assert (found[0].lat, found[0].lng, found[0].source) == (LISBON.lat, LISBON.lng, "osm")
+
+
+def test_destination_comes_first_then_its_points_of_interest():
+    places, _, _ = make(ok)
+    found = places.search("Lisbon")
+    assert found[0].name == "Lisbon" and len(found) == len(ALL) + 1
+
+
+def test_unresolved_destination_has_no_places():
+    places, _, _ = make(ok)
+    places._resolver.fail_with("none")
+    found = FallbackPlaceSearch(places, InMemoryPlaceSearch(SEED_CATALOGUE), lambda: date(2026, 10, 31)).search("Atlantis")
+    assert found == []
 
 
 def test_unreachable_raises():

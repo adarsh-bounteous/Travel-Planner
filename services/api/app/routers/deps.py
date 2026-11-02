@@ -23,6 +23,7 @@ from app.locations.resolver import (
 )
 from app.routers.auth import _local_identity, _set_session, get_now
 from app.integrations.client import IntegrationClient
+from app.integrations.rate_limit import RateLimiter as WindowLimiter
 from app.locations.cache import InMemoryLocationCache
 from app.places.commons import CommonsPhotos, NoPhotos, PlacePhotos, commons_settings
 from app.places.destination_search import (
@@ -460,12 +461,17 @@ def get_current_user(
     return user_id
 
 
+LIVE_SEARCH_CALLS = 3
+LIVE_SEARCH_PERIOD = 3.0
+
+
 @lru_cache
 def _destination_search() -> LiveDestinationSearch:
     settings = get_settings()
     return CachedDestinationSearch(
         NominatimDestinationSearch(settings.nominatim_base_url, settings.nominatim_user_agent),
-        RateLimiter(time.monotonic, time.sleep),
+        # About Nominatim's one request a second on average; the rest degrade to starters.
+        WindowLimiter(LIVE_SEARCH_CALLS, LIVE_SEARCH_PERIOD, time.monotonic),
         now=lambda: datetime.now(UTC),
     )
 

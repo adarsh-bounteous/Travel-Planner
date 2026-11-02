@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from app.locations.resolver import RateLimiter
+from app.integrations.rate_limit import RateLimiter as WindowLimiter
 from app.places.destination_search import (
     CachedDestinationSearch,
     LiveSearchUnavailable,
@@ -16,7 +16,7 @@ NOW = datetime(2026, 1, 1, tzinfo=UTC)
 
 def _cached(upstream, clock=None):
     clock = clock or FakeClock()
-    return CachedDestinationSearch(upstream, RateLimiter(clock.now, clock.sleep), FakeDatetimeClock())
+    return CachedDestinationSearch(upstream, WindowLimiter(3, 3.0, clock.now), FakeDatetimeClock())
 
 
 def test_same_normalised_query_is_served_from_cache():
@@ -38,18 +38,38 @@ def test_a_failure_is_not_cached():
     assert upstream.calls == 2
 
 
-def test_upstream_calls_are_spaced_one_second_apart():
+def test_a_burst_of_new_queries_is_refused_without_waiting():
+    clock = FakeClock()
+    upstream = FakeLiveSearch()
+    cached = _cached(upstream, clock)
+    for q in ("Agra", "Delhi", "Pune"):
+        cached.search(q)
+    with pytest.raises(LiveSearchUnavailable):
+        cached.search("Goa")
+    assert upstream.calls == 3
+    assert clock.sleeps == []
+
+
+def test_a_cached_query_is_served_even_when_the_budget_is_spent():
+    cached = _cached(FakeLiveSearch())
+    for q in ("Agra", "Delhi", "Pune"):
+        cached.search(q)
+    assert cached.search("Agra")
+
+
+def test_the_budget_comes_back_after_the_window():
     clock = FakeClock()
     cached = _cached(FakeLiveSearch(), clock)
-    cached.search("Agra")
-    cached.search("Delhi")
-    assert clock.sleeps == [1.0]
+    for q in ("Agra", "Delhi", "Pune"):
+        cached.search(q)
+    clock.t += 3.0
+    assert cached.search("Goa") is not None
 
 
 def test_cache_is_bounded():
     upstream = FakeLiveSearch()
     cached = CachedDestinationSearch(
-        upstream, RateLimiter(FakeClock().now, lambda s: None), FakeDatetimeClock(), size=1
+        upstream, WindowLimiter(100, 1.0, FakeClock().now), FakeDatetimeClock(), size=1
     )
     cached.search("Agra")
     cached.search("Delhi")

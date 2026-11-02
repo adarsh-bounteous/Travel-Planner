@@ -12,7 +12,8 @@ import httpx
 from pydantic import BaseModel, Field, ValidationError
 
 from app.locations.nominatim import timezone_at
-from app.locations.resolver import BoundingBox, RateLimiter, ResolvedLocation
+from app.integrations.rate_limit import RateLimiter
+from app.locations.resolver import BoundingBox, ResolvedLocation
 from app.trips.starter_destinations import STARTER_DESTINATIONS, fold
 
 logger = logging.getLogger(__name__)
@@ -119,7 +120,7 @@ class NominatimDestinationSearch:
 
 
 class CachedDestinationSearch:
-    """Serves a repeated query from memory and spaces upstream calls. A failure is never cached."""
+    """Serves a repeated query from memory and caps upstream calls, refusing the excess. A failure is never cached."""
 
     def __init__(
         self,
@@ -144,7 +145,9 @@ class CachedDestinationSearch:
             if hit is not None and self._now() - hit[0] < self._ttl:
                 self._entries.move_to_end(key)
                 return hit[1]
-        self._limiter.wait()
+            # Refuse rather than sleep: a waiting request would hold a worker thread.
+            if not self._limiter.try_acquire():
+                raise LiveSearchUnavailable
         found = self._upstream.search(key)
         with self._lock:
             self._entries[key] = (self._now(), found)

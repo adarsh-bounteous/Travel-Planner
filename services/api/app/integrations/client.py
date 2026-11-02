@@ -16,6 +16,14 @@ from app.integrations.settings import ProviderSettings
 DEFAULT_LOGGER = logging.getLogger("app.integrations")
 
 
+# `response.content` is already decoded, so these would make a cached copy undecodable or the wrong length.
+_ENCODING_HEADERS = frozenset({"content-encoding", "content-length", "transfer-encoding"})
+
+
+def _storable_headers(response: httpx.Response) -> tuple[tuple[str, str], ...]:
+    return tuple((k, v) for k, v in response.headers.items() if k.lower() not in _ENCODING_HEADERS)
+
+
 class _Provider:
     def __init__(self, settings: ProviderSettings, clock: Callable[[], float]) -> None:
         self.settings = settings
@@ -95,9 +103,7 @@ class IntegrationClient:
         if key is not None and response.is_success:
             self._cache.set(
                 key,
-                CachedResponse(
-                    response.status_code, tuple(response.headers.items()), response.content
-                ),
+                CachedResponse(response.status_code, _storable_headers(response), response.content),
                 settings.cache_ttl_seconds,
             )
         log()

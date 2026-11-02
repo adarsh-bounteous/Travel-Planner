@@ -75,6 +75,19 @@ def cache_key(country: str | None, place: str | None, destination: str | None) -
     return "|".join((part or "").strip().casefold() for part in (country, place, destination))
 
 
+class CacheOnlyResolver:
+    """Provider off: serves a result already in the cache, whatever its age; a miss is None. Makes no outside request."""
+
+    def __init__(self, cache: LocationCache) -> None:
+        self._cache = cache
+
+    def resolve(
+        self, country: str | None, place: str | None, destination: str | None
+    ) -> ResolvedLocation | None:
+        hit = self._cache.get(cache_key(country, place, destination))
+        return hit[0] if hit else None
+
+
 class CachedResolver:
     """A resolver that serves a stored result younger than `ttl` and rate-limits the upstream."""
 

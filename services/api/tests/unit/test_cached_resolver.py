@@ -101,3 +101,19 @@ def test_cache_hit_does_not_wait():
     resolver.resolve("Portugal", "Lisbon", None)
     resolver.resolve("Portugal", "Lisbon", None)
     assert limiter.waits == 1
+
+
+def test_cache_only_resolver_serves_a_cached_result():
+    from datetime import UTC, datetime
+
+    from app.locations.resolver import CacheOnlyResolver, cache_key
+
+    cache = InMemoryLocationCache()
+    cache.put(cache_key("Portugal", "Lisbon", None), LISBON, datetime(2020, 1, 1, tzinfo=UTC))  # old age still served
+    assert CacheOnlyResolver(cache).resolve("Portugal", "Lisbon", None) == LISBON
+
+
+def test_cache_only_resolver_misses_without_a_cached_result():
+    from app.locations.resolver import CacheOnlyResolver
+
+    assert CacheOnlyResolver(InMemoryLocationCache()).resolve("Portugal", "Lisbon", None) is None

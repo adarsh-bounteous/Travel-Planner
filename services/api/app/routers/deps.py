@@ -122,7 +122,7 @@ def _resolver() -> DestinationResolver:
     settings = get_settings()
     return CachedResolver(
         NominatimResolver(settings.nominatim_base_url, settings.nominatim_user_agent),
-        DynamoLocationCache(settings.trips_table_name),
+        _location_cache(),
         RateLimiter(time.monotonic, time.sleep),
         now=lambda: datetime.now(UTC),
     )

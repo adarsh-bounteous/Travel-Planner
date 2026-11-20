@@ -54,6 +54,9 @@ from app.sims.providers import InMemorySimProvider
 from app.insurance.options import InsuranceProvider
 from app.insurance.providers import SEED_CATALOGUES as INSURANCE_SEED_CATALOGUES
 from app.insurance.providers import InMemoryInsuranceProvider
+from app.visa_providers.options import VisaProvider
+from app.visa_providers.providers import SEED_CATALOGUES as VISA_SEED_CATALOGUES
+from app.visa_providers.providers import InMemoryVisaProvider
 from app.stays.options import StayProvider
 from app.stays.providers import SEED_CATALOGUES, InMemoryStayProvider
 from app.transport.options import TransportProvider
@@ -243,7 +246,12 @@ def _insurance_providers() -> list[InsuranceProvider]:
 
 
 @lru_cache
-def _stay_providers() -> list[StayProvider]:
+def _visa_providers() -> list[VisaProvider]:
+    return [InMemoryVisaProvider(name, source, catalogue) for name, (source, catalogue) in VISA_SEED_CATALOGUES.items()]
+
+
+@lru_cache
+def _stay_providers()-> list[StayProvider]:
     def clock() -> datetime:
         return datetime.now(UTC)
 
@@ -402,6 +410,10 @@ def get_restaurant_providers() -> list[RestaurantProvider]:
 
 def get_insurance_providers() -> list[InsuranceProvider]:
     return _insurance_providers()  # seeded in local mode too: no outside call
+
+
+def get_visa_providers() -> list[VisaProvider]:
+    return _visa_providers()  # seeded in local mode too: no outside call
 
 
 def get_stay_providers() -> list[StayProvider]:

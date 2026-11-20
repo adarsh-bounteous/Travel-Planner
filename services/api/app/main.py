@@ -39,6 +39,7 @@ from app.routers import (
     travel_search,
     trip_helpers,
     trips,
+    visa_providers,
 )
 from app.routers.deps import ApiError
 
@@ -68,6 +69,7 @@ app.include_router(restaurant_options.router)
 app.include_router(restaurant_picks.router)
 app.include_router(sim_options.router)
 app.include_router(insurance.router)
+app.include_router(visa_providers.router)
 app.include_router(flight_shortlist.router)
 app.include_router(transport.router)
 app.include_router(transport_picks.router)

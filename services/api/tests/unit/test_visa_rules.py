@@ -43,6 +43,14 @@ def test_unresolved_needs_the_mark_and_no_data():
     assert visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, ["t1"]).unresolved is False
 
 
+def test_a_required_visa_carries_its_type_and_the_mark():
+    source = InMemoryVisaRules({("Portugal", "China"): VisaRule(required=True)}, date(2026, 10, 20))
+    plain = visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, [])
+    marked = visa_result_for("Lisbon, Portugal", person("X", "China", "China"), source, ["t1"])
+    assert (plain.visa_type, plain.marked_self_check, plain.unresolved) == ("tourist", False, False)
+    assert (marked.marked_self_check, marked.unresolved) == (True, True)
+
+
 def test_no_data_for_a_destination_outside_the_table_still_links_somewhere():
     source = InMemoryVisaRules({}, date(2026, 10, 20))
     result = visa_result_for("Cusco, Peru", person("X", "India", "India"), source, [])

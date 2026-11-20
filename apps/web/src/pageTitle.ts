@@ -30,6 +30,7 @@ export const PAGE_NAMES: { pattern: string; name?: string }[] = [
   { pattern: '/trips/:tripId/medical-guidance', name: 'Medical guidance' },
   { pattern: '/trips/:tripId/requirements', name: 'Trip requirements' },
   { pattern: '/trips/:tripId/visa-requirements', name: 'Visa requirements' },
+  { pattern: '/trips/:tripId/visa-providers', name: 'Visa providers' },
   { pattern: '/trips/:tripId/shortlists', name: 'Shortlists' },
   { pattern: '/trips/:tripId/costs', name: 'Costs' },
   { pattern: '/trips/:tripId/itinerary', name: 'Itinerary' },

@@ -42,6 +42,7 @@ import { SharedTripPage } from './trips/SharedTripPage'
 import { ShortlistsPage } from './trips/ShortlistsPage'
 import { MedicalGuidancePage } from './trips/MedicalGuidancePage'
 import { TripRequirementsPage } from './trips/TripRequirementsPage'
+import { VisaProvidersPage } from './trips/VisaProvidersPage'
 import { VisaRequirementsPage } from './trips/VisaRequirementsPage'
 import { TripPage } from './trips/TripPage'
 
@@ -192,6 +193,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <VisaRequirementsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/trips/:tripId/visa-providers"
+            element={
+              <RequireAuth>
+                <VisaProvidersPage />
               </RequireAuth>
             }
           />

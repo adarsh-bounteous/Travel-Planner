@@ -185,6 +185,33 @@ export function VisaRequirementsPage() {
                   {row.confirm_note}
                 </p>
               )}
+              {row.status === 'required' && (
+                <div className="stack stack-sm">
+                  {row.unresolved && (
+                    <span className="badge badge-warning">
+                      <AlertIcon />
+                      Unresolved: you'll check this yourself
+                    </span>
+                  )}
+                  <div className="actions">
+                    <Link
+                      className="btn btn-primary"
+                      to={`/trips/${encodeURIComponent(tripId)}/visa-providers?traveller=${encodeURIComponent(keyOf(row))}`}
+                    >
+                      Visa provider options
+                    </Link>
+                    <button
+                      className="btn btn-ghost"
+                      type="button"
+                      aria-pressed={row.marked_self_check}
+                      onClick={() => mark(row)}
+                    >
+                      <CheckIcon />
+                      {row.marked_self_check ? 'Marked as I\'ll check myself' : "I'll check myself"}
+                    </button>
+                  </div>
+                </div>
+              )}
               {row.status === 'no_data' && (
                 <>
                   {row.official_site_url && (

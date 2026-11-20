@@ -95,6 +95,23 @@ describe('Visa requirements', () => {
     expect(screen.queryByText('No data for this route')).not.toBeInTheDocument()
   })
 
+  it('offers provider options only to a traveller who needs a visa, and never lists providers', async () => {
+    open([required, notNeeded])
+    const link = await screen.findByRole('link', { name: 'Visa provider options' })
+    expect(link.getAttribute('href')).toMatch(/\/trips\/t1\/visa-providers\?traveller=ana$/)
+    expect(screen.getAllByRole('link', { name: 'Visa provider options' })).toHaveLength(1)
+    expect(screen.queryByText('Pick and book')).not.toBeInTheDocument()
+    expect(screen.queryByText('Service fee')).not.toBeInTheDocument()
+  })
+
+  it("shows a required visa marked as I'll check myself as unresolved, still with no providers", async () => {
+    open([{ ...required, marked_self_check: true, unresolved: true }])
+    expect(await screen.findByText(/Unresolved: you'll check this yourself/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: "Marked as I'll check myself" })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByText('Pick and book')).not.toBeInTheDocument()
+    expect(screen.queryByText('Service fee')).not.toBeInTheDocument()
+  })
+
   it('shows the no-data card with the official link and no advisory', async () => {
     open([noData])
     expect(await screen.findByText('No data for this route')).toBeInTheDocument()

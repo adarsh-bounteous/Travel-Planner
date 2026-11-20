@@ -39,6 +39,7 @@ def _fallback_site(country: str) -> str:
 class VisaRule(BaseModel):
     required: bool
     by_residence: dict[str, bool] = {}  # residence -> required, overrides `required`
+    visa_type: str = "tourist"  # the trip has no purpose yet, so every rule is a tourist visa
 
 
 class VisaRuleSource(Protocol):
@@ -146,8 +147,9 @@ class VisaResult(BaseModel):
     confirm_note: str | None  # only on a real answer: required or not needed
     official_site_url: str | None  # only for no data; no destination advisory is ever carried
     marked_self_check: bool
-    unresolved: bool  # marked "I'll check myself" and still no data
+    unresolved: bool  # marked "I'll check myself" while there is no data or a visa is required
     guidance: VisaGuidance | None = None  # only on a real answer: required or not needed
+    visa_type: str | None = None  # from the rule; None while there is no rule or details are missing
 
 
 def destination_country(destination: str | None) -> str:
@@ -196,7 +198,8 @@ def visa_result_for(
         message=f"A visa is required for {country}." if required else f"No visa is needed for {country}.",
         confirm_note=CONFIRM_NOTE,
         official_site_url=None,
-        marked_self_check=False,
-        unresolved=False,
+        marked_self_check=marked and required,
+        unresolved=marked and required,
         guidance=guidance_for(country, required),
+        visa_type=rule.visa_type,
     )

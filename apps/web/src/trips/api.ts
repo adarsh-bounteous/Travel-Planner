@@ -332,6 +332,29 @@ export type VisaResult = {
   marked_self_check: boolean
   unresolved: boolean
   guidance: VisaGuidance | null
+  visa_type?: string | null
+}
+export type VisaProviderOption = {
+  id: string
+  name: string
+  source: 'web_search' | 'partner'
+  fee: string
+  currency: string
+  processing_days: number
+  offers: string | null
+  url: string
+}
+export type VisaProviderView = {
+  outcome: 'shortlist' | 'no_visa_needed' | 'no_data' | 'details_needed'
+  traveller_id: string | null
+  name: string
+  destination: DestinationRef | null
+  visa_type: string | null
+  citizenship: string
+  matching_count: number
+  providers: VisaProviderOption[]
+  message: string | null
+  official_site_url: string | null
 }
 export type VisaView = {
   destination: DestinationRef | null
@@ -821,6 +844,11 @@ export const setVisaSelfCheck = (tripId: string, key: string, checked: boolean) 
     `/trips/${encodeURIComponent(tripId)}/visa/${encodeURIComponent(key)}/self-check`,
     'PUT',
     { checked },
+  )
+
+export const fetchVisaProviders = (tripId: string, key: string) =>
+  call<VisaProviderView>(
+    `/trips/${encodeURIComponent(tripId)}/visa/${encodeURIComponent(key)}/providers`,
   )
 
 export const fetchMedicalGuidance = (tripId: string) =>

@@ -714,8 +714,8 @@ def set_visa_self_check(
     person = next((p for p in _people(trip, profile) if self_check_key(p) == traveller_key), None)
     if person is None:
         raise NOT_FOUND
-    if visa_result_for(_chosen_country(trip), person, visa_rules, []).status != "no_data":
-        raise VISA_HAS_DATA  # the mark only means something while there is no data
+    if visa_result_for(_chosen_country(trip), person, visa_rules, []).status not in ("no_data", "required"):
+        raise VISA_HAS_DATA  # the mark only means something while there is no data or a visa is required
     others = [k for k in trip.visa_self_checks if k != traveller_key]
     trip.visa_self_checks = [*others, traveller_key] if body.checked else others
     trip.updated_at = now

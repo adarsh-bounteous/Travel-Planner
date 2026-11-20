@@ -94,8 +94,21 @@ def test_a_published_rule_clears_the_unresolved_state(sign_in_as):
     a = sign_in_as("a@example.com")
     tid, ids = _trip(a, [("Ben", _d("India", "Canada"))], destination="Lisbon, Portugal")
     a.put(f"/trips/{tid}/visa/{ids['Ben']}/self-check", json={"checked": True})
-    source.publish({("Portugal", "India"): VisaRule(required=True)}, date(2026, 10, 27))
+    source.publish({("Portugal", "India"): VisaRule(required=False)}, date(2026, 10, 27))
     assert a.get(f"/trips/{tid}").json()["unresolved_visas"] == []
+
+
+def test_a_required_visa_can_be_marked_and_stays_unresolved(sign_in_as):
+    source = InMemoryVisaRules({}, date(2026, 10, 20))
+    app.dependency_overrides[get_visa_rules] = lambda: source
+    a = sign_in_as("a@example.com")
+    tid, ids = _trip(a, [("Ben", _d("India", "Canada"))], destination="Lisbon, Portugal")
+    a.put(f"/trips/{tid}/visa/{ids['Ben']}/self-check", json={"checked": True})
+    source.publish({("Portugal", "India"): VisaRule(required=True)}, date(2026, 10, 27))
+    assert a.get(f"/trips/{tid}").json()["unresolved_visas"] == ["Ben"]
+    r = a.put(f"/trips/{tid}/visa/{ids['Ben']}/self-check", json={"checked": True})
+    ben = by_name(r.json()["travellers"], "Ben")
+    assert (ben["status"], ben["marked_self_check"], ben["unresolved"]) == ("required", True, True)
 
 
 def test_a_provider_change_shows_on_the_next_view(sign_in_as):
